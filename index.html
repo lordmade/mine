@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Mapbox GL JS CSS -->
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css" rel="stylesheet">
+    <!-- Mapbox GL Directions CSS -->
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.css" type="text/css">
     <style>
         * {
             margin: 0;
@@ -478,7 +480,7 @@
     <!-- Contact Section -->
     <section id="contact">
         <h2>Contact Us</h2>
-        <div class="contact-info">
+        <div class=contact-info">
             <p><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> No. 56 Thabo Mbeki Street, Shop No. 1, Mokopane, 0600, Leseding Medical Centre</p>
             <p><i class="fas fa-mobile-alt"></i> <strong>Cell:</strong> 082 654 7040</p>
             <p><i class="fas fa-phone"></i> <strong>Tel:</strong> (015) 491 1122</p>
@@ -487,7 +489,18 @@
             <p><i class="fas fa-envelope"></i> <strong>Email:</strong> <a href="mailto:gavazabaloyi1@gmail.com">gavazabaloyi1@gmail.com</a></p>
             <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Mon-Fri: 9 AM - 5 PM, Sat: 9 AM - 1 PM</p>
         </div>
-       
+        <div class="contact-form">
+            <h3>Send Us a Message</h3>
+            <form action="https://formspree.io/f/your-form-id" method="POST">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                <label for="message">Message:</label>
+                <textarea id="message" name="message" rows="4" required></textarea>
+                <button type="submit">Send</button>
+            </form>
+        </div>
         <div id="map"></div>
     </section>
 
@@ -509,8 +522,9 @@
         </div>
     </div>
 
-    <!-- Mapbox GL JS Script -->
+    <!-- Mapbox GL JS and Directions Scripts -->
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js"></script>
     <script>
         // Mapbox Access Token
         mapboxgl.accessToken = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
@@ -523,8 +537,20 @@
             zoom: 10
         });
 
-        // Variables for markers and line
-        let userMarker, destinationMarker, routeLine;
+        // Initialize Mapbox Directions
+        const directions = new MapboxDirections({
+            accessToken: mapboxgl.accessToken,
+            unit: 'metric',
+            profile: 'mapbox/driving',
+            interactive: false, // Prevent user from changing waypoints on map
+            controls: {
+                inputs: false, // Disable input fields
+                instructions: false // Disable route instructions
+            }
+        });
+
+        // Variables for markers
+        let userMarker, destinationMarker;
         const locationRequest = document.querySelector('.location-request');
         const enableLocationBtn = document.querySelector('#enable-location');
 
@@ -533,6 +559,9 @@
             .setLngLat([29.0105, -24.1857])
             .setPopup(new mapboxgl.Popup().setHTML('<h3>Leseding Medical Centre</h3><p>No. 56 Thabo Mbeki Street, Mokopane</p>'))
             .addTo(map);
+
+        // Add Directions control to map
+        map.addControl(directions, 'top-left');
 
         // Automatically fetch geolocation
         function getUserLocation() {
@@ -548,45 +577,9 @@
                             .setPopup(new mapboxgl.Popup().setHTML('<h3>Your Location</h3>'))
                             .addTo(map);
 
-                        // Draw line between user and destination
-                        if (!routeLine) {
-                            map.on('load', () => {
-                                map.addSource('route', {
-                                    type: 'geojson',
-                                    data: {
-                                        type: 'Feature',
-                                        properties: {},
-                                        geometry: {
-                                            type: 'LineString',
-                                            coordinates: [userCoords, [29.0105, -24.1857]]
-                                        }
-                                    }
-                                });
-
-                                map.addLayer({
-                                    id: 'route',
-                                    type: 'line',
-                                    source: 'route',
-                                    layout: {
-                                        'line-join': 'round',
-                                        'line-cap': 'round'
-                                    },
-                                    paint: {
-                                        'line-color': '#4682B4',
-                                        'line-width': 2
-                                    }
-                                });
-                            });
-                        } else {
-                            map.getSource('route').setData({
-                                type: 'Feature',
-                                properties: {},
-                                geometry: {
-                                    type: 'LineString',
-                                    coordinates: [userCoords, [29.0105, -24.1857]]
-                                }
-                            });
-                        }
+                        // Set origin and destination for the route
+                        directions.setOrigin(userCoords); // User's location
+                        directions.setDestination([29.0105, -24.1857]); // Leseding Medical Centre
 
                         // Hide location request if shown
                         locationRequest.classList.remove('active');
