@@ -22,8 +22,7 @@
         body {
             font-family: 'Poppins', sans-serif;
             color: #333;
-            background: url('images/dental-pattern.jpg') repeat;
-            background-color: #ADD8E6; /* Fallback color */
+            background-color: #f8f9fa;
             line-height: 1.6;
         }
 
@@ -31,7 +30,7 @@
         header {
             position: sticky;
             top: 0;
-            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent for background visibility */
+            background-color: #fff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
             padding: 1rem 0;
@@ -50,10 +49,11 @@
             font-size: 1.5rem;
             font-weight: 600;
             color: #4682B4;
+            /* Placeholder for logo image; replace with custom logo if generated */
             background: url('images/dr-mg-nkuna-logo.png') no-repeat center/contain;
             width: 150px;
             height: 50px;
-            text-indent: -9999px;
+            text-indent: -9999px; /* Hides text if image is used */
         }
 
         nav ul {
@@ -77,12 +77,13 @@
         .hero {
             position: relative;
             height: 100vh;
-            background: linear-gradient(rgba(70, 130, 180, 0.7), rgba(173, 216, 230, 0.7)), url('images/dental-office.jpg') no-repeat center/cover;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('images/dental-office.jpg') no-repeat center/cover;
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
             color: white;
+            background-color: #ADD8E6;
         }
 
         .hero-content {
@@ -119,14 +120,12 @@
             padding: 5rem 2rem;
             max-width: 1200px;
             margin: 0 auto;
-            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white for readability */
-            border-radius: 10px;
             opacity: 0;
             animation: fadeIn 1s ease-in forwards;
         }
 
         section:nth-child(even) {
-            background-color: rgba(230, 240, 250, 0.9);
+            background-color: #E6F0FA;
         }
 
         h2 {
@@ -152,7 +151,7 @@
         }
 
         .service-item {
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: white;
             padding: 2rem;
             border-radius: 10px;
             text-align: center;
@@ -183,7 +182,7 @@
         .contact-info {
             max-width: 600px;
             margin: 0 auto;
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: white;
             padding: 2rem;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -279,7 +278,7 @@
         <div class="hero-content">
             <h1>Welcome to Dr. M.G Nkuna</h1>
             <p>Your Trusted Dentist in Mokopane</p>
-            <a href="#contact" class="btn">Get in Touch</a>
+            <a href="#contact" class="btn">Get in Touch Now</a>
         </div>
     </section>
 
