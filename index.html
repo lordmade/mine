@@ -7,6 +7,8 @@
     <meta name="keywords" content="Mokopane dentist, dental care, Dr. M.G Nkuna, Leseding Medical Centre, dental services">
     <meta name="author" content="Dr. M.G Nkuna">
     <title>Dr. M.G Nkuna - Modern Dental Care in Mokopane</title>
+    <!-- Preload Google Fonts -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" as="style">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <!-- Font Awesome for Icons -->
@@ -50,13 +52,12 @@
         }
 
         .logo {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #4682B4;
-            background: url('images/dr-mg-nkuna-logo.png') no-repeat center/contain;
+            font-size: 0;
+        }
+
+        .logo img {
             width: 150px;
             height: 50px;
-            text-indent: -9999px;
         }
 
         .nav-menu {
@@ -152,6 +153,9 @@
             text-decoration: none;
             border-radius: 25px;
             transition: background-color 0.3s ease, transform 0.3s ease;
+            min-width: 44px;
+            min-height: 44px;
+            line-height: 1.5;
         }
 
         .btn:hover {
@@ -240,14 +244,14 @@
             padding: 2rem;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            text-align: left;
         }
 
         .contact-card p {
             margin: 0.5rem 0;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
         }
 
         .contact-card i {
@@ -258,6 +262,7 @@
         .contact-card a {
             color: #4682B4;
             text-decoration: none;
+            font-size: 1rem;
         }
 
         .contact-card a:hover {
@@ -311,6 +316,9 @@
             border-radius: 25px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            min-width: 44px;
+            min-height: 44px;
+            line-height: 1.5;
         }
 
         .location-request-content button:hover {
@@ -342,12 +350,25 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
+            body {
+                font-size: 16px; /* Minimum font size for accessibility */
+            }
+
+            .hero {
+                height: 70vh;
+            }
+
             .hero h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
 
             .hero p {
-                font-size: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                padding: 0.6rem 1.5rem;
+                font-size: 0.9rem;
             }
 
             .nav-menu {
@@ -360,28 +381,51 @@
                 background-color: #fff;
                 padding: 1rem;
                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                transition: opacity 0.3s ease, transform 0.3s ease;
+                opacity: 0;
+                transform: translateY(-10px);
             }
 
             .nav-menu.active {
                 display: flex;
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .nav-menu a {
+                padding: 0.5rem 0;
+                font-size: 1.1rem;
             }
 
             .menu-toggle {
                 display: block;
+                font-size: 2rem;
+                padding: 0.5rem;
             }
 
-            section {
-                padding: 3rem 1rem;
-            }
-
-            .logo {
+            .logo img {
                 width: 120px;
                 height: 40px;
             }
 
             .contact-container {
                 flex-direction: column;
-                align-items: center;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .contact-card {
+                min-width: 100%;
+                padding: 1.5rem;
+            }
+
+            #map {
+                height: 300px;
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
             }
         }
     </style>
@@ -390,7 +434,9 @@
     <!-- Header -->
     <header>
         <nav>
-            <div class="logo">Dr. M.G Nkuna</div>
+            <a href="#home" class="logo">
+                <img src="images/dr-mg-nkuna-logo.png" alt="Dr. M.G Nkuna Logo">
+            </a>
             <div class="menu-toggle">☰</div>
             <ul class="nav-menu">
                 <li><a href="#home">Home</a></li>
@@ -405,13 +451,31 @@
     <section id="home" class="hero">
         <div class="carousel">
             <div class="carousel-slide active">
-                <img src="https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?uid=R191095384&ga=GA1.1.597088305.1748952522&semt=ais_items_boosted&w=740" alt="Dentist treating patient">
+                <img 
+                    src="https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=626" 
+                    srcset="https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=626 626w, 
+                            https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=338 338w" 
+                    sizes="(max-width: 768px) 338px, 626px" 
+                    alt="Dentist treating patient" 
+                    loading="lazy">
             </div>
             <div class="carousel-slide">
-                <img src="https://img.freepik.com/premium-photo/portrait-smiling-female-dentist-examining-boys-teeth_13339-66678.jpg?uid=R191095384&ga=GA1.1.597088305.1748952522&semt=ais_items_boosted&w=740" alt="Dental care scene">
+                <img 
+                    src="https://img.freepik.com/premium-photo/portrait-smiling-female-dentist-examining-boys-teeth_13339-66678.jpg?size=626" 
+                    srcset="https://img.freepik.com/premium-photo/portrait-smiling-female-dentist-examining-boys-teeth_13339-66678.jpg?size=626 626w, 
+                            https://img.freepik.com/premium-photo/portrait-smiling-female-dentist-examining-boys-teeth_13339-66678.jpg?size=338 338w" 
+                    sizes="(max-width: 768px) 338px, 626px" 
+                    alt="Dental care scene" 
+                    loading="lazy">
             </div>
             <div class="carousel-slide">
-                <img src="https://img.freepik.com/premium-photo/happy-patient-with-toothbrush-dental-mold_926199-3949259.jpg?uid=R191095384&ga=GA1.1.597088305.1748952522&semt=ais_items_boosted&w=740" alt="Dental equipment">
+                <img 
+                    src="https://img.freepik.com/premium-photo/happy-patient-with-toothbrush-dental-mold_926199-3949259.jpg?size=626" 
+                    srcset="https://img.freepik.com/premium-photo/happy-patient-with-toothbrush-dental-mold_926199-3949259.jpg?size=626 626w, 
+                            https://img.freepik.com/premium-photo/happy-patient-with-toothbrush-dental-mold_926199-3949259.jpg?size=338 338w" 
+                    sizes="(max-width: 768px) 338px, 626px" 
+                    alt="Dental equipment" 
+                    loading="lazy">
             </div>
         </div>
         <div class="hero-content">
@@ -462,17 +526,16 @@
                 <p><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> No. 56 Thabo Mbeki Street, Shop No. 1, Mokopane, 0600, Leseding Medical Centre</p>
                 <p><i class="fas fa-mobile-alt"></i> <strong>Cell:</strong> 082 654 7040</p>
                 <p><i class="fas fa-phone"></i> <strong>Tel:</strong><a href="tel:+27154911122"> (015) 491 1122</a></p>
-                 <p><i class="fas fa-ambulance"></i> <strong>Emergency:</strong> 082 662 3646</p>
+                <p><i class="fas fa-ambulance"></i> <strong>Emergency:</strong> 082 662 3646</p>
                 <p><i class="fas fa-envelope"></i> <strong>Email:</strong> <a href="mailto:gavazabaloyi1@gmail.com">gavazabaloyi1@gmail.com</a></p>
             </div>
             <div class="contact-card">
-               
                 <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Mon: 9 AM - 5 PM</p>
-                 <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Tue: 9 AM - 5 PM</p>
-                 <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Wed: 9 AM - 5 PM</p>
-                 <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Thur: 9 AM - 5 PM</p>
-                 <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Fri: 9 AM - 5 PM</p>
-                 <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Sat: 9 AM - 1 PM</p>
+                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Tue: 9 AM - 5 PM</p>
+                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Wed: 9 AM - 5 PM</p>
+                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Thur: 9 AM - 5 PM</p>
+                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Fri: 9 AM - 5 PM</p>
+                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Sat: 9 AM - 1 PM</p>
             </div>
         </div>
         <div id="map"></div>
@@ -516,10 +579,10 @@
             accessToken: mapboxgl.accessToken,
             unit: 'metric',
             profile: 'mapbox/driving',
-            interactive: false, // Prevent user from changing waypoints on map
+            interactive: false,
             controls: {
-                inputs: false, // Disable input fields
-                instructions: false // Disable route instructions
+                inputs: false,
+                instructions: false
             }
         });
 
@@ -552,8 +615,8 @@
                             .addTo(map);
 
                         // Set origin and destination for the route
-                        directions.setOrigin(userCoords); // User's location
-                        directions.setDestination([29.0105, -24.1857]); // Leseding Medical Centre
+                        directions.setOrigin(userCoords);
+                        directions.setDestination([29.0105, -24.1857]);
 
                         // Hide location request if shown
                         locationRequest.classList.remove('active');
@@ -610,6 +673,13 @@
 
         menuToggle.addEventListener('click', () => {
             navMenu.classList.toggle('active');
+        });
+
+        // Close menu on link click
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+            });
         });
     </script>
 </body>
