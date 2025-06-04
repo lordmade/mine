@@ -277,6 +277,30 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
+        /* Route Info */
+        .route-info {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 1rem;
+            text-align: center;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .route-info p {
+            margin: 0.5rem 0;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .route-info i {
+            color: #4682B4;
+            margin-right: 0.5rem;
+        }
+
         /* Location Request Overlay */
         .location-request {
             display: none;
@@ -423,6 +447,10 @@
                 height: 300px;
             }
 
+            .route-info {
+                margin: 1rem;
+            }
+
             @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
@@ -539,6 +567,10 @@
             </div>
         </div>
         <div id="map"></div>
+        <div class="route-info" id="route-info">
+            <p><i class="fas fa-ruler"></i> <strong>Distance:</strong> <span id="distance">Calculating...</span></p>
+            <p><i class="fas fa-clock"></i> <strong>Travel Time:</strong> <span id="duration">Calculating...</span></p>
+        </div>
     </section>
 
     <!-- Footer -->
@@ -590,6 +622,9 @@
         let userMarker, destinationMarker;
         const locationRequest = document.querySelector('.location-request');
         const enableLocationBtn = document.querySelector('#enable-location');
+        const routeInfo = document.querySelector('#route-info');
+        const distanceElement = document.querySelector('#distance');
+        const durationElement = document.querySelector('#duration');
 
         // Add destination marker
         destinationMarker = new mapboxgl.Marker({ color: '#4682B4' })
@@ -599,6 +634,20 @@
 
         // Add Directions control to map
         map.addControl(directions, 'top-left');
+
+        // Display route distance and duration
+        directions.on('route', (e) => {
+            const route = e.route[0];
+            if (route) {
+                const distance = (route.distance / 1000).toFixed(1); // Convert to kilometers
+                const duration = Math.round(route.duration / 60); // Convert to minutes
+                distanceElement.textContent = `${distance} km`;
+                durationElement.textContent = `${duration} minutes`;
+                routeInfo.style.display = 'block';
+            } else {
+                routeInfo.style.display = 'none';
+            }
+        });
 
         // Automatically fetch geolocation
         function getUserLocation() {
@@ -624,10 +673,12 @@
                     () => {
                         // Show location request overlay if geolocation is off
                         locationRequest.classList.add('active');
+                        routeInfo.style.display = 'none';
                     }
                 );
             } else {
                 alert('Geolocation is not supported by this browser.');
+                routeInfo.style.display = 'none';
             }
         }
 
