@@ -51,19 +51,6 @@
             padding: 0 2rem;
         }
 
-        .logo {
-            font-size: 0;
-        }
-
-        .logo img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            display: block;
-            clip-path: circle(50% at 50% 50%);
-        }
-
         .nav-menu {
             list-style: none;
             display: flex;
@@ -134,6 +121,23 @@
             padding: 2rem;
             border-radius: 10px;
             animation: fadeIn 1s ease-in;
+        }
+
+        .hero-logo {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            z-index: 2;
+        }
+
+        .hero-logo img {
+            width: 100%;
+            height: auto;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
         }
 
         .hero-image {
@@ -259,9 +263,9 @@
         .about-image img {
             width: 200px;
             height: 200px;
-            border-radius: 50%;
             object-fit: cover;
             display: block;
+            clip-path: polygon(50% 0%, 65% 20%, 75% 40%, 85% 60%, 75% 80%, 60% 90%, 40% 90%, 25% 80%, 15% 60%, 25% 40%, 35% 20%);
         }
 
         /* Benefits Section with Graphics */
@@ -625,14 +629,6 @@
                 padding: 0.5rem;
             }
 
-            .logo img {
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                object-fit: cover;
-                clip-path: circle(50% at 50% 50%);
-            }
-
             .contact-container {
                 flex-direction: column;
                 align-items: stretch;
@@ -662,6 +658,11 @@
                 height: 150px;
             }
 
+            .hero-logo {
+                width: 80px;
+                top: 10px;
+            }
+
             .hero-image {
                 max-width: 300px;
                 bottom: 10px;
@@ -687,9 +688,6 @@
     <!-- Header -->
     <header>
         <nav>
-            <a href="#home" class="logo">
-                <img src="nkuna.jpeg" alt="Dr. M.G Nkuna Logo">
-            </a>
             <div class="menu-toggle">☰</div>
             <ul class="nav-menu">
                 <li><a href="#home">Home</a></li>
@@ -703,6 +701,9 @@
 
     <!-- Hero Section with Graphics -->
     <section id="home" class="hero">
+        <div class="hero-logo">
+            <img src="nkuna.jpeg" alt="Dr. M.G Nkuna Logo">
+        </div>
         <div class="hero-content">
             <h1>Welcome to Dr. M.G Nkuna</h1>
             <p>Your Trusted Dentist in Mokopane</p>
@@ -742,7 +743,7 @@
                     <li>Easy Online Appointment Booking</li>
                     <li>Experienced and Caring Dentists</li>
                 </ul>
-               
+                <a href="#contact" class="btn">Book an Appointment</a>
             </div>
         </div>
     </section>
