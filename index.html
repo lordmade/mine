@@ -89,11 +89,24 @@
             color: #4682B4;
         }
 
-        /* Hero Section */
+        /* Hero Section with Graphics */
         .hero {
             position: relative;
             height: 100vh;
             overflow: hidden;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=626') no-repeat center center/cover;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%234682B4' fill-opacity='0.1' d='M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,85.3C672,75,768,85,864,106.7C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom;
+            background-size: cover;
+            z-index: 1;
         }
 
         .carousel {
@@ -127,7 +140,8 @@
         }
 
         .hero-content {
-            position: absolute;
+            position: relative;
+            z-index: 2;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -187,9 +201,22 @@
             text-align: center;
         }
 
-        /* About Section */
+        /* About Section with Graphics */
         #about {
             background-color: #E6F0FA;
+            position: relative;
+        }
+
+        #about::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ADD8E6' fill-opacity='0.1' d='M0,160L48,176C96,192,192,224,288,224C384,224,480,192,576,176C672,160,768,160,864,176C960,192,1056,224,1152,240C1248,256,1344,256,1392,256L1440,256V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0Z'%3E%3C/path%3E%3C/svg%3E") no-repeat top left;
+            background-size: 100% auto;
+            z-index: 0;
         }
 
         .about-card {
@@ -204,6 +231,20 @@
             margin: 0 auto;
             gap: 2rem;
             flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .about-card::after {
+            content: '';
+            position: absolute;
+            top: 10%;
+            right: 5%;
+            width: 50px;
+            height: 50px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234682B4'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E") no-repeat;
+            opacity: 0.3;
+            animation: float 3s infinite ease-in-out;
         }
 
         .about-text {
@@ -221,6 +262,87 @@
             border-radius: 50%;
             object-fit: cover;
             display: block;
+        }
+
+        /* Benefits Section with Graphics */
+        #benefits {
+            background-color: #fff;
+            position: relative;
+        }
+
+        #benefits::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ADD8E6' fill-opacity='0.1' d='M0,160L48,176C96,192,192,224,288,224C384,224,480,192,576,176C672,160,768,160,864,176C960,192,1056,224,1152,240C1248,256,1344,256,1392,256L1440,256V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom right;
+            background-size: 100% auto;
+            z-index: 0;
+        }
+
+        .benefits-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            margin: 0 auto;
+            gap: 2rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .benefits-card::after {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 5%;
+            width: 50px;
+            height: 50px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234682B4'%3E%3Cpath d='M9 16.2l-3.5-3.5c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l4.59 4.59c.39.39 1.02.39 1.41 0L20.5 7.91c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0L9 16.2z'/%3E%3C/svg%3E") no-repeat;
+            opacity: 0.3;
+            animation: float 3s infinite ease-in-out;
+        }
+
+        .benefits-image {
+            flex: 0 0 200px;
+        }
+
+        .benefits-image img {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .benefits-text {
+            flex: 1;
+            text-align: left;
+        }
+
+        .benefits-text ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .benefits-text ul li {
+            margin-bottom: 1rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .benefits-text ul li::before {
+            content: '✔';
+            color: #4682B4;
+            position: absolute;
+            left: 0;
         }
 
         /* Services Section */
@@ -241,11 +363,24 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
         }
 
         .service-item:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .service-item::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ADD8E6'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3C/svg%3E") no-repeat;
+            opacity: 0.2;
         }
 
         .service-item i {
@@ -388,6 +523,20 @@
             color: white;
             text-align: center;
             padding: 1rem;
+            position: relative;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23E6F0FA'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E") no-repeat;
+            opacity: 0.3;
+            animation: rotate 4s infinite linear;
         }
 
         footer a {
@@ -403,6 +552,16 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes rotate {
+            from { transform: translateX(-50%) rotate(0deg); }
+            to { transform: translateX(-50%) rotate(360deg); }
         }
 
         /* Responsive Design */
@@ -487,14 +646,21 @@
                 margin: 1rem;
             }
 
-            .about-card {
+            .about-card, .benefits-card {
                 flex-direction: column;
                 text-align: center;
             }
 
-            .about-image img {
+            .about-image img, .benefits-image img {
                 width: 150px;
                 height: 150px;
+            }
+
+            .about-card::after,
+            .benefits-card::after,
+            .service-item::before,
+            footer::before {
+                display: none;
             }
 
             @keyframes fadeIn {
@@ -509,12 +675,13 @@
     <header>
         <nav>
             <a href="#home" class="logo">
-                 <img src="nkuna1.png" alt="Dr. M.G Nkuna Logo">
+                <img src="nkuna.jpeg" alt="Dr. M.G Nkuna Logo">
             </a>
             <div class="menu-toggle">☰</div>
             <ul class="nav-menu">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#about">About</a></li>
+                <li><a href="#benefits">Benefits</a></li>
                 <li><a href="#services">Services</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
@@ -568,6 +735,27 @@
             </div>
             <div class="about-image">
                 <img src="https://img.freepik.com/premium-photo/portrait-smiling-female-dentist-examining-boys-teeth_13339-66678.jpg?size=626" alt="Dr. M.G Nkuna Team">
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="benefits">
+        <h2>Benefits of Our Dental Services</h2>
+        <div class="benefits-card">
+            <div class="benefits-image">
+                <img src="https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=626" alt="Dental Benefits">
+            </div>
+            <div class="benefits-text">
+                <p>Your Path to a Healthier Smile:</p>
+                <ul>
+                    <li><strong>10+ Skilled Doctors</strong></li>
+                    <li><strong>99% Patient Satisfaction</strong></li>
+                    <li><strong>20K+ Appointments Booked</strong></li>
+                    <li>Easy Online Appointment Booking</li>
+                    <li>Experienced and Caring Dentists</li>
+                </ul>
+               
             </div>
         </div>
     </section>
