@@ -94,7 +94,7 @@
             position: relative;
             height: 100vh;
             overflow: hidden;
-            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=626') no-repeat center center/cover;
+            background: linear-gradient(135deg, #E6F0FA 0%, #ADD8E6 100%);
         }
 
         .hero::before {
@@ -104,39 +104,22 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%234682B4' fill-opacity='0.1' d='M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,85.3C672,75,768,85,864,106.7C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%234682B4' fill-opacity='0.3' d='M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,85.3C672,75,768,85,864,106.7C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0Z'%3E%3C/path%3E%3Cpath fill='%23ADD8E6' fill-opacity='0.2' d='M0,160L48,176C96,192,192,224,288,224C384,224,480,192,576,176C672,160,768,160,864,176C960,192,1056,224,1152,240C1248,256,1344,256,1392,256L1440,256V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0Z'%3E%3C/path%3E%3C/svg%3E") no-repeat center;
             background-size: cover;
             z-index: 1;
+            animation: waveMove 10s infinite linear;
         }
 
-        .carousel {
-            position: relative;
-            height: 100%;
-            width: 100%;
-        }
-
-        .carousel-slide {
+        .hero::after {
+            content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            transform: translateX(100%);
-            transition: transform 0.5s ease-in-out;
-        }
-
-        .carousel-slide.active {
-            transform: translateX(0);
-        }
-
-        .carousel-slide.exit {
-            transform: translateX(-100%);
-        }
-
-        .carousel-slide img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            top: 20%;
+            left: 10%;
+            width: 150px;
+            height: 150px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234682B4'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3Ccircle cx='12' cy='12' r='5' fill='%23ADD8E6'/%3E%3C/svg%3E") no-repeat;
+            opacity: 0.5;
+            animation: float 3s infinite ease-in-out;
         }
 
         .hero-content {
@@ -146,8 +129,8 @@
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            color: white;
-            background: rgba(0, 0, 0, 0.5);
+            color: #333;
+            background: rgba(255, 255, 255, 0.8);
             padding: 2rem;
             border-radius: 10px;
             animation: fadeIn 1s ease-in;
@@ -156,11 +139,13 @@
         .hero h1 {
             font-size: 3rem;
             margin-bottom: 1rem;
+            color: #4682B4;
         }
 
         .hero p {
             font-size: 1.2rem;
             margin-bottom: 2rem;
+            color: #333;
         }
 
         .btn {
@@ -564,6 +549,12 @@
             to { transform: translateX(-50%) rotate(360deg); }
         }
 
+        @keyframes waveMove {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+            100% { transform: translateY(0); }
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             body {
@@ -659,6 +650,7 @@
             .about-card::after,
             .benefits-card::after,
             .service-item::before,
+            .hero::after,
             footer::before {
                 display: none;
             }
@@ -688,37 +680,8 @@
         </nav>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Hero Section with Graphics -->
     <section id="home" class="hero">
-        <div class="carousel">
-            <div class="carousel-slide active">
-                <img 
-                    src="https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=626" 
-                    srcset="https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=626 626w, 
-                            https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=338 338w" 
-                    sizes="(max-width: 768px) 338px, 626px" 
-                    alt="Dentist treating patient" 
-                    loading="lazy">
-            </div>
-            <div class="carousel-slide">
-                <img 
-                    src="https://img.freepik.com/premium-photo/portrait-smiling-female-dentist-examining-boys-teeth_13339-66678.jpg?size=626" 
-                    srcset="https://img.freepik.com/premium-photo/portrait-smiling-female-dentist-examining-boys-teeth_13339-66678.jpg?size=626 626w, 
-                            https://img.freepik.com/premium-photo/portrait-smiling-female-dentist-examining-boys-teeth_13339-66678.jpg?size=338 338w" 
-                    sizes="(max-width: 768px) 338px, 626px" 
-                    alt="Dental care scene" 
-                    loading="lazy">
-            </div>
-            <div class="carousel-slide">
-                <img 
-                    src="https://img.freepik.com/premium-photo/happy-patient-with-toothbrush-dental-mold_926199-3949259.jpg?size=626" 
-                    srcset="https://img.freepik.com/premium-photo/happy-patient-with-toothbrush-dental-mold_926199-3949259.jpg?size=626 626w, 
-                            https://img.freepik.com/premium-photo/happy-patient-with-toothbrush-dental-mold_926199-3949259.jpg?size=338 338w" 
-                    sizes="(max-width: 768px) 338px, 626px" 
-                    alt="Dental equipment" 
-                    loading="lazy">
-            </div>
-        </div>
         <div class="hero-content">
             <h1>Welcome to Dr. M.G Nkuna</h1>
             <p>Your Trusted Dentist in Mokopane</p>
@@ -755,7 +718,7 @@
                     <li>Easy Online Appointment Booking</li>
                     <li>Experienced and Caring Dentists</li>
                 </ul>
-               
+                <a href="#contact" class="btn">Book an Appointment</a>
             </div>
         </div>
     </section>
@@ -931,34 +894,7 @@
         // Automatically attempt to get location on page load
         getUserLocation();
 
-        // Carousel Script
-        let slideIndex = 0;
-        const slides = document.querySelectorAll('.carousel-slide');
-        const totalSlides = slides.length;
-
-        function showSlide(index) {
-            if (index >= totalSlides) slideIndex = 0;
-            if (index < 0) slideIndex = totalSlides - 1;
-
-            slides.forEach(slide => {
-                slide.classList.remove('active', 'exit');
-            });
-
-            const currentSlide = slides[(slideIndex - 1 + totalSlides) % totalSlides];
-            currentSlide.classList.add('exit');
-
-            slides[slideIndex].classList.add('active');
-        }
-
-        function autoSlide() {
-            slideIndex++;
-            showSlide(slideIndex);
-        }
-
-        setInterval(autoSlide, 5000);
-
-        showSlide(slideIndex);
-
+        // Carousel Script (Removed)
         // Responsive Menu Toggle
         const menuToggle = document.querySelector('.menu-toggle');
         const navMenu = document.querySelector('.nav-menu');
