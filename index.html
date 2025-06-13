@@ -136,6 +136,22 @@
             animation: fadeIn 1s ease-in;
         }
 
+        .hero-image {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 400px;
+            z-index: 2;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
         .hero h1 {
             font-size: 3rem;
             margin-bottom: 1rem;
@@ -647,6 +663,10 @@
                 height: 150px;
             }
 
+            .hero-image {
+                max-width: 300px;
+            }
+
             .about-card::after,
             .benefits-card::after,
             .service-item::before,
@@ -682,11 +702,13 @@
 
     <!-- Hero Section with Graphics -->
     <section id="home" class="hero">
-         <img src="nkuna2.png">
         <div class="hero-content">
             <h1>Welcome to Dr. M.G Nkuna</h1>
             <p>Your Trusted Dentist in Mokopane</p>
             <a href="#contact" class="btn">Get in Touch</a>
+        </div>
+        <div class="hero-image">
+            <img src="nkuna2.png" alt="Hero Image">
         </div>
     </section>
 
