@@ -188,10 +188,39 @@
         }
 
         /* About Section */
-        #about p {
-            max-width: 800px;
+        #about {
+            background-color: #E6F0FA;
+        }
+
+        .about-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
             margin: 0 auto;
-            text-align: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .about-text {
+            flex: 1;
+            text-align: left;
+        }
+
+        .about-image {
+            flex: 0 0 200px;
+        }
+
+        .about-image img {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
         }
 
         /* Services Section */
@@ -458,6 +487,16 @@
                 margin: 1rem;
             }
 
+            .about-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .about-image img {
+                width: 150px;
+                height: 150px;
+            }
+
             @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
@@ -523,7 +562,14 @@
     <!-- About Section -->
     <section id="about">
         <h2>About Us</h2>
-        <p>Dr. M.G Nkuna, UD(OH)/BDS (MEDUNSA), PR No. 0563684, has been providing exceptional dental care in Mokopane at Leseding Medical Centre. We are committed to delivering compassionate, high-quality dental services with a focus on patient comfort and satisfaction. Our team stays updated with the latest dental techniques to ensure the best outcomes for our patients.</p>
+        <div class="about-card">
+            <div class="about-text">
+                <p>Dr. M.G Nkuna, UD(OH)/BDS (MEDUNSA), PR No. 0563684, has been providing exceptional dental care in Mokopane at Leseding Medical Centre. We are committed to delivering compassionate, high-quality dental services with a focus on patient comfort and satisfaction. Our team stays updated with the latest dental techniques to ensure the best outcomes for our patients.</p>
+            </div>
+            <div class="about-image">
+                <img src="https://img.freepik.com/premium-photo/portrait-smiling-female-dentist-examining-boys-teeth_13339-66678.jpg?size=626" alt="Dr. M.G Nkuna Team">
+            </div>
+        </div>
     </section>
 
     <!-- Services Section -->
