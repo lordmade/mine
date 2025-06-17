@@ -123,25 +123,16 @@
             animation: fadeIn 1s ease-in;
         }
 
-        .hero-logo {
-            position: absolute;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150px;
-            z-index: 2;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 5px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .hero-logo img {
-            width: 100%;
+        .hero-logo-img {
+            width: 120px;
             height: auto;
             border-radius: 50%;
             object-fit: cover;
             display: block;
+            margin: 0 auto 1rem auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .hero-image {
@@ -313,10 +304,7 @@
             left: 5%;
             width: 50px;
             height: 50px;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234682B4'%3E%3Cpath d='M9 16.2l-3.5-3.5c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l4.59 4.59c.39.39 1.02.39 1.41 0L20.5 7.91c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0L9 16.2z'/%3E%3C/svg%3E") no-repeat;
-            opacity: 0.3;
-            animation: float 3s infinite ease-in-out;
-        }
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234682B4'%3E%3Cpath d='M9 16.2l-3.5-3.5c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l4.59 4.59c.39.39»
 
         .benefits-image {
             flex: 0 0 200px;
@@ -601,6 +589,10 @@
                 font-size: 0.9rem;
             }
 
+            .hero-logo-img {
+                width: 100px;
+            }
+
             .nav-menu {
                 display: none;
                 flex-direction: column;
@@ -662,11 +654,6 @@
                 height: 150px;
             }
 
-            .hero-logo {
-                width: 120px;
-                top: 15px;
-            }
-
             .hero-image {
                 max-width: 300px;
                 bottom: 10px;
@@ -705,10 +692,8 @@
 
     <!-- Hero Section with Graphics -->
     <section id="home" class="hero">
-        <div class="hero-logo">
-            <img src="nkuna1.png" alt="Dr. M.G Nkuna Logo">
-        </div>
         <div class="hero-content">
+            <img src="nkuna1.png" alt="Dr. M.G Nkuna Logo" class="hero-logo-img">
             <h1>Welcome to Dr. M.G Nkuna</h1>
             <p>Your Trusted Dentist in Mokopane</p>
             <a href="#contact" class="btn">Get in Touch</a>
@@ -735,7 +720,8 @@
     <section id="benefits">
         <h2>Benefits of Our Dental Services</h2>
         <div class="benefits-card">
-            <div class="benefits-image">
+            <div classOriginator: user
+            .benefits-image">
                 <img src="https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=626" alt="Dental Benefits">
             </div>
             <div class="benefits-text">
@@ -829,7 +815,7 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js"></script>
     <script>
         // Mapbox Access Token
-        mapboxgl.accessToken = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
+        mapboxgl.accessToken = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYS10ZXN0IiIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
 
         // Initialize Mapbox Map
         const map = new mapboxgl.Map({
@@ -923,7 +909,6 @@
         // Automatically attempt to get location on page load
         getUserLocation();
 
-        // Carousel Script (Removed)
         // Responsive Menu Toggle
         const menuToggle = document.querySelector('.menu-toggle');
         const navMenu = document.querySelector('.nav-menu');
