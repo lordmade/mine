@@ -51,6 +51,22 @@
             padding: 0 2rem;
         }
 
+        .header-logo {
+            width: 150px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 5px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-logo img {
+            width: 100%;
+            height: auto;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+        }
+
         .nav-menu {
             list-style: none;
             display: flex;
@@ -121,27 +137,6 @@
             padding: 2rem;
             border-radius: 10px;
             animation: fadeIn 1s ease-in;
-        }
-
-        .hero-logo {
-            position: absolute;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150px;
-            z-index: 2;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 5px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .hero-logo img {
-            width: 100%;
-            height: auto;
-            border-radius: 50%;
-            object-fit: cover;
-            display: block;
         }
 
         .hero-image {
@@ -662,9 +657,8 @@
                 height: 150px;
             }
 
-            .hero-logo {
+            .header-logo {
                 width: 120px;
-                top: 15px;
             }
 
             .hero-image {
@@ -692,6 +686,9 @@
     <!-- Header -->
     <header>
         <nav>
+            <div class="header-logo">
+                <img src="nkuna1.png" alt="Dr. M.G Nkuna Logo">
+            </div>
             <div class="menu-toggle">☰</div>
             <ul class="nav-menu">
                 <li><a href="#home">Home</a></li>
@@ -701,15 +698,10 @@
                 <li><a href="#contact">Contact</a></li>
             </ul>
         </nav>
-
-        <img src="nkuna1.png" alt="Dr. M.G Nkuna Logo">
     </header>
 
     <!-- Hero Section with Graphics -->
     <section id="home" class="hero">
-        <div class="hero-logo">
-            <img src="nkuna1.png" alt="Dr. M.G Nkuna Logo">
-        </div>
         <div class="hero-content">
             <h1>Welcome to Dr. M.G Nkuna</h1>
             <p>Your Trusted Dentist in Mokopane</p>
@@ -830,7 +822,7 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js"></script>
     <script>
-        // Mapbox Access Token
+        // Mapbox Access Token - Verify this token is valid and has necessary permissions
         mapboxgl.accessToken = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
 
         // Initialize Mapbox Map
@@ -925,7 +917,6 @@
         // Automatically attempt to get location on page load
         getUserLocation();
 
-        // Carousel Script (Removed)
         // Responsive Menu Toggle
         const menuToggle = document.querySelector('.menu-toggle');
         const navMenu = document.querySelector('.nav-menu');
