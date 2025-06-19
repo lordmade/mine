@@ -53,10 +53,6 @@
 
         .header-logo {
             width: 150px;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 5px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .header-logo img {
@@ -148,7 +144,7 @@
             z-index: 2;
         }
 
-         .hero-image1 {
+        .hero-image1 {
             position: absolute;
             bottom: 0px;
             left: 20px;
@@ -233,8 +229,9 @@
 
         .about-card {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             background-color: #fff;
             padding: 2rem;
             border-radius: 10px;
@@ -242,9 +239,9 @@
             max-width: 1000px;
             margin: 0 auto;
             gap: 2rem;
-            flex-wrap: wrap;
             position: relative;
             z-index: 1;
+            text-align: center;
         }
 
         .about-card::after {
@@ -260,8 +257,7 @@
         }
 
         .about-text {
-            flex: 1;
-            text-align: left;
+            max-width: 600px;
         }
 
         .about-image {
@@ -296,8 +292,9 @@
 
         .benefits-card {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             background-color: #fff;
             padding: 2rem;
             border-radius: 10px;
@@ -305,9 +302,9 @@
             max-width: 1000px;
             margin: 0 auto;
             gap: 2rem;
-            flex-wrap: wrap;
             position: relative;
             z-index: 1;
+            text-align: center;
         }
 
         .benefits-card::after {
@@ -335,13 +332,14 @@
         }
 
         .benefits-text {
-            flex: 1;
-            text-align: left;
+            max-width: 600px;
         }
 
         .benefits-text ul {
             list-style: none;
             padding-left: 0;
+            display: inline-block;
+            text-align: left;
         }
 
         .benefits-text ul li {
@@ -351,7 +349,7 @@
         }
 
         .benefits-text ul li::before {
-            content: '✔';
+            content: '✓';
             color: #4682B4;
             position: absolute;
             left: 0;
@@ -424,14 +422,14 @@
             padding: 2rem;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            text-align: left;
+            text-align: center;
         }
 
         .contact-card p {
             margin: 0.5rem 0;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
         }
 
         .contact-card i {
@@ -714,7 +712,7 @@
         <div class="hero-image1">
             <img src="nkuna2.png" alt="Hero Image">
         </div>
-         <div class="hero-image">
+        <div class="hero-image">
             <img src="nkuna2.png" alt="Hero Image">
         </div>
         <div class="hero-content">
@@ -722,11 +720,10 @@
             <p>Your Trusted Dentist in Mokopane</p>
             <a href="#contact" class="btn">Get in Touch</a>
         </div>
-       
     </section>
 
     <!-- About Section -->
-    <section id="about"><center>
+    <section id="about">
         <h2>About Us</h2>
         <div class="about-card">
             <div class="about-text">
@@ -735,13 +732,13 @@
             <div class="about-image">
                 <img src="https://img.freepik.com/premium-photo/portrait-smiling-female-dentist-examining-boys-teeth_13339-66678.jpg?size=626" alt="Dr. M.G Nkuna Team">
             </div>
-        </div></center>
+        </div>
     </section>
 
     <!-- Benefits Section -->
-    <section id="benefits"><center>
+    <section id="benefits">
         <h2>Benefits of Our Dental Services</h2>
-        <div class="benefits-card"><center>
+        <div class="benefits-card">
             <div class="benefits-image">
                 <img src="https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=626" alt="Dental Benefits">
             </div>
@@ -754,9 +751,8 @@
                     <li>Easy Online Appointment Booking</li>
                     <li>Experienced and Caring Dentists</li>
                 </ul>
-               
             </div>
-        </div></center>
+        </div>
     </section>
 
     <!-- Services Section -->
@@ -835,7 +831,7 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js"></script>
     <script>
-        // Mapbox Access Token - Verify this token is valid and has necessary permissions
+        // Mapbox Access Token
         mapboxgl.accessToken = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
 
         // Initialize Mapbox Map
