@@ -95,7 +95,23 @@
       font-size: 1.25rem;
       font-weight: 700;
       color: var(--text-dark);
+      margin-bottom: 1rem;
+    }
+
+    .new-chat-btn {
+      background: var(--primary);
+      color: var(--secondary);
+      padding: 0.5rem;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
       margin-bottom: 1.5rem;
+    }
+
+    .new-chat-btn:hover {
+      background: #1E3A8A;
     }
 
     .sidebar .chat-history {
@@ -109,11 +125,19 @@
       cursor: pointer;
       border-radius: 8px;
       transition: background 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .sidebar .chat-history p:hover {
       background: var(--gradient-bg);
       color: var(--text-dark);
+    }
+
+    .chat-history .timestamp {
+      font-size: 0.8rem;
+      color: var(--text-light);
     }
 
     .chat-container {
@@ -159,6 +183,8 @@
       border-radius: 12px;
       line-height: 1.4;
       word-wrap: break-word;
+      display: flex;
+      flex-direction: column;
     }
 
     .chat-output .user-message {
@@ -174,6 +200,13 @@
       margin-right: auto;
       border-bottom-left-radius: 2px;
       border: 1px solid var(--border);
+    }
+
+    .chat-output .timestamp {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-top: 0.25rem;
+      align-self: flex-end;
     }
 
     .input-group {
@@ -367,6 +400,7 @@
           <div class="avatar" id="user-avatar"></div>
           <span class="username" id="username"></span>
         </div>
+        <div class="new-chat-btn" id="new-chat-btn">New Conversation</div>
         <h2>Chat History</h2>
         <div class="chat-history" id="chat-history">
           <!-- Chat history will be populated here -->
@@ -403,7 +437,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -420,6 +454,8 @@
 
     const net = new brain.NeuralNetwork({ hiddenLayers: [10], activation: 'sigmoid' });
     let trainingData = [];
+    let currentConversationId = null;
+    let conversations = [];
 
     const spinner = document.getElementById("spinner");
     const toast = document.getElementById("toast");
@@ -430,6 +466,8 @@
     const chatHistory = document.getElementById("chat-history");
     const userAvatar = document.getElementById("user-avatar");
     const usernameElement = document.getElementById("username");
+    const newChatBtn = document.getElementById("new-chat-btn");
+    const chatOutput = document.getElementById("chat-output");
 
     function showSpinner() {
       spinner.classList.add("active");
@@ -443,6 +481,22 @@
       toastMessage.textContent = message;
       toast.classList.add("active");
       setTimeout(() => toast.classList.remove("active"), 3000);
+    }
+
+    function formatTimestamp(timestamp) {
+      if (timestamp instanceof Timestamp) {
+        const date = timestamp.toDate();
+        return date.toLocaleString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit', 
+          hour12: true 
+        });
+      }
+      return new Date().toLocaleString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true 
+      });
     }
 
     function setUserProfile(user) {
@@ -459,15 +513,9 @@
     }
 
     async function loadTrainingData() {
-      showSpinner();
       try {
         const user = auth.currentUser;
-        if (!user) {
-          showToast("Please sign in to access chat.");
-          window.location.href = "index.html";
-          return;
-        }
-        setUserProfile(user);
+        if (!user) return;
         const querySnapshot = await getDocs(collection(db, `users/${user.uid}/training-data`));
         trainingData = [];
         querySnapshot.forEach((doc) => {
@@ -496,8 +544,88 @@
       } catch (error) {
         console.error("Failed to load training data:", error.message);
         showToast(`Failed to load model: ${error.message}`);
-      } finally {
-        hideSpinner();
+      }
+    }
+
+    async function loadConversations() {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const querySnapshot = await getDocs(collection(db, `users/${user.uid}/conversations`));
+        conversations = [];
+        chatHistory.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          conversations.push({ id: doc.id, ...data });
+          const firstMessage = data.messages[0]?.text || "Conversation";
+          const timestamp = formatTimestamp(data.createdAt);
+          const historyItem = document.createElement("p");
+          historyItem.innerHTML = `${firstMessage.substring(0, 20)}${firstMessage.length > 20 ? "..." : ""} <span class="timestamp">${timestamp}</span>`;
+          historyItem.dataset.conversationId = doc.id;
+          historyItem.addEventListener("click", () => loadConversation(doc.id));
+          chatHistory.appendChild(historyItem);
+        });
+      } catch (error) {
+        console.error("Failed to load conversations:", error.message);
+        showToast(`Failed to load conversations: ${error.message}`);
+      }
+    }
+
+    async function loadConversation(conversationId) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const conversation = conversations.find(c => c.id === conversationId);
+        if (!conversation) return;
+        currentConversationId = conversationId;
+        chatOutput.innerHTML = "";
+        conversation.messages.forEach(msg => {
+          const timestamp = formatTimestamp(msg.timestamp);
+          chatOutput.innerHTML += `<div class="message ${msg.sender === 'user' ? 'user-message' : 'ai-message'}">${msg.text}<span class="timestamp">${timestamp}</span></div>`;
+        });
+        chatOutput.scrollTop = chatOutput.scrollHeight;
+      } catch (error) {
+        console.error("Failed to load conversation:", error.message);
+        showToast(`Failed to load conversation: ${error.message}`);
+      }
+    }
+
+    async function saveMessageToConversation(text, sender) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const message = {
+          text,
+          sender,
+          timestamp: Timestamp.now()
+        };
+        if (!currentConversationId) {
+          const docRef = await addDoc(collection(db, `users/${user.uid}/conversations`), {
+            createdAt: Timestamp.now(),
+            messages: [message]
+          });
+          currentConversationId = docRef.id;
+          conversations.push({ id: docRef.id, createdAt: Timestamp.now(), messages: [message] });
+          const historyItem = document.createElement("p");
+          historyItem.innerHTML = `${text.substring(0, 20)}${text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(Timestamp.now())}</span>`;
+          historyItem.dataset.conversationId = docRef.id;
+          historyItem.addEventListener("click", () => loadConversation(docRef.id));
+          chatHistory.appendChild(historyItem);
+        } else {
+          const conversation = conversations.find(c => c.id === currentConversationId);
+          conversation.messages.push(message);
+          await setDoc(doc(db, `users/${user.uid}/conversations/${currentConversationId}`), {
+            messages: conversation.messages,
+            createdAt: conversation.createdAt
+          }, { merge: true });
+          const historyItem = chatHistory.querySelector(`[data-conversation-id="${currentConversationId}"]`);
+          if (historyItem) {
+            historyItem.innerHTML = `${conversation.messages[0].text.substring(0, 20)}${conversation.messages[0].text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>`;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to save message:", error.message);
+        showToast(`Failed to save message: ${error.message}`);
       }
     }
 
@@ -536,33 +664,47 @@
       return responses[Math.floor(Math.random() * responses.length)];
     }
 
-    window.sendMessage = function () {
+    window.sendMessage = async function () {
       const userInput = document.getElementById("user-input").value.trim();
-      const chatOutput = document.getElementById("chat-output");
-
       if (!userInput) {
         showToast("Please enter a message.");
         return;
       }
 
-      chatOutput.innerHTML += `<div class="message user-message">${userInput}</div>`;
-      chatHistory.innerHTML += `<p>${userInput}</p>`;
+      const timestamp = formatTimestamp(Timestamp.now());
+      chatOutput.innerHTML += `<div class="message user-message">${userInput}<span class="timestamp">${timestamp}</span></div>`;
+      await saveMessageToConversation(userInput, "user");
+
       const input = processInput(userInput);
       if (!input) {
-        chatOutput.innerHTML += `<div class="message ai-message">Invalid input. Please try again.</div>`;
+        const errorMessage = "Invalid input. Please try again.";
+        chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
+        await saveMessageToConversation(errorMessage, "ai");
         return;
       }
+
       try {
         const output = net.run(input);
         const response = generateHumanLikeResponse(output, userInput);
-        chatOutput.innerHTML += `<div class="message ai-message">${response}</div>`;
+        chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
+        await saveMessageToConversation(response, "ai");
       } catch (error) {
         console.error("Model prediction failed:", error.message);
-        chatOutput.innerHTML += `<div class="message ai-message">Error processing input. Please try again.</div>`;
+        const errorMessage = "Error processing input. Please try again.";
+        chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
+        await saveMessageToConversation(errorMessage, "ai");
       }
+
       document.getElementById("user-input").value = "";
       chatOutput.scrollTop = chatOutput.scrollHeight;
       chatHistory.scrollTop = chatHistory.scrollHeight;
+    };
+
+    window.startNewConversation = function () {
+      currentConversationId = null;
+      chatOutput.innerHTML = "";
+      document.getElementById("user-input").value = "";
+      showToast("Started a new conversation.");
     };
 
     window.signOutUser = async function () {
@@ -591,6 +733,8 @@
       sidebar.classList.toggle("active");
     });
 
+    newChatBtn.addEventListener("click", startNewConversation);
+
     document.getElementById("user-input").addEventListener("keypress", (e) => {
       if (e.key === "Enter") sendMessage();
     });
@@ -599,13 +743,15 @@
 
     document.addEventListener("DOMContentLoaded", async () => {
       await new Promise((resolve, reject) => {
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
           if (!user) {
             console.log("No user authenticated, redirecting to index.html");
             window.location.href = "index.html";
           } else {
             console.log("User authenticated:", user.uid);
-            loadTrainingData();
+            setUserProfile(user);
+            await loadTrainingData();
+            await loadConversations();
             resolve();
           }
         }, (error) => {
