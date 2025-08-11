@@ -221,7 +221,7 @@
     }
 
     .chat-output .timestamp {
-      font-size: 0.75rem;
+      font discriminating: 0.75rem;
       color: var(--text-light);
       margin-top: 0.25rem;
       align-self: flex-end;
@@ -591,11 +591,33 @@
       return false;
     }
 
+    async function saveTrainedModel() {
+      try {
+        const modelJSON = net.toJSON();
+        await setDoc(doc(db, `global-models/trained-model`), {
+          model: modelJSON,
+          updatedAt: Timestamp.now()
+        });
+        showToast("Shared model saved successfully.");
+      } catch (error) {
+        console.error("Failed to save trained model:", error.message);
+        showToast(`Failed to save model: ${error.message}`);
+      }
+    }
+
     async function loadTrainingData() {
       try {
-        const user = auth.currentUser;
-        if (!user) return;
-        const querySnapshot = await getDocs(collection(db, `users/${user.uid}/training-data`));
+        // Check for saved model first
+        const modelDoc = await getDoc(doc(db, `global-models/trained-model`));
+        if (modelDoc.exists()) {
+          const modelJSON = modelDoc.data().model;
+          net.fromJSON(modelJSON);
+          showToast("Loaded saved shared model.");
+          return;
+        }
+
+        // Fallback to training from data
+        const querySnapshot = await getDocs(collection(db, `global-training-data`));
         trainingData = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
@@ -616,13 +638,33 @@
             log: true,
             logPeriod: 100
           });
-          showToast("Model loaded successfully.");
+          await saveTrainedModel();
+          showToast("Shared model trained and saved successfully.");
         } else {
-          showToast("No training data found. Using default model.");
+          showToast("No shared training data found. Using default model.");
         }
       } catch (error) {
-        console.error("Failed to load training data:", error.message);
-        showToast(`Failed to load model: ${error.message}`);
+        console.error("Failed to load shared training data or model:", error.message);
+        showToast(`Failed to load shared model: ${error.message}`);
+      }
+    }
+
+    async function addTrainingData(input, output, text) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        // Store in a pending collection for review (optional)
+        await addDoc(collection(db, `pending-training-data`), {
+          input,
+          output,
+          text,
+          createdBy: user.uid,
+          createdAt: Timestamp.now()
+        });
+        showToast("Training data submitted for review.");
+      } catch (error) {
+        console.error("Failed to add training data:", error.message);
+        showToast(`Failed to add training data: ${error.message}`);
       }
     }
 
@@ -764,7 +806,6 @@
       await saveMessageToConversation(userInput, "user");
       chatOutput.scrollTop = chatOutput.scrollHeight;
 
-      // Show thinking dots
       const thinkingDiv = document.createElement("div");
       thinkingDiv.className = "thinking-dots";
       chatOutput.appendChild(thinkingDiv);
@@ -778,7 +819,7 @@
           chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
           await saveMessageToConversation(errorMessage, "ai");
           chatOutput.scrollTop = chatOutput.scrollHeight;
-        }, 3000); // 3-second delay to simulate thinking
+        }, 3000);
         return;
       }
 
@@ -789,8 +830,16 @@
           const response = generateHumanLikeResponse(output, userInput, isFirstInteraction, username);
           chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
           await saveMessageToConversation(response, "ai");
+
+          // Add training data to pending collection for review
+          const trainingOutput = {
+            positive: output.positive > output.negative ? 1 : 0,
+            negative: output.negative > output.positive ? 1 : 0
+          };
+          await addTrainingData(input, trainingOutput, userInput);
+
           chatOutput.scrollTop = chatOutput.scrollHeight;
-        }, 3000); // 3-second delay to simulate thinking
+        }, 3000);
       } catch (error) {
         setTimeout(async () => {
           chatOutput.removeChild(thinkingDiv);
@@ -799,7 +848,7 @@
           chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
           await saveMessageToConversation(errorMessage, "ai");
           chatOutput.scrollTop = chatOutput.scrollHeight;
-        }, 3000); // 3-second delay to simulate thinking
+        }, 3000);
       }
 
       document.getElementById("user-input").value = "";
