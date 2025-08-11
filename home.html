@@ -674,29 +674,42 @@
       const timestamp = formatTimestamp(Timestamp.now());
       chatOutput.innerHTML += `<div class="message user-message">${userInput}<span class="timestamp">${timestamp}</span></div>`;
       await saveMessageToConversation(userInput, "user");
+      chatOutput.scrollTop = chatOutput.scrollHeight;
+      showSpinner();
 
       const input = processInput(userInput);
       if (!input) {
-        const errorMessage = "Invalid input. Please try again.";
-        chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
-        await saveMessageToConversation(errorMessage, "ai");
+        setTimeout(async () => {
+          const errorMessage = "Invalid input. Please try again.";
+          chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
+          await saveMessageToConversation(errorMessage, "ai");
+          chatOutput.scrollTop = chatOutput.scrollHeight;
+          hideSpinner();
+        }, 3000); // 3-second delay to simulate thinking
         return;
       }
 
       try {
-        const output = net.run(input);
-        const response = generateHumanLikeResponse(output, userInput);
-        chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
-        await saveMessageToConversation(response, "ai");
+        setTimeout(async () => {
+          const output = net.run(input);
+          const response = generateHumanLikeResponse(output, userInput);
+          chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
+          await saveMessageToConversation(response, "ai");
+          chatOutput.scrollTop = chatOutput.scrollHeight;
+          hideSpinner();
+        }, 3000); // 3-second delay to simulate thinking
       } catch (error) {
-        console.error("Model prediction failed:", error.message);
-        const errorMessage = "Error processing input. Please try again.";
-        chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
-        await saveMessageToConversation(errorMessage, "ai");
+        setTimeout(async () => {
+          console.error("Model prediction failed:", error.message);
+          const errorMessage = "Error processing input. Please try again.";
+          chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
+          await saveMessageToConversation(errorMessage, "ai");
+          chatOutput.scrollTop = chatOutput.scrollHeight;
+          hideSpinner();
+        }, 3000); // 3-second delay to simulate thinking
       }
 
       document.getElementById("user-input").value = "";
-      chatOutput.scrollTop = chatOutput.scrollHeight;
       chatHistory.scrollTop = chatHistory.scrollHeight;
     };
 
