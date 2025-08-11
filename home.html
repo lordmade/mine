@@ -221,7 +221,7 @@
     }
 
     .chat-output .timestamp {
-      font discriminating: 0.75rem;
+      font-size: 0.75rem;
       color: var(--text-light);
       margin-top: 0.25rem;
       align-self: flex-end;
@@ -605,6 +605,57 @@
       }
     }
 
+    async function initializeDefaultModel() {
+      const defaultTrainingData = [
+        {
+          input: { happy: 1, great: 0, sad: 0, bad: 0 },
+          output: { positive: 1, negative: 0 },
+          text: "I'm so happy today!"
+        },
+        {
+          input: { happy: 0, great: 1, sad: 0, bad: 0 },
+          output: { positive: 1, negative: 0 },
+          text: "This is great!"
+        },
+        {
+          input: { happy: 0, great: 0, sad: 1, bad: 0 },
+          output: { positive: 0, negative: 1 },
+          text: "Feeling sad."
+        },
+        {
+          input: { happy: 0, great: 0, sad: 0, bad: 1 },
+          output: { positive: 0, negative: 1 },
+          text: "This is awful."
+        }
+      ];
+
+      try {
+        // Train the model with default data
+        net.train(defaultTrainingData, {
+          iterations: 1000,
+          errorThresh: 0.005,
+          log: true,
+          logPeriod: 100
+        });
+
+        // Save the default training data to global-training-data
+        for (const data of defaultTrainingData) {
+          await addDoc(collection(db, `global-training-data`), {
+            ...data,
+            createdAt: Timestamp.now()
+          });
+        }
+
+        // Save the trained model
+        await saveTrainedModel();
+        trainingData = defaultTrainingData;
+        showToast("Default model initialized and saved successfully.");
+      } catch (error) {
+        console.error("Failed to initialize default model:", error.message);
+        showToast(`Failed to initialize default model: ${error.message}`);
+      }
+    }
+
     async function loadTrainingData() {
       try {
         // Check for saved model first
@@ -613,10 +664,26 @@
           const modelJSON = modelDoc.data().model;
           net.fromJSON(modelJSON);
           showToast("Loaded saved shared model.");
+
+          // Load training data for use in generateHumanLikeResponse
+          const querySnapshot = await getDocs(collection(db, `global-training-data`));
+          trainingData = [];
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (
+              data.input &&
+              data.output &&
+              data.text &&
+              Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
+              Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
+            ) {
+              trainingData.push(data);
+            }
+          });
           return;
         }
 
-        // Fallback to training from data
+        // Check for training data in global-training-data
         const querySnapshot = await getDocs(collection(db, `global-training-data`));
         trainingData = [];
         querySnapshot.forEach((doc) => {
@@ -631,6 +698,7 @@
             trainingData.push(data);
           }
         });
+
         if (trainingData.length > 0) {
           net.train(trainingData.map(d => ({ input: d.input, output: d.output })), {
             iterations: 1000,
@@ -641,11 +709,13 @@
           await saveTrainedModel();
           showToast("Shared model trained and saved successfully.");
         } else {
-          showToast("No shared training data found. Using default model.");
+          // Initialize and use default model
+          await initializeDefaultModel();
         }
       } catch (error) {
         console.error("Failed to load shared training data or model:", error.message);
-        showToast(`Failed to load shared model: ${error.message}`);
+        showToast(`Failed to load shared model, initializing default model: ${error.message}`);
+        await initializeDefaultModel();
       }
     }
 
@@ -653,7 +723,7 @@
       try {
         const user = auth.currentUser;
         if (!user) return;
-        // Store in a pending collection for review (optional)
+        // Store in a pending collection for review
         await addDoc(collection(db, `pending-training-data`), {
           input,
           output,
