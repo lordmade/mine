@@ -1,945 +1,715 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Dr. M.G Nkuna, your trusted dentist in Mokopane. Offering professional dental care at Leseding Medical Centre. Contact us today!">
-    <meta name="keywords" content="Mokopane dentist, dental care, Dr. M.G Nkuna, Leseding Medical Centre, dental services">
-    <meta name="author" content="Dr. M.G Nkuna">
-    <title>Dr. M.G Nkuna - Modern Dental Care in Mokopane</title>
-    <!-- Preload Google Fonts -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" as="style">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Mapbox GL JS CSS -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css" rel="stylesheet">
-    <!-- Mapbox GL Directions CSS -->
-    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.css" type="text/css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            color: #333;
-            background-color: #f8f9fa;
-            line-height: 1.6;
-        }
-
-        /* Header and Navigation */
-        header {
-            position: sticky;
-            top: 0;
-            background-color: #fff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            padding: 1rem 0;
-        }
-
-        nav {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-        }
-
-        .header-logo {
-            width: 150px;
-        }
-
-        .header-logo img {
-            width: 100%;
-            height: auto;
-            border-radius: 50%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .nav-menu {
-            list-style: none;
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-menu a {
-            color: #333;
-            text-decoration: none;
-            font-weight: 400;
-            transition: color 0.3s ease, transform 0.3s ease;
-        }
-
-        .nav-menu a:hover {
-            color: #ADD8E6;
-            transform: scale(1.1);
-        }
-
-        .menu-toggle {
-            display: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #4682B4;
-        }
-
-        /* Hero Section with Graphics */
-        .hero {
-            position: relative;
-            height: 100vh;
-            overflow: hidden;
-            background: linear-gradient(135deg, #E6F0FA 0%, #ADD8E6 100%);
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%234682B4' fill-opacity='0.3' d='M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,85.3C672,75,768,85,864,106.7C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0Z'%3E%3C/path%3E%3Cpath fill='%23ADD8E6' fill-opacity='0.2' d='M0,160L48,176C96,192,192,224,288,224C384,224,480,192,576,176C672,160,768,160,864,176C960,192,1056,224,1152,240C1248,256,1344,256,1392,256L1440,256V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0Z'%3E%3C/path%3E%3C/svg%3E") no-repeat center;
-            background-size: cover;
-            z-index: 1;
-            animation: waveMove 10s infinite linear;
-        }
-
-        .hero::after {
-            content: '';
-            position: absolute;
-            top: 20%;
-            left: 10%;
-            width: 150px;
-            height: 150px;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234682B4'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3Ccircle cx='12' cy='12' r='5' fill='%23ADD8E6'/%3E%3C/svg%3E") no-repeat;
-            opacity: 0.5;
-            animation: float 3s infinite ease-in-out;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #333;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 2rem;
-            border-radius: 10px;
-            animation: fadeIn 1s ease-in;
-        }
-
-        .hero-image {
-            position: absolute;
-            bottom: 0px;
-            right: 20px;
-            width: 100%;
-            max-width: 400px;
-            z-index: 2;
-        }
-
-        .hero-image1 {
-            position: absolute;
-            bottom: 0px;
-            left: 20px;
-            width: 100%;
-            max-width: 400px;
-            z-index: 2;
-        }
-
-        .hero-image img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #4682B4;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            color: #333;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 0.8rem 2rem;
-            background-color: #4682B4;
-            color: white;
-            text-decoration: none;
-            border-radius: 25px;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-            min-width: 44px;
-            min-height: 44px;
-            line-height: 1.5;
-        }
-
-        .btn:hover {
-            background-color: #ADD8E6;
-            transform: translateY(-3px);
-        }
-
-        /* Sections */
-        section {
-            padding: 5rem 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            opacity: 0;
-            animation: fadeIn 1s ease-in forwards;
-        }
-
-        section:nth-child(even) {
-            background-color: #E6F0FA;
-        }
-
-        h2 {
-            color: #4682B4;
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        /* About Section with Graphics */
-        #about {
-            background-color: #E6F0FA;
-            position: relative;
-        }
-
-        #about::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ADD8E6' fill-opacity='0.1' d='M0,160L48,176C96,192,192,224,288,224C384,224,480,192,576,176C672,160,768,160,864,176C960,192,1056,224,1152,240C1248,256,1344,256,1392,256L1440,256V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0Z'%3E%3C/path%3E%3C/svg%3E") no-repeat top left;
-            background-size: 100% auto;
-            z-index: 0;
-        }
-
-        .about-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            max-width: 1000px;
-            margin: 0 auto;
-            gap: 2rem;
-            position: relative;
-            z-index: 1;
-            text-align: center;
-        }
-
-        .about-card::after {
-            content: '';
-            position: absolute;
-            top: 10%;
-            right: 5%;
-            width: 50px;
-            height: 50px;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234682B4'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E") no-repeat;
-            opacity: 0.3;
-            animation: float 3s infinite ease-in-out;
-        }
-
-        .about-text {
-            max-width: 600px;
-        }
-
-        .about-image {
-            flex: 0 0 200px;
-        }
-
-        .about-image img {
-            width: 200px;
-            height: 200px;
-            object-fit: cover;
-            display: block;
-            clip-path: polygon(50% 0%, 65% 20%, 75% 40%, 85% 60%, 75% 80%, 60% 90%, 40% 90%, 25% 80%, 15% 60%, 25% 40%, 35% 20%);
-        }
-
-        /* Benefits Section with Graphics */
-        #benefits {
-            background-color: #fff;
-            position: relative;
-        }
-
-        #benefits::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ADD8E6' fill-opacity='0.1' d='M0,160L48,176C96,192,192,224,288,224C384,224,480,192,576,176C672,160,768,160,864,176C960,192,1056,224,1152,240C1248,256,1344,256,1392,256L1440,256V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom right;
-            background-size: 100% auto;
-            z-index: 0;
-        }
-
-        .benefits-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            max-width: 1000px;
-            margin: 0 auto;
-            gap: 2rem;
-            position: relative;
-            z-index: 1;
-            text-align: center;
-        }
-
-        .benefits-card::after {
-            content: '';
-            position: absolute;
-            top: 10%;
-            left: 5%;
-            width: 50px;
-            height: 50px;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234682B4'%3E%3Cpath d='M9 16.2l-3.5-3.5c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l4.59 4.59c.39.39 1.02.39 1.41 0L20.5 7.91c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0L9 16.2z'/%3E%3C/svg%3E") no-repeat;
-            opacity: 0.3;
-            animation: float 3s infinite ease-in-out;
-        }
-
-        .benefits-image {
-            flex: 0 0 200px;
-        }
-
-        .benefits-image img {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .benefits-text {
-            max-width: 600px;
-        }
-
-        .benefits-text ul {
-            list-style: none;
-            padding-left: 0;
-            display: inline-block;
-            text-align: left;
-        }
-
-        .benefits-text ul li {
-            margin-bottom: 1rem;
-            position: relative;
-            padding-left: 1.5rem;
-        }
-
-        .benefits-text ul li::before {
-            content: '✓';
-            color: #4682B4;
-            position: absolute;
-            left: 0;
-        }
-
-        /* Services Section */
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .service-item {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-
-        .service-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .service-item::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            height: 30px;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ADD8E6'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3C/svg%3E") no-repeat;
-            opacity: 0.2;
-        }
-
-        .service-item i {
-            font-size: 2rem;
-            color: #4682B4;
-            margin-bottom: 1rem;
-        }
-
-        .service-item h3 {
-            color: #4682B4;
-            margin-bottom: 1rem;
-        }
-
-        /* Contact Section */
-        .contact-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            justify-content: center;
-            max-width: 1200px;
-            margin: 2rem auto;
-        }
-
-        .contact-card {
-            flex: 1;
-            min-width: 300px;
-            max-width: 500px;
-            background-color: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            text-align: left;
-        }
-
-        .contact-card p {
-            margin: 0.5rem 0;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-        }
-
-        .contact-card i {
-            margin-right: 0.5rem;
-            color: #4682B4;
-        }
-
-        .contact-card a {
-            color: #4682B4;
-            text-decoration: none;
-            font-size: 1rem;
-        }
-
-        .contact-card a:hover {
-            text-decoration: underline;
-        }
-
-        #map {
-            height: 400px;
-            width: 100%;
-            margin-top: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Route Info */
-        .route-info {
-            background-color: white;
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin-top: 1rem;
-            text-align: center;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .route-info p {
-            margin: 0.5rem 0;
-            color: #333;
-            font-size: 1rem;
-        }
-
-        .route-info i {
-            color: #4682B4;
-            margin-right: 0.5rem;
-        }
-
-        /* Location Request Overlay */
-        .location-request {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        .location-request.active {
-            display: flex;
-        }
-
-        .location-request-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            text-align: center;
-            max-width: 400px;
-        }
-
-        .location-request-content h3 {
-            color: #4682B4;
-            margin-bottom: 1rem;
-        }
-
-        .location-request-content button {
-            padding: 0.8rem 2rem;
-            background-color: #4682B4;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            min-width: 44px;
-            min-height: 44px;
-            line-height: 1.5;
-        }
-
-        .location-request-content button:hover {
-            background-color: #ADD8E6;
-        }
-
-        /* Footer */
-        footer {
-            background-color: #4682B4;
-            color: white;
-            text-align: center;
-            padding: 1rem;
-            position: relative;
-        }
-
-        footer::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 100px;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23E6F0FA'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E") no-repeat;
-            opacity: 0.3;
-            animation: rotate 4s infinite linear;
-        }
-
-        footer a {
-            color: #E6F0FA;
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        @keyframes rotate {
-            from { transform: translateX(-50%) rotate(0deg); }
-            to { transform: translateX(-50%) rotate(360deg); }
-        }
-
-        @keyframes waveMove {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(10px); }
-            100% { transform: translateY(0); }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            body {
-                font-size: 16px; /* Minimum font size for accessibility */
-            }
-
-            .hero {
-                height: 70vh;
-            }
-
-            .hero h1 {
-                font-size: 1.8rem;
-            }
-
-            .hero p {
-                font-size: 0.9rem;
-            }
-
-            .btn {
-                padding: 0.6rem 1.5rem;
-                font-size: 0.9rem;
-            }
-
-            .nav-menu {
-                display: none;
-                flex-direction: column;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background-color: #fff;
-                padding: 1rem;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                transition: opacity 0.3s ease, transform 0.3s ease;
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            .nav-menu.active {
-                display: flex;
-                opacity: 1;
-                transform: translateY(0);
-            }
-
-            .nav-menu a {
-                padding: 0.5rem 0;
-                font-size: 1.1rem;
-            }
-
-            .menu-toggle {
-                display: block;
-                font-size: 2rem;
-                padding: 0.5rem;
-            }
-
-            .contact-container {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 1rem;
-            }
-
-            .contact-card {
-                min-width: 100%;
-                padding: 1.5rem;
-            }
-
-            #map {
-                height: 300px;
-            }
-
-            .route-info {
-                margin: 1rem;
-            }
-
-            .about-card, .benefits-card {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .about-image img, .benefits-image img {
-                width: 150px;
-                height: 150px;
-            }
-
-            .header-logo {
-                width: 120px;
-            }
-
-            .hero-image {
-                max-width: 300px;
-                bottom: 10px;
-                right: 10px;
-            }
-
-            .about-card::after,
-            .benefits-card::after,
-            .service-item::before,
-            .hero::after,
-            footer::before {
-                display: none;
-            }
-
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Sign Up / Sign In - ChatSphere</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary: #000000;
+      --secondary: #FFFFFF;
+      --text-dark: #000000;
+      --text-light: #666666;
+      --border: #CCCCCC;
+      --white: #FFFFFF;
+      --background: #FFFFFF;
+      --background-dark: #1C1C1C;
+      --text-dark-dark: #FFFFFF;
+      --text-light-dark: #999999;
+      --border-dark: #444444;
+      --white-dark: #2A2A2A;
+      --gradient-bg: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%);
+    }
+
+    [data-theme="dark"] {
+      --background: var(--background-dark);
+      --text-dark: var(--text-dark-dark);
+      --text-light: var(--text-light-dark);
+      --border: var(--border-dark);
+      --white: var(--white-dark);
+      --gradient-bg: linear-gradient(135deg, #2A2A2A 0%, #1C1C1C 100%);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background: var(--background);
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      transition: opacity 0.5s ease, background 0.3s ease;
+    }
+
+    body.fade-out {
+      opacity: 0;
+    }
+
+    .container {
+      max-width: 450px;
+      margin: 3rem auto;
+      padding: 2rem;
+      background: var(--gradient-bg);
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        margin: 1.5rem;
+        padding: 1.5rem;
+      }
+    }
+
+    .logo {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .logo svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--text-dark);
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+      background: var(--white);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.75rem;
+      background: var(--white);
+      border: none;
+      color: var(--text-dark);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: var(--secondary);
+    }
+
+    .tab-btn:hover {
+      background: var(--primary);
+      color: var(--secondary);
+      transform: scale(1.02);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin: 0 0 1.5rem;
+    }
+
+    .input-group {
+      margin-bottom: 1.25rem;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      background: var(--white);
+    }
+
+    .input-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-pic-preview {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 1rem;
+      display: block;
+      border: 2px solid var(--border);
+    }
+
+    .auth-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--primary);
+      color: var(--secondary);
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .auth-btn:hover {
+      background: #333333;
+      transform: scale(1.05);
+    }
+
+    .auth-btn.tap-active {
+      transform: scale(0.98);
+    }
+
+    .custom-alert {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--white);
+      padding: 1.5rem 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      color: var(--text-dark);
+      font-weight: 500;
+      text-align: center;
+      max-width: 90%;
+      width: 320px;
+      animation: fadeIn 0.3s ease-out forwards;
+      border: 1px solid var(--border);
+    }
+
+    .custom-alert.active {
+      display: block;
+    }
+
+    .custom-alert .close-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 24px;
+      height: 24px;
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .custom-alert .close-btn:hover {
+      transform: scale(1.2);
+      color: #333333;
+    }
+
+    .custom-alert .close-btn svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .spinner-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .spinner-overlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--primary);
+      border-top: 4px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .toast {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: var(--secondary);
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      font-weight: 500;
+      animation: slideIn 0.3s ease-out forwards;
+    }
+
+    .toast.active {
+      display: block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+      0% { transform: translateX(100%); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        margin: 1rem;
+        padding: 1rem;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+      }
+
+      .logo svg {
+        width: 24px;
+        height: 24px;
+      }
+
+      h1 {
+        font-size: 1.25rem;
+      }
+
+      .tab-btn {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+      }
+
+      .input-group label {
+        font-size: 0.9rem;
+      }
+
+      .input-group input {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      .auth-btn {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      .custom-alert {
+        width: 85%;
+        padding: 1rem;
+      }
+
+      .toast {
+        right: 10px;
+        max-width: 80%;
+      }
+
+      .profile-pic-preview {
+        width: 60px;
+        height: 60px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <nav>
-            <div class="header-logo">
-                <img src="nkuna1.png" alt="Dr. M.G Nkuna Logo">
-            </div>
-            <div class="menu-toggle">☰</div>
-            <ul class="nav-menu">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#benefits">Benefits</a></li>
-                <li><a href="#services">Services</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <!-- Hero Section with Graphics -->
-    <section id="home" class="hero">
-        <div class="hero-image1">
-            <img src="doc1.png" alt="Hero Image">
-        </div>
-        <div class="hero-image">
-            <img src="doc2.png" alt="Hero Image">
-        </div>
-        <div class="hero-content">
-            <h1>Welcome to Dr. M.G Nkuna</h1>
-            <p>Your Trusted Dentist in Mokopane</p>
-            <a href="#contact" class="btn">Get in Touch</a>
-        </div>
-    </section>
-
-    <!-- About Section -->
-    <section id="about">
-        <h2>About Us</h2>
-        <div class="about-card">
-            <div class="about-text">
-                <p>Dr. M.G Nkuna, UD(OH)/BDS (MEDUNSA), PR No. 0563684, has been providing exceptional dental care in Mokopane at Leseding Medical Centre. We are committed to delivering compassionate, high-quality dental services with a focus on patient comfort and satisfaction. Our team stays updated with the latest dental techniques to ensure the best outcomes for our patients.</p>
-            </div>
-            <div class="about-image">
-                <img src="https://img.freepik.com/premium-photo/portrait-smiling-female-dentist-examining-boys-teeth_13339-66678.jpg?size=626" alt="Dr. M.G Nkuna Team">
-            </div>
-        </div>
-    </section>
-
-    <!-- Benefits Section -->
-    <section id="benefits">
-        <h2>Benefits of Our Dental Services</h2>
-        <div class="benefits-card">
-            <div class="benefits-image">
-                <img src="https://img.freepik.com/free-photo/female-dentist-treats-patients-teeth-stomatologist-working-with-professional-equipment_169016-67295.jpg?size=626" alt="Dental Benefits">
-            </div>
-            <div class="benefits-text">
-                <p>Your Path to a Healthier Smile:</p>
-                <ul>
-                    <li><strong>10+ Skilled Doctors</strong></li>
-                    <li><strong>99% Patient Satisfaction</strong></li>
-                    <li><strong>20K+ Appointments Booked</strong></li>
-                    <li>Easy Online Appointment Booking</li>
-                    <li>Experienced and Caring Dentists</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <!-- Services Section -->
-    <section id="services">
-        <h2>Our Services</h2>
-        <div class="services-grid">
-            <div class="service-item">
-                <i class="fas fa-tooth"></i>
-                <h3>General Dentistry</h3>
-                <p>Routine cleanings, exams, fillings, and preventive care to keep your teeth healthy.</p>
-            </div>
-            <div class="service-item">
-                <i class="fas fa-paint-brush"></i>
-                <h3>Cosmetic Dentistry</h3>
-                <p>Teeth whitening, veneers, and bonding for a brighter smile.</p>
-            </div>
-            <div class="service-item">
-                <i class="fas fa-diagnoses"></i>
-                <h3>Orthodontics</h3>
-                <p>Braces and clear aligners for straighter teeth.</p>
-            </div>
-            <div class="service-item">
-                <i class="fas fa-tools"></i>
-                <h3>Restorative Dentistry</h3>
-                <p>Crowns, bridges, and implants to restore function and aesthetics.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact">
-        <h2>Contact Us</h2>
-        <div class="contact-container">
-            <div class="contact-card">
-                <p><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> No. 56 Thabo Mbeki Street, Shop No. 1, Mokopane, 0600</p>
-                <p><i class="fas fa-mobile-alt"></i> <strong>Cell:</strong><a href="tel:+27826547040"> 082 654 7040</a></p>
-                <p><i class="fas fa-phone"></i> <strong>Tel:</strong><a href="tel:+27154911122"> (015) 491 1122</a></p>
-                <p><i class="fas fa-ambulance"></i> <strong>Emergency:</strong><a href="tel:+27826623646"> 082 662 3646</a></p>
-                <p><i class="fas fa-envelope"></i> <strong>Email:</strong> <a href="mailto:gavazabaloyi1@gmail.com">gavazabaloyi1@gmail.com</a></p>
-            </div>
-            <div class="contact-card">
-                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Mon: 9 AM - 5 PM</p>
-                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Tue: 9 AM - 5 PM</p>
-                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Wed: 9 AM - 5 PM</p>
-                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Thur: 9 AM - 5 PM</p>
-                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Fri: 9 AM - 5 PM</p>
-                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> Sat: 9 AM - 1 PM</p>
-            </div>
-        </div>
-        <div id="map"></div>
-        <div class="route-info" id="route-info">
-            <p><i class="fas fa-ruler"></i> <strong>Distance:</strong> <span id="distance">Calculating...</span></p>
-            <p><i class="fas fa-clock"></i> <strong>Travel Time:</strong> <span id="duration">Calculating...</span></p>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <p>© 2023 Dr. M.G Nkuna. All rights reserved. | <a href="privacy.html">Privacy Policy</a></p>
-        <div class="social-links">
-            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-        </div>
-    </footer>
-
-    <!-- Location Request Overlay -->
-    <div class="location-request">
-        <div class="location-request-content">
-            <h3>Location Access Required</h3>
-            <p>Please enable location services to show your position and route to our clinic.</p>
-            <button id="enable-location">Enable Location</button>
-        </div>
+  <div class="container">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      ChatSphere
     </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="signup" aria-label="Switch to Sign Up tab">Sign Up</button>
+      <button class="tab-btn" data-tab="signin" aria-label="Switch to Sign In tab">Sign In</button>
+    </div>
+    <div class="tab-content active" id="signup-tab">
+      <h1>Create Your Account</h1>
+      <div class="input-group">
+        <label for="username-input">Username</label>
+        <input type="text" id="username-input" placeholder="Enter your username" maxlength="30" aria-label="Enter your username" />
+      </div>
+      <div class="input-group">
+        <label for="email-input">Email</label>
+        <input type="email" id="email-input" placeholder="Enter your email" aria-label="Enter your email" />
+      </div>
+      <div class="input-group">
+        <label for="password-input">Password</label>
+        <input type="password" id="password-input" placeholder="Enter your password" aria-label="Enter your password" />
+      </div>
+      <div class="input-group">
+        <label for="profile-pic-input">Profile Picture</label>
+        <input type="file" id="profile-pic-input" accept="image/*" aria-label="Upload profile picture" />
+        <img id="profile-pic-preview" class="profile-pic-preview" src="https://via.placeholder.com/80" alt="Profile picture preview" style="display: none;" />
+      </div>
+      <button class="auth-btn" id="signup-btn" aria-label="Sign up">Sign Up</button>
+    </div>
+    <div class="tab-content" id="signin-tab">
+      <h1>Sign In</h1>
+      <div class="input-group">
+        <label for="signin-email-input">Email</label>
+        <input type="email" id="signin-email-input" placeholder="Enter your email" aria-label="Enter your email" />
+      </div>
+      <div class="input-group">
+        <label for="signin-password-input">Password</label>
+        <input type="password" id="signin-password-input" placeholder="Enter your password" aria-label="Enter your password" />
+      </div>
+      <button class="auth-btn" id="signin-btn" aria-label="Sign in">Sign In</button>
+    </div>
+  </div>
 
-    <!-- Mapbox GL JS and Directions Scripts -->
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
-    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js"></script>
-    <script>
-        // Mapbox Access Token
-        mapboxgl.accessToken = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
+  <div id="custom-alert" class="custom-alert">
+    <button class="close-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <p id="alert-message">An error occurred. Please try again.</p>
+  </div>
 
-        // Initialize Mapbox Map
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [29.0105, -24.1857], // Mokopane coordinates
-            zoom: 10
-        });
+  <div class="spinner-overlay" id="spinner">
+    <div class="spinner"></div>
+  </div>
 
-        // Initialize Mapbox Directions
-        const directions = new MapboxDirections({
-            accessToken: mapboxgl.accessToken,
-            unit: 'metric',
-            profile: 'mapbox/driving',
-            interactive: false,
-            controls: {
-                inputs: false,
-                instructions: false
-            }
-        });
+  <div class="toast" id="toast">
+    <p id="toast-message"></p>
+  </div>
 
-        // Variables for markers
-        let userMarker, destinationMarker;
-        const locationRequest = document.querySelector('.location-request');
-        const enableLocationBtn = document.querySelector('#enable-location');
-        const routeInfo = document.querySelector('#route-info');
-        const distanceElement = document.querySelector('#distance');
-        const durationElement = document.querySelector('#duration');
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, collection, setDoc, doc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-        // Add destination marker
-        destinationMarker = new mapboxgl.Marker({ color: '#4682B4' })
-            .setLngLat([29.0105, -24.1857])
-            .setPopup(new mapboxgl.Popup().setHTML('<h3>Leseding Medical Centre</h3><p>No. 56 Thabo Mbeki Street, Mokopane</p>'))
-            .addTo(map);
+  const firebaseConfig = {
+  apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+  authDomain: "fire-b-a8878.firebaseapp.com",
+  projectId: "fire-b-a8878",
+  storageBucket: "fire-b-a8878.firebasestorage.app",
+  messagingSenderId: "658673187627",
+  appId: "1:658673187627:web:6e4c29af661785f0afa36e",
+  measurementId: "G-V4W97VMSKL"
+};
 
-        // Add Directions control to map
-        map.addControl(directions, 'top-left');
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        // Display route distance and duration
-        directions.on('route', (e) => {
-            const route = e.route[0];
-            if (route) {
-                const distance = (route.distance / 1000).toFixed(1); // Convert to kilometers
-                const duration = Math.round(route.duration / 60); // Convert to minutes
-                distanceElement.textContent = `${distance} km`;
-                durationElement.textContent = `${duration} minutes`;
-                routeInfo.style.display = 'block';
+    const signupBtn = document.getElementById("signup-btn");
+    const signinBtn = document.getElementById("signin-btn");
+    const usernameInput = document.getElementById("username-input");
+    const emailInput = document.getElementById("email-input");
+    const passwordInput = document.getElementById("password-input");
+    const profilePicInput = document.getElementById("profile-pic-input");
+    const profilePicPreview = document.getElementById("profile-pic-preview");
+    const signinEmailInput = document.getElementById("signin-email-input");
+    const signinPasswordInput = document.getElementById("signin-password-input");
+    const customAlert = document.getElementById("custom-alert");
+    const alertMessage = document.getElementById("alert-message");
+    const spinner = document.getElementById("spinner");
+    const toast = document.getElementById("toast");
+    const toastMessage = document.getElementById("toast-message");
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    function showAlert(message, autoHide = true) {
+      alertMessage.textContent = message;
+      customAlert.classList.add("active");
+      if (autoHide) {
+        setTimeout(hideAlert, 5000);
+      }
+    }
+
+    function hideAlert() {
+      customAlert.classList.remove("active");
+    }
+
+    function showSpinner() {
+      spinner.classList.add("active");
+    }
+
+    function hideSpinner() {
+      spinner.classList.remove("active");
+    }
+
+    function showToast(message) {
+      toastMessage.textContent = message;
+      toast.classList.add("active");
+      setTimeout(() => toast.classList.remove("active"), 3000);
+    }
+
+    document.querySelector(".custom-alert .close-btn").addEventListener("click", hideAlert);
+
+    async function checkAuthState() {
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+        await new Promise((resolve, reject) => {
+          onAuthStateChanged(auth, (user) => {
+            if (user) {
+              console.log("User already signed in:", user.uid);
+              document.body.classList.add("fade-out");
+              setTimeout(() => {
+                window.location.href = "home.html";
+              }, 500);
             } else {
-                routeInfo.style.display = 'none';
+              resolve();
             }
+          }, reject);
         });
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        showAlert("Failed to verify authentication. Please try again.", false);
+      }
+    }
 
-        // Automatically fetch geolocation
-        function getUserLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    position => {
-                        const userCoords = [position.coords.longitude, position.coords.latitude];
-                        map.flyTo({ center: userCoords, zoom: 10 });
+    async function uploadProfilePicture(file) {
+      if (!file) return null;
+      const cloudName = "dqkujefxj";
+      const uploadPreset = "banter_box";
+      const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
-                        // Add user marker
-                        userMarker = new mapboxgl.Marker({ color: '#ADD8E6' })
-                            .setLngLat(userCoords)
-                            .setPopup(new mapboxgl.Popup().setHTML('<h3>Your Location</h3>'))
-                            .addTo(map);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", uploadPreset);
 
-                        // Set origin and destination for the route
-                        directions.setOrigin(userCoords);
-                        directions.setDestination([29.0105, -24.1857]);
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          body: formData
+        });
+        const data = await response.json();
+        if (data.secure_url) {
+          return data.secure_url;
+        } else {
+          throw new Error("Failed to upload image");
+        }
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        throw error;
+      }
+    }
 
-                        // Hide location request if shown
-                        locationRequest.classList.remove('active');
-                    },
-                    () => {
-                        // Show location request overlay if geolocation is off
-                        locationRequest.classList.add('active');
-                        routeInfo.style.display = 'none';
-                    }
-                );
-            } else {
-                alert('Geolocation is not supported by this browser.');
-                routeInfo.style.display = 'none';
-            }
+    profilePicInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          profilePicPreview.src = event.target.result;
+          profilePicPreview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      } else {
+        profilePicPreview.style.display = "none";
+        profilePicPreview.src = "https://via.placeholder.com/80";
+      }
+    });
+
+    async function handleSignUp() {
+      const username = usernameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      const profilePicFile = profilePicInput.files[0];
+
+      if (!username || !email || !password) {
+        showAlert("Please fill in all required fields.", true);
+        return;
+      }
+
+      if (username.length > 30) {
+        showAlert("Username must be 30 characters or less.", true);
+        return;
+      }
+
+      if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        showAlert("Username must contain only letters, numbers, and underscores.", true);
+        return;
+      }
+
+      showSpinner();
+      try {
+        let profilePicUrl = null;
+        if (profilePicFile) {
+          profilePicUrl = await uploadProfilePicture(profilePicFile);
         }
 
-        // Trigger location request on button click
-        enableLocationBtn.addEventListener('click', () => {
-            getUserLocation();
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log("Signed up user:", user.uid);
+
+        await updateProfile(user, { displayName: username, photoURL: profilePicUrl });
+
+        const userRef = doc(db, `users/${user.uid}`);
+        await setDoc(userRef, {
+          username: username,
+          email: email,
+          profilePic: profilePicUrl || null,
+          createdAt: new Date().toISOString(),
+          online: true
         });
 
-        // Automatically attempt to get location on page load
-        getUserLocation();
+        const defaultTrainingData = [
+          { input: { happy: 1, great: 0, sad: 0, bad: 0 }, output: { positive: 1 } },
+          { input: { sad: 1, bad: 1, happy: 0, great: 0 }, output: { negative: 1 } }
+        ];
+        for (const data of defaultTrainingData) {
+          await addDoc(collection(db, `users/${user.uid}/training-data`), data);
+        }
 
-        // Responsive Menu Toggle
-        const menuToggle = document.querySelector('.menu-toggle');
-        const navMenu = document.querySelector('.nav-menu');
+        showToast(`${username} is now online`);
+        document.body.classList.add("fade-out");
+        setTimeout(() => {
+          window.location.href = "home.html";
+        }, 500);
+      } catch (error) {
+        console.error("Sign up failed:", error.code, error.message);
+        let errorMessage = "Failed to sign up. Please try again.";
+        if (error.code === "auth/email-already-in-use") {
+          errorMessage = "Email is already in use.";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "Invalid email format.";
+        } else if (error.code === "auth/weak-password") {
+          errorMessage = "Password is too weak. Use at least 6 characters.";
+        } else if (error.message.includes("Failed to upload image")) {
+          errorMessage = "Failed to upload profile picture. Please try again.";
+        }
+        hideSpinner();
+        showAlert(errorMessage, true);
+      }
+    }
 
-        menuToggle.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
+    async function handleSignIn() {
+      const email = signinEmailInput.value.trim();
+      const password = signinPasswordInput.value.trim();
+
+      if (!email || !password) {
+        showAlert("Please fill in all fields.", true);
+        return;
+      }
+
+      showSpinner();
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log("Signed in user:", user.uid);
+
+        const userRef = doc(db, `users/${user.uid}`);
+        await setDoc(userRef, { online: true }, { merge: true });
+
+        showToast(`${user.displayName || 'User'} is now online`);
+        document.body.classList.add("fade-out");
+        setTimeout(() => {
+          window.location.href = "home.html";
+        }, 500);
+      } catch (error) {
+        console.error("Sign in failed:", error.code, error.message);
+        let errorMessage = "Failed to sign in. Please try again.";
+        if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
+          errorMessage = "Invalid email or password.";
+        } else if (error.code === "auth/invalid-email") {
+          errorMessage = "Invalid email format.";
+        }
+        hideSpinner();
+        showAlert(errorMessage, true);
+      }
+    }
+
+    function setupTabListeners() {
+      tabButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          tabButtons.forEach(b => b.classList.remove("active"));
+          tabContents.forEach(c => c.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById(`${btn.dataset.tab}-tab`).classList.add("active");
         });
+      });
+    }
 
-        // Close menu on link click
-        document.querySelectorAll('.nav-menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-            });
+    function applyTheme() {
+      const theme = localStorage.getItem("theme") || "light";
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+
+    function setupAuthListeners() {
+      if (signupBtn) {
+        signupBtn.addEventListener("click", () => {
+          handleSignUp();
+          signupBtn.classList.add("tap-active");
+          setTimeout(() => signupBtn.classList.remove("tap-active"), 100);
         });
-    </script>
+        usernameInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") handleSignUp();
+        });
+        emailInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") handleSignUp();
+        });
+        passwordInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") handleSignUp();
+        });
+      }
+      if (signinBtn) {
+        signinBtn.addEventListener("click", () => {
+          handleSignIn();
+          signinBtn.classList.add("tap-active");
+          setTimeout(() => signinBtn.classList.remove("tap-active"), 100);
+        });
+        signinEmailInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") handleSignIn();
+        });
+        signinPasswordInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") handleSignIn();
+        });
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      applyTheme();
+      await checkAuthState();
+      setupTabListeners();
+      setupAuthListeners();
+    });
+  </script>
 </body>
 </html>
