@@ -593,7 +593,9 @@
 
     async function loadTrainingData() {
       try {
-        const querySnapshot = await getDocs(collection(db, `global-model/training-data`));
+        const user = auth.currentUser;
+        if (!user) return;
+        const querySnapshot = await getDocs(collection(db, `users/${user.uid}/training-data`));
         trainingData = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
@@ -614,13 +616,13 @@
             log: true,
             logPeriod: 100
           });
-          showToast("Shared model loaded successfully.");
+          showToast("Model loaded successfully.");
         } else {
-          showToast("No training data found in shared model. Using default model.");
+          showToast("No training data found. Using default model.");
         }
       } catch (error) {
-        console.error("Failed to load shared training data:", error.message);
-        showToast(`Failed to load shared model: ${error.message}`);
+        console.error("Failed to load training data:", error.message);
+        showToast(`Failed to load model: ${error.message}`);
       }
     }
 
@@ -762,6 +764,7 @@
       await saveMessageToConversation(userInput, "user");
       chatOutput.scrollTop = chatOutput.scrollHeight;
 
+      // Show thinking dots
       const thinkingDiv = document.createElement("div");
       thinkingDiv.className = "thinking-dots";
       chatOutput.appendChild(thinkingDiv);
@@ -775,7 +778,7 @@
           chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
           await saveMessageToConversation(errorMessage, "ai");
           chatOutput.scrollTop = chatOutput.scrollHeight;
-        }, 3000);
+        }, 3000); // 3-second delay to simulate thinking
         return;
       }
 
@@ -787,7 +790,7 @@
           chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
           await saveMessageToConversation(response, "ai");
           chatOutput.scrollTop = chatOutput.scrollHeight;
-        }, 3000);
+        }, 3000); // 3-second delay to simulate thinking
       } catch (error) {
         setTimeout(async () => {
           chatOutput.removeChild(thinkingDiv);
@@ -796,7 +799,7 @@
           chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
           await saveMessageToConversation(errorMessage, "ai");
           chatOutput.scrollTop = chatOutput.scrollHeight;
-        }, 3000);
+        }, 3000); // 3-second delay to simulate thinking
       }
 
       document.getElementById("user-input").value = "";
