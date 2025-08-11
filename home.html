@@ -664,8 +664,8 @@
           const modelJSON = modelDoc.data().model;
           net.fromJSON(modelJSON);
           showToast("Loaded saved shared model.");
-
-          // Load training data for use in generateHumanLikeResponse
+        } else {
+          // Check for training data in global-training-data
           const querySnapshot = await getDocs(collection(db, `global-training-data`));
           trainingData = [];
           querySnapshot.forEach((doc) => {
@@ -680,10 +680,23 @@
               trainingData.push(data);
             }
           });
-          return;
+
+          if (trainingData.length > 0) {
+            net.train(trainingData.map(d => ({ input: d.input, output: d.output })), {
+              iterations: 1000,
+              errorThresh: 0.005,
+              log: true,
+              logPeriod: 100
+            });
+            await saveTrainedModel();
+            showToast("Shared model trained and saved successfully.");
+          } else {
+            // Initialize and use default model
+            await initializeDefaultModel();
+          }
         }
 
-        // Check for training data in global-training-data
+        // Load training data for use in generateHumanLikeResponse
         const querySnapshot = await getDocs(collection(db, `global-training-data`));
         trainingData = [];
         querySnapshot.forEach((doc) => {
@@ -698,20 +711,6 @@
             trainingData.push(data);
           }
         });
-
-        if (trainingData.length > 0) {
-          net.train(trainingData.map(d => ({ input: d.input, output: d.output })), {
-            iterations: 1000,
-            errorThresh: 0.005,
-            log: true,
-            logPeriod: 100
-          });
-          await saveTrainedModel();
-          showToast("Shared model trained and saved successfully.");
-        } else {
-          // Initialize and use default model
-          await initializeDefaultModel();
-        }
       } catch (error) {
         console.error("Failed to load shared training data or model:", error.message);
         showToast(`Failed to load shared model, initializing default model: ${error.message}`);
@@ -723,15 +722,30 @@
       try {
         const user = auth.currentUser;
         if (!user) return;
-        // Store in a pending collection for review
-        await addDoc(collection(db, `pending-training-data`), {
+        // Save directly to global-training-data
+        await addDoc(collection(db, `global-training-data`), {
           input,
           output,
           text,
           createdBy: user.uid,
           createdAt: Timestamp.now()
         });
-        showToast("Training data submitted for review.");
+        showToast("Training data added successfully.");
+        // Reload training data to include new entry
+        const querySnapshot = await getDocs(collection(db, `global-training-data`));
+        trainingData = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (
+            data.input &&
+            data.output &&
+            data.text &&
+            Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
+            Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
+          ) {
+            trainingData.push(data);
+          }
+        });
       } catch (error) {
         console.error("Failed to add training data:", error.message);
         showToast(`Failed to add training data: ${error.message}`);
@@ -845,14 +859,31 @@
           ? "Sounds like you're in a great mood!"
           : "I'm sorry you're feeling down.";
       } else {
-        const randomIndex = Math.floor(Math.random() * matchingData.length);
-        const baseText = matchingData[randomIndex].text;
-        const responses = [
-          `Hey, that reminds me of "${baseText}"! You're feeling ${sentiment}, right?`,
-          `Sounds like you're ${sentiment}, kinda like "${baseText}". What's up?`,
-          `${isPositive ? "Awesome" : "Oh no"}, that's giving me "${baseText}" vibes! Tell me more!`
-        ];
-        response = responses[Math.floor(Math.random() * responses.length)];
+        // Find the most similar input text using simple word overlap
+        let bestMatch = null;
+        let maxOverlap = 0;
+        const inputWords = new Set(inputText.toLowerCase().split(" ").filter(w => w.length > 3)); // Ignore short words
+        for (const data of matchingData) {
+          const dataWords = new Set(data.text.toLowerCase().split(" ").filter(w => w.length > 3));
+          const overlap = [...inputWords].filter(w => dataWords.has(w)).length;
+          if (overlap > maxOverlap) {
+            maxOverlap = overlap;
+            bestMatch = data;
+          }
+        }
+
+        if (bestMatch && maxOverlap > 0) {
+          response = `I see you're feeling ${sentiment}, like when someone said "${bestMatch.text}". What's on your mind?`;
+        } else {
+          const randomIndex = Math.floor(Math.random() * matchingData.length);
+          const baseText = matchingData[randomIndex].text;
+          const responses = [
+            `Hey, that reminds me of "${baseText}"! You're feeling ${sentiment}, right?`,
+            `Sounds like you're ${sentiment}, kinda like "${baseText}". What's up?`,
+            `${isPositive ? "Awesome" : "Oh no"}, that's giving me "${baseText}" vibes! Tell me more!`
+          ];
+          response = responses[Math.floor(Math.random() * responses.length)];
+        }
       }
 
       if (isFirstInteraction && username) {
@@ -901,10 +932,10 @@
           chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
           await saveMessageToConversation(response, "ai");
 
-          // Add training data to pending collection for review
+          // Add training data directly to global-training-data
           const trainingOutput = {
             positive: output.positive > output.negative ? 1 : 0,
-            negative: output.negative > output.positive ? 1 : 0
+            negative dubbing: output.negative > output.positive ? 1 : 0
           };
           await addTrainingData(input, trainingOutput, userInput);
 
