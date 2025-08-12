@@ -722,6 +722,10 @@
       try {
         const user = auth.currentUser;
         if (!user) return;
+        // Validate input data
+        if (!input || !output || !text || typeof text !== 'string' || text.trim() === '') {
+          throw new Error('Invalid training data format');
+        }
         // Save directly to global-training-data
         await addDoc(collection(db, `global-training-data`), {
           input,
@@ -862,7 +866,7 @@
         // Find the most similar input text using simple word overlap
         let bestMatch = null;
         let maxOverlap = 0;
-        const inputWords = new Set(inputText.toLowerCase().split(" ").filter(w => w.length > 3)); // Ignore short words
+        const inputWords = new Set(inputText.toLowerCase().split(" ").filter(w => w.length > 3));
         for (const data of matchingData) {
           const dataWords = new Set(data.text.toLowerCase().split(" ").filter(w => w.length > 3));
           const overlap = [...inputWords].filter(w => dataWords.has(w)).length;
@@ -912,9 +916,18 @@
       chatOutput.appendChild(thinkingDiv);
       chatOutput.scrollTop = chatOutput.scrollHeight;
 
+      // Trigger vibration if supported
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200, 100, 200]); // Vibration pattern: 200ms on, 100ms off, etc.
+      }
+
       const input = processInput(userInput);
       if (!input) {
         setTimeout(async () => {
+          // Stop vibration
+          if ('vibrate' in navigator) {
+            navigator.vibrate(0);
+          }
           chatOutput.removeChild(thinkingDiv);
           const errorMessage = "Invalid input. Please try again.";
           chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
@@ -926,6 +939,10 @@
 
       try {
         setTimeout(async () => {
+          // Stop vibration
+          if ('vibrate' in navigator) {
+            navigator.vibrate(0);
+          }
           chatOutput.removeChild(thinkingDiv);
           const output = net.run(input);
           const response = generateHumanLikeResponse(output, userInput, isFirstInteraction, username);
@@ -935,7 +952,7 @@
           // Add training data directly to global-training-data
           const trainingOutput = {
             positive: output.positive > output.negative ? 1 : 0,
-            negative dubbing: output.negative > output.positive ? 1 : 0
+            negative: output.negative > output.positive ? 1 : 0
           };
           await addTrainingData(input, trainingOutput, userInput);
 
@@ -943,6 +960,10 @@
         }, 3000);
       } catch (error) {
         setTimeout(async () => {
+          // Stop vibration
+          if ('vibrate' in navigator) {
+            navigator.vibrate(0);
+          }
           chatOutput.removeChild(thinkingDiv);
           console.error("Model prediction failed:", error.message);
           const errorMessage = "Error processing input. Please try again.";
