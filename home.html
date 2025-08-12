@@ -62,7 +62,7 @@
       display: none;
       flex-direction: column;
       justify-content: space-between;
-      box-shadow: 0 4px 30px rgba(0, 0, 0́, 0.1);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     }
 
     .sidebar.active {
@@ -501,11 +501,11 @@
     <p id="toast-message"></p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.2/dist/brain-browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.22/dist/brain-browser.min.js"></script>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -520,11 +520,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const net = new brain.NeuralNetwork({ hiddenLayers: [20, 10], activation: 'sigmoid' });
-    let trainingData = [];
-    let currentConversationId = null;
-    let conversations = [];
-
+    // DOM elements
     const spinner = document.getElementById("spinner");
     const toast = document.getElementById("toast");
     const toastMessage = document.getElementById("toast-message");
@@ -536,6 +532,18 @@
     const usernameElement = document.getElementById("username");
     const newChatBtn = document.getElementById("new-chat-btn");
     const chatOutput = document.getElementById("chat-output");
+    const userInput = document.getElementById("user-input");
+
+    // Neural network setup
+    let trainingData = [];
+    let currentConversationId = null;
+    let conversations = [];
+    const net = new brain.NeuralNetwork({
+      inputSize: 7, // happy, great, sad, bad, excited, angry, neutral
+      outputSize: 3, // positive, negative, neutral
+      hiddenLayers: [20, 10],
+      activation: 'sigmoid'
+    });
 
     function showSpinner() {
       spinner.classList.add("active");
@@ -593,15 +601,21 @@
 
     async function loadTrainingData() {
       try {
+        showSpinner();
         const modelDoc = await getDoc(doc(db, `global-models/trained-model`));
         if (modelDoc.exists()) {
           const modelJSON = modelDoc.data().model;
-          net.fromJSON(modelJSON);
-          console.log("Loaded saved shared model:", modelJSON);
-          showToast("Loaded shared model.");
+          if (modelJSON && modelJSON.sizes && modelJSON.sizes[0] === 7 && modelJSON.sizes[modelJSON.sizes.length - 1] === 3) {
+            net.fromJSON(modelJSON);
+            console.log("Loaded saved model:", modelJSON);
+            showToast("Loaded trained model successfully.");
+          } else {
+            console.warn("Invalid model structure. Expected inputSize=7, outputSize=3.");
+            showToast("Invalid model structure. Please retrain the model.");
+          }
         } else {
-          console.warn("No trained model found, using untrained network.");
-          showToast("No trained model available. Contact admin to train the model.");
+          console.warn("No trained model found in Firestore.");
+          showToast("No trained model available. Please train the model in the dashboard.");
         }
 
         const querySnapshot = await getDocs(collection(db, `global-training-data`));
@@ -612,6 +626,8 @@
             data.input &&
             data.output &&
             data.text &&
+            Object.keys(data.input).length === 7 &&
+            Object.keys(data.output).length === 3 &&
             Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
             Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
           ) {
@@ -619,9 +635,14 @@
           }
         });
         console.log("Loaded training data:", trainingData);
+        if (trainingData.length === 0) {
+          showToast("No training data found. Model responses may be limited.");
+        }
       } catch (error) {
         console.error("Failed to load training data or model:", error.message);
-        showToast(`Failed to load model: ${error.message}`);
+        showToast(`Failed to load model or data: ${error.message}`);
+      } finally {
+        hideSpinner();
       }
     }
 
@@ -747,7 +768,6 @@
       );
 
       let response;
-      const inputWords = new Set(inputText.toLowerCase().split(/\W+/).filter(w => w.length > 3));
       const inputVector = processInput(inputText);
 
       if (matchingData.length === 0) {
@@ -798,8 +818,8 @@
     }
 
     window.sendMessage = async function () {
-      const userInput = document.getElementById("user-input").value.trim();
-      if (!userInput) {
+      const userInputValue = userInput.value.trim();
+      if (!userInputValue) {
         showToast("Please enter a message.");
         return;
       }
@@ -808,8 +828,8 @@
       const isFirstInteraction = user ? await checkFirstInteraction(user) : false;
       const username = user ? (user.displayName || "User") : "User";
       const timestamp = formatTimestamp(Timestamp.now());
-      chatOutput.innerHTML += `<div class="message user-message">${userInput}<span class="timestamp">${timestamp}</span></div>`;
-      await saveMessageToConversation(userInput, "user");
+      chatOutput.innerHTML += `<div class="message user-message">${userInputValue}<span class="timestamp">${timestamp}</span></div>`;
+      await saveMessageToConversation(userInputValue, "user");
       chatOutput.scrollTop = chatOutput.scrollHeight;
 
       const thinkingDiv = document.createElement("div");
@@ -821,7 +841,7 @@
         navigator.vibrate([200, 100, 200, 100, 200]);
       }
 
-      const input = processInput(userInput);
+      const input = processInput(userInputValue);
       if (!input) {
         setTimeout(async () => {
           if ('vibrate' in navigator) {
@@ -843,11 +863,11 @@
           }
           chatOutput.removeChild(thinkingDiv);
           const output = net.run(input);
-          console.log("NN output:", output);
+          console.log("Neural network output:", output);
           if (isNaN(output.positive) || isNaN(output.negative) || isNaN(output.neutral)) {
-            throw new Error("Invalid NN output");
+            throw new Error("Invalid neural network output");
           }
-          const response = generateHumanLikeResponse(output, userInput, isFirstInteraction, username);
+          const response = generateHumanLikeResponse(output, userInputValue, isFirstInteraction, username);
           chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
           await saveMessageToConversation(response, "ai");
           chatOutput.scrollTop = chatOutput.scrollHeight;
@@ -866,14 +886,14 @@
         }, 2000);
       }
 
-      document.getElementById("user-input").value = "";
+      userInput.value = "";
       chatHistory.scrollTop = chatHistory.scrollHeight;
     };
 
     window.startNewConversation = function () {
       currentConversationId = null;
       chatOutput.innerHTML = "";
-      document.getElementById("user-input").value = "";
+      userInput.value = "";
       showToast("Started a new conversation.");
     };
 
@@ -905,7 +925,7 @@
 
     newChatBtn.addEventListener("click", startNewConversation);
 
-    document.getElementById("user-input").addEventListener("keypress", (e) => {
+    userInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") sendMessage();
     });
 
