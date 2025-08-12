@@ -23,7 +23,6 @@
       --user-bubble: rgba(59, 130, 246, 0.2);
       --ai-bubble: rgba(255, 255, 255, 0.2);
       --avatar-bg: #3B82F6;
-      --retrain-indicator: rgba(59, 130, 246, 0.5);
     }
 
     [data-theme="dark"] {
@@ -36,7 +35,6 @@
       --user-bubble: rgba(59, 130, 246, 0.3);
       --ai-bubble: rgba(55, 65, 81, 0.3);
       --avatar-bg: #1E3A8A;
-      --retrain-indicator: rgba(59, 130, 246, 0.7);
     }
 
     body {
@@ -64,7 +62,7 @@
       display: none;
       flex-direction: column;
       justify-content: space-between;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 30px rgba(0, 0, 0́, 0.1);
     }
 
     .sidebar.active {
@@ -246,28 +244,6 @@
 
     .thinking-dots::after {
       content: '...';
-      display: inline-block;
-      animation: pulse 1.5s infinite;
-    }
-
-    .retrain-indicator {
-      margin: 0.5rem 0;
-      max-width: 70%;
-      padding: 0.75rem 1rem;
-      color: var(--text-dark);
-      margin-right: auto;
-      font-size: 0.9rem;
-      background: var(--retrain-indicator);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      border: 1px solid var(--border);
-      text-align: center;
-    }
-
-    .retrain-indicator::after {
-      content: 'Retraining model...';
       display: inline-block;
       animation: pulse 1.5s infinite;
     }
@@ -475,10 +451,10 @@
     }
 
     @supports not (backdrop-filter: blur(10px)) {
-      .sidebar, .chat-header, .input-group, .chat-output .message, .chat-output .thinking-dots, .retrain-indicator, .toast, .signout-btn {
+      .sidebar, .chat-header, .input-group, .chat-output .message, .chat-output .thinking-dots, .toast, .signout-btn {
         background: var(--background-fallback);
       }
-      [data-theme="dark"] .sidebar, [data-theme="dark"] .chat-header, [data-theme="dark"] .input-group, [data-theme="dark"] .chat-output .message, [data-theme="dark"] .chat-output .thinking-dots, [data-theme="dark"] .retrain-indicator, [data-theme="dark"] .toast, [data-theme="dark"] .signout-btn {
+      [data-theme="dark"] .sidebar, [data-theme="dark"] .chat-header, [data-theme="dark"] .input-group, [data-theme="dark"] .chat-output .message, [data-theme="dark"] .chat-output .thinking-dots, [data-theme="dark"] .toast, [data-theme="dark"] .signout-btn {
         background: var(--background-dark-fallback);
       }
     }
@@ -615,55 +591,6 @@
       return false;
     }
 
-    async function saveTrainedModel() {
-      try {
-        const modelJSON = net.toJSON();
-        await setDoc(doc(db, `global-models/trained-model`), {
-          model: modelJSON,
-          updatedAt: Timestamp.now()
-        });
-        console.log("Shared model saved successfully.");
-        showToast("Shared model updated.");
-      } catch (error) {
-        console.error("Failed to save trained model:", error.message);
-        showToast(`Failed to save model: ${error.message}`);
-      }
-    }
-
-    async function initializeDefaultModel() {
-      const defaultTrainingData = [
-        { input: { happy: 1, great: 0, sad: 0, bad: 0, excited: 0, angry: 0 }, output: { positive: 1, neutral: 0, negative: 0 }, text: "I'm so happy today!" },
-        { input: { happy: 0, great: 1, sad: 0, bad: 0, excited: 0, angry: 0 }, output: { positive: 1, neutral: 0, negative: 0 }, text: "This is great!" },
-        { input: { happy: 0, great: 0, sad: 1, bad: 0, excited: 0, angry: 0 }, output: { positive: 0, neutral: 0, negative: 1 }, text: "Feeling sad." },
-        { input: { happy: 0, great: 0, sad: 0, bad: 1, excited: 0, angry: 0 }, output: { positive: 0, neutral: 0, negative: 1 }, text: "This is awful." },
-        { input: { happy: 0, great: 0, sad: 0, bad: 0, excited: 1, angry: 0 }, output: { positive: 1, neutral: 0, negative: 0 }, text: "So excited for this!" },
-        { input: { happy: 0, great: 0, sad: 0, bad: 0, excited: 0, angry: 1 }, output: { positive: 0, neutral: 0, negative: 1 }, text: "I'm really angry!" },
-        { input: { happy: 0, great: 0, sad: 0, bad: 0, excited: 0, angry: 0 }, output: { positive: 0, neutral: 1, negative: 0 }, text: "Just chilling." }
-      ];
-
-      try {
-        net.train(defaultTrainingData, {
-          iterations: 2000,
-          errorThresh: 0.002,
-          log: true,
-          logPeriod: 100
-        });
-        for (const data of defaultTrainingData) {
-          await addDoc(collection(db, `global-training-data`), {
-            ...data,
-            createdAt: Timestamp.now()
-          });
-        }
-        await saveTrainedModel();
-        trainingData = defaultTrainingData;
-        console.log("Default model initialized:", net.toJSON());
-        showToast("Default model initialized.");
-      } catch (error) {
-        console.error("Failed to initialize default model:", error.message);
-        showToast(`Failed to initialize default model: ${error.message}`);
-      }
-    }
-
     async function loadTrainingData() {
       try {
         const modelDoc = await getDoc(doc(db, `global-models/trained-model`));
@@ -673,33 +600,8 @@
           console.log("Loaded saved shared model:", modelJSON);
           showToast("Loaded shared model.");
         } else {
-          const querySnapshot = await getDocs(collection(db, `global-training-data`));
-          trainingData = [];
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (
-              data.input &&
-              data.output &&
-              data.text &&
-              Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
-              Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
-            ) {
-              trainingData.push(data);
-            }
-          });
-
-          if (trainingData.length > 0) {
-            net.train(trainingData.map(d => ({ input: d.input, output: d.output })), {
-              iterations: 2000,
-              errorThresh: 0.002,
-              log: true,
-              logPeriod: 100
-            });
-            await saveTrainedModel();
-            showToast("Shared model trained and saved.");
-          } else {
-            await initializeDefaultModel();
-          }
+          console.warn("No trained model found, using untrained network.");
+          showToast("No trained model available. Contact admin to train the model.");
         }
 
         const querySnapshot = await getDocs(collection(db, `global-training-data`));
@@ -716,57 +618,10 @@
             trainingData.push(data);
           }
         });
+        console.log("Loaded training data:", trainingData);
       } catch (error) {
         console.error("Failed to load training data or model:", error.message);
-        showToast(`Failed to load model, initializing default: ${error.message}`);
-        await initializeDefaultModel();
-      }
-    }
-
-    async function retrainAndSave() {
-      try {
-        const retrainDiv = document.createElement("div");
-        retrainDiv.className = "retrain-indicator";
-        chatOutput.appendChild(retrainDiv);
-        chatOutput.scrollTop = chatOutput.scrollHeight;
-
-        net.train(trainingData.map(d => ({ input: d.input, output: d.output })), {
-          iterations: 1000,
-          errorThresh: 0.005,
-          log: true,
-          logPeriod: 100
-        });
-        await saveTrainedModel();
-
-        chatOutput.removeChild(retrainDiv);
-        showToast("Model retrained successfully.");
-      } catch (error) {
-        console.error("Failed to retrain model:", error.message);
-        chatOutput.removeChild(retrainDiv);
-        showToast(`Failed to retrain model: ${error.message}`);
-      }
-    }
-
-    async function addTrainingData(input, output, text) {
-      try {
-        const user = auth.currentUser;
-        if (!user) return;
-        if (!input || !output || !text || typeof text !== 'string' || text.trim() === '') {
-          throw new Error('Invalid training data format');
-        }
-        await addDoc(collection(db, `global-training-data`), {
-          input,
-          output,
-          text,
-          createdBy: user.uid,
-          createdAt: Timestamp.now()
-        });
-        trainingData.push({ input, output, text });
-        await retrainAndSave();
-        console.log("Training data added:", { input, output, text });
-      } catch (error) {
-        console.error("Failed to add training data:", error.message);
-        showToast(`Failed to add training data: ${error.message}`);
+        showToast(`Failed to load model: ${error.message}`);
       }
     }
 
@@ -995,14 +850,6 @@
           const response = generateHumanLikeResponse(output, userInput, isFirstInteraction, username);
           chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
           await saveMessageToConversation(response, "ai");
-
-          const trainingOutput = {
-            positive: output.positive === Math.max(output.positive, output.negative, output.neutral) ? 1 : 0,
-            negative: output.negative === Math.max(output.positive, output.negative, output.neutral) ? 1 : 0,
-            neutral: output.neutral === Math.max(output.positive, output.negative, output.neutral) ? 1 : 0
-          };
-          await addTrainingData(input, trainingOutput, userInput);
-
           chatOutput.scrollTop = chatOutput.scrollHeight;
         }, 2000);
       } catch (error) {
