@@ -522,11 +522,12 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let sentimentAnalyzer;
-    let textGenerator;
+    let sentimentAnalyzer = null;
+    let textGenerator = null;
     let trainingData = [];
     let currentConversationId = null;
     let conversations = [];
+    let lastUserMessage = null; // Store last user message for context
 
     const spinner = document.getElementById("spinner");
     const toast = document.getElementById("toast");
@@ -541,8 +542,10 @@
     const chatOutput = document.getElementById("chat-output");
 
     async function initializeSentimentAnalyzer() {
+      if (sentimentAnalyzer) return; // Avoid re-initializing
       try {
         showSpinner();
+        showToast('Loading sentiment analysis model...');
         sentimentAnalyzer = await pipeline('sentiment-analysis', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
         showToast('Sentiment analyzer initialized successfully.');
       } catch (error) {
@@ -554,8 +557,10 @@
     }
 
     async function initializeTextGenerator() {
+      if (textGenerator) return; // Avoid re-initializing
       try {
         showSpinner();
+        showToast('Loading text generation model...');
         textGenerator = await pipeline('text-generation', 'Xenova/distilgpt2');
         showToast('Text generator initialized successfully.');
       } catch (error) {
@@ -690,6 +695,7 @@
           messageDiv.className = `message ${msg.sender === 'user' ? 'user-message' : 'ai-message'}`;
           messageDiv.innerHTML = `${DOMPurify.sanitize(msg.text)}<span class="timestamp">${timestamp}</span>`;
           chatOutput.appendChild(messageDiv);
+          if (msg.sender === 'user') lastUserMessage = msg.text; // Store last user message
         });
         chatOutput.scrollTop = chatOutput.scrollHeight;
       } catch (error) {
@@ -731,6 +737,7 @@
             historyItem.innerHTML = `${DOMPurify.sanitize(conversation.messages[0].text.substring(0, 20))}${conversation.messages[0].text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>`;
           }
         }
+        if (sender === 'user') lastUserMessage = text; // Update last user message
       } catch (error) {
         console.error("Failed to save message:", error.message);
         showToast(`Failed to save message: ${error.message}`);
@@ -744,8 +751,8 @@
       let response;
       if (matchingData.length === 0) {
         response = isPositive
-          ? "Sounds like you're in a great mood!"
-          : "I'm sorry you're feeling down.";
+          ? "Sounds like you're in a great mood! What's sparking that joy?"
+          : "I'm sorry you're feeling down. Can I help with anything?";
       } else {
         let bestMatch = null;
         let maxOverlap = 0;
@@ -787,6 +794,12 @@
         return;
       }
 
+      // Ensure models are loaded
+      if (!sentimentAnalyzer || !textGenerator) {
+        showToast("Models are still loading, please wait...");
+        return;
+      }
+
       const user = auth.currentUser;
       const isFirstInteraction = user ? await checkFirstInteraction(user) : false;
       const username = user ? (user.displayName || "User") : "User";
@@ -822,14 +835,29 @@
           // Generate response with distilgpt2
           let response;
           try {
+            // Improved prompt with context
+            const context = lastUserMessage ? `Previous message: "${lastUserMessage}". ` : '';
             const prompt = sentiment.label === 'POSITIVE'
-              ? `You said: "${userInput}". That's awesome! What's making you so happy?`
-              : `You said: "${userInput}". I'm sorry you're feeling down. Want to talk about it?`;
-            const generated = await textGenerator(prompt, { max_length: 50, do_sample: true, num_return_sequences: 1 });
+              ? `${context}User said: "${userInput}". Respond positively and ask a follow-up question to keep the conversation going.`
+              : `${context}User said: "${userInput}". Respond empathetically and offer support or ask what's wrong.`;
+            const generated = await textGenerator(prompt, {
+              max_length: 60,
+              do_sample: true,
+              num_return_sequences: 1,
+              temperature: 0.7, // Control randomness
+              top_k: 50, // Limit to top 50 tokens
+              top_p: 0.9 // Use nucleus sampling
+            });
             response = generated[0].generated_text.trim();
-            // Clean up response (remove prompt if included)
-            response = response.replace(prompt, '').trim();
-            if (!response) throw new Error('Empty generated response');
+            // Clean up response (remove prompt and ensure coherence)
+            response = response.replace(prompt, '').replace(context, '').trim();
+            if (!response || response.length < 10) {
+              throw new Error('Generated response is too short or empty');
+            }
+            // Truncate if too long
+            if (response.length > 100) {
+              response = response.substring(0, 100) + '...';
+            }
           } catch (genError) {
             console.warn('Text generation failed, falling back to human-like response:', genError.message);
             response = generateHumanLikeResponse(sentiment, userInput, isFirstInteraction, username);
@@ -854,7 +882,7 @@
           trainingData.push({ text: userInput, sentiment: sentiment.label });
 
           chatOutput.scrollTop = chatOutput.scrollHeight;
-        }, 2000);
+        }, 1500); // Reduced delay for faster feedback
       } catch (error) {
         if ('vibrate' in navigator) {
           navigator.vibrate(0);
@@ -876,6 +904,7 @@
 
     window.startNewConversation = function () {
       currentConversationId = null;
+      lastUserMessage = null; // Reset context
       chatOutput.innerHTML = "";
       document.getElementById("user-input").value = "";
       showToast("Started a new conversation.");
@@ -924,10 +953,11 @@
           } else {
             console.log("User authenticated:", user.uid);
             setUserProfile(user);
-            await initializeSentimentAnalyzer();
-            await initializeTextGenerator();
+            showToast("Initializing AI models, please wait...");
+            await Promise.all([initializeSentimentAnalyzer(), initializeTextGenerator()]);
             await loadTrainingData();
             await loadConversations();
+            showToast("Vynix AI is ready!");
             resolve();
           }
         }, (error) => {
