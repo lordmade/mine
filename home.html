@@ -506,7 +506,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
     import { pipeline } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js";
 
     const firebaseConfig = {
@@ -668,25 +668,39 @@
         const user = auth.currentUser;
         if (!user) {
           showToast('Please sign in to view conversations.');
+          console.error('No authenticated user found for loading conversations.');
           return;
         }
-        const querySnapshot = await getDocs(collection(db, `users/${user.uid}/conversations`));
+        const conversationsQuery = query(
+          collection(db, `users/${user.uid}/conversations`),
+          orderBy('createdAt', 'desc')
+        );
+        const querySnapshot = await getDocs(conversationsQuery);
         conversations = [];
         chatHistory.innerHTML = "";
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          conversations.push({ id: doc.id, ...data });
-          const firstMessage = data.messages[0]?.text || "Conversation";
-          const timestamp = formatTimestamp(data.createdAt);
-          const historyItem = document.createElement("p");
-          historyItem.innerHTML = `${DOMPurify.sanitize(firstMessage.substring(0, 20))}${firstMessage.length > 20 ? "..." : ""} <span class="timestamp">${timestamp}</span>`;
-          historyItem.dataset.conversationId = doc.id;
-          historyItem.addEventListener("click", () => loadConversation(doc.id));
-          chatHistory.appendChild(historyItem);
+          if (data.messages && data.createdAt) {
+            conversations.push({ id: doc.id, ...data });
+            const firstMessage = data.messages[0]?.text || "Conversation";
+            const timestamp = formatTimestamp(data.createdAt);
+            const historyItem = document.createElement("p");
+            historyItem.innerHTML = `${DOMPurify.sanitize(firstMessage.substring(0, 20))}${firstMessage.length > 20 ? "..." : ""} <span class="timestamp">${timestamp}</span>`;
+            historyItem.dataset.conversationId = doc.id;
+            historyItem.addEventListener("click", () => loadConversation(doc.id));
+            chatHistory.appendChild(historyItem);
+          }
         });
+        if (conversations.length === 0) {
+          showToast('No conversations found. Start a new chat!');
+        }
       } catch (error) {
         console.error("Failed to load conversations:", error.message);
-        showToast(`Failed to load conversations: ${error.message}`);
+        if (error.code === 'permission-denied') {
+          showToast('Permission denied: Unable to load conversations.');
+        } else {
+          showToast(`Failed to load conversations: ${error.message}`);
+        }
       }
     }
 
@@ -695,10 +709,14 @@
         const user = auth.currentUser;
         if (!user) {
           showToast('Please sign in to view conversation.');
+          console.error('No authenticated user found for loading conversation.');
           return;
         }
         const conversation = conversations.find(c => c.id === conversationId);
-        if (!conversation) return;
+        if (!conversation) {
+          showToast('Conversation not found.');
+          return;
+        }
         currentConversationId = conversationId;
         chatOutput.innerHTML = "";
         conversation.messages.forEach(msg => {
@@ -722,6 +740,7 @@
         if (!user) {
           showToast('Please sign in to save messages.');
           console.error('No authenticated user found.');
+          localStorage.setItem(`message_${Date.now()}`, JSON.stringify({ text, sender, timestamp: new Date() }));
           return false;
         }
         const message = {
@@ -729,22 +748,24 @@
           sender,
           timestamp: Timestamp.now()
         };
+        let historyItem;
         if (!currentConversationId) {
           const docRef = await addDoc(collection(db, `users/${user.uid}/conversations`), {
             createdAt: Timestamp.now(),
             messages: [message]
           });
           currentConversationId = docRef.id;
-          conversations.push({ id: docRef.id, createdAt: Timestamp.now(), messages: [message] });
-          const historyItem = document.createElement("p");
+          conversations.unshift({ id: docRef.id, createdAt: Timestamp.now(), messages: [message] });
+          historyItem = document.createElement("p");
           historyItem.innerHTML = `${DOMPurify.sanitize(text.substring(0, 20))}${text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(Timestamp.now())}</span>`;
           historyItem.dataset.conversationId = docRef.id;
           historyItem.addEventListener("click", () => loadConversation(docRef.id));
-          chatHistory.appendChild(historyItem);
+          chatHistory.prepend(historyItem);
         } else {
           const conversation = conversations.find(c => c.id === currentConversationId);
           if (!conversation) {
             showToast('Conversation not found.');
+            console.error(`Conversation ${currentConversationId} not found in local array.`);
             return false;
           }
           conversation.messages.push(message);
@@ -752,12 +773,15 @@
             messages: conversation.messages,
             createdAt: conversation.createdAt
           }, { merge: true });
-          const historyItem = chatHistory.querySelector(`[data-conversation-id="${currentConversationId}"]`);
+          historyItem = chatHistory.querySelector(`[data-conversation-id="${currentConversationId}"]`);
           if (historyItem) {
-            historyItem.innerHTML = `${DOMPurify.sanitize(conversation.messages[0].text.substring(0, 20))}${conversation.messages[0].text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>`;
+            const firstMessage = conversation.messages[0].text;
+            historyItem.innerHTML = `${DOMPurify.sanitize(firstMessage.substring(0, 20))}${firstMessage.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>`;
+            chatHistory.prepend(historyItem); // Move to top
           }
         }
         if (sender === 'user') lastUserMessage = text;
+        await loadConversations(); // Refresh chat history
         return true;
       } catch (error) {
         console.error("Failed to save message:", error.message);
@@ -766,6 +790,7 @@
         } else {
           showToast(`Failed to save message: ${error.message}`);
         }
+        localStorage.setItem(`message_${Date.now()}`, JSON.stringify({ text, sender, timestamp: new Date() }));
         return false;
       }
     }
@@ -841,7 +866,7 @@
       chatOutput.appendChild(userMessageDiv);
       const saved = await saveMessageToConversation(userInput, "user");
       if (!saved) {
-        console.warn('Message displayed locally but not saved to Firestore.');
+        console.warn('User message displayed locally but not saved to Firestore.');
       }
       chatOutput.scrollTop = chatOutput.scrollHeight;
 
