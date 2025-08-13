@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vynix - Settings</title>
+  <title>Vynix - AI Chat</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -20,6 +20,8 @@
       --text-light-dark: #9CA3AF;
       --border-dark: rgba(255, 255, 255, 0.2);
       --white-dark: rgba(31, 41, 55, 0.3);
+      --user-bubble: rgba(59, 130, 246, 0.2);
+      --ai-bubble: rgba(255, 255, 255, 0.2);
       --avatar-bg: #3B82F6;
     }
 
@@ -30,6 +32,8 @@
       --text-light: var(--text-light-dark);
       --border: var(--border-dark);
       --white: var(--white-dark);
+      --user-bubble: rgba(59, 130, 246, 0.3);
+      --ai-bubble: rgba(55, 65, 81, 0.3);
       --avatar-bg: #1E3A8A;
     }
 
@@ -93,7 +97,14 @@
       color: var(--text-dark);
     }
 
-    .nav-btn {
+    .sidebar h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 1rem;
+    }
+
+    .new-chat-btn {
       background: var(--primary);
       color: var(--secondary);
       padding: 0.5rem;
@@ -104,20 +115,196 @@
       transition: background 0.2s ease, transform 0.2s ease;
       margin-bottom: 1.5rem;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
     }
 
-    .nav-btn:hover {
+    .new-chat-btn:hover {
       background: #1E3A8A;
       transform: scale(1.05);
     }
 
-    .nav-btn svg {
-      width: 20px;
-      height: 20px;
+    .sidebar .chat-history {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar .chat-history p {
+      padding: 0.5rem;
+      color: var(--text-light);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--background);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      margin: 0.5rem 0;
+    }
+
+    .sidebar .chat-history p:hover {
+      background: rgba(59, 130, 246, 0.2);
+      color: var(--text-dark);
+    }
+
+    .chat-history .timestamp {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+
+    .chat-container {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: var(--background);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-header h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+
+    .chat-header button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: none;
+    }
+
+    .chat-output {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      background: transparent;
+    }
+
+    .chat-output .message {
+      margin: 0.5rem 0;
+      max-width: 70%;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+    }
+
+    .chat-output .user-message {
+      background: var(--user-bubble);
+      color: var(--text-dark);
+      margin-left: auto;
+      border-bottom-right-radius: 2px;
+    }
+
+    .chat-output .ai-message {
+      background: var(--ai-bubble);
+      color: var(--text-dark);
+      margin-right: auto;
+      border-bottom-left-radius: 2px;
+    }
+
+    .chat-output .timestamp {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-top: 0.25rem;
+      align-self: flex-end;
+    }
+
+    .chat-output .thinking-dots {
+      margin: 0.5rem 0;
+      max-width: 70%;
+      padding: 0.75rem 1rem;
+      color: var(--text-dark);
+      margin-right: auto;
+      font-size: 1rem;
+      background: var(--ai-bubble);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+    }
+
+    .thinking-dots::after {
+      content: '...';
+      display: inline-block;
+      animation: pulse 1.5s infinite;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: var(--background);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .input-group input {
+      flex-grow: 1;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      font-size: 0.95rem;
+      background: var(--background);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      color: var(--text-dark);
+    }
+
+    .input-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+
+    .input-group button {
+      padding: 0.75rem;
+      background: var(--primary);
+      color: var(--secondary);
+      border: none;
+      border-radius: 9999px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .input-group button:hover {
+      background: #1E3A8A;
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .input-group button svg {
+      width: 24px;
+      height: 24px;
       fill: var(--secondary);
     }
 
@@ -150,196 +337,6 @@
       width: 20px;
       height: 20px;
       fill: var(--text-dark);
-    }
-
-    .settings-container {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 2rem;
-    }
-
-    .settings-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background: var(--background);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .settings-header h1 {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--text-dark);
-    }
-
-    .settings-header button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      display: none;
-      font-size: 1.5rem;
-      color: var(--text-dark);
-    }
-
-    .settings-content {
-      flex-grow: 1;
-      padding: 2rem;
-      background: var(--background);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-radius: 12px;
-      margin: 1rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .settings-content h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 1rem;
-    }
-
-    .settings-content label {
-      display: block;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text-dark);
-      margin-bottom: 0.5rem;
-    }
-
-    .settings-content input {
-      width: 100%;
-      max-width: 400px;
-      padding: 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.95rem;
-      background: var(--background);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      color: var(--text-dark);
-      outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .settings-content input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-    }
-
-    .settings-content button {
-      background: var(--primary);
-      color: var(--secondary);
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
-      margin-top: 1rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .settings-content button:hover {
-      background: #1E3A8A;
-      transform: scale(1.05);
-    }
-
-    .settings-content button svg {
-      width: 20px;
-      height: 20px;
-      fill: var(--secondary);
-    }
-
-    .theme-toggle {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-
-    .theme-toggle input[type="checkbox"] {
-      appearance: none;
-      width: 48px;
-      height: 24px;
-      background: var(--text-light);
-      border-radius: 9999px;
-      position: relative;
-      cursor: pointer;
-      outline: none;
-      transition: background 0.2s ease;
-    }
-
-    .theme-toggle input[type="checkbox"]:checked {
-      background: var(--primary);
-    }
-
-    .theme-toggle input[type="checkbox"]::before {
-      content: '';
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      background: var(--secondary);
-      border-radius: 50%;
-      top: 2px;
-      left: 2px;
-      transition: transform 0.2s ease;
-    }
-
-    .theme-toggle input[type="checkbox"]:checked::before {
-      transform: translateX(24px);
-    }
-
-    .conversation-list {
-      max-height: 200px;
-      overflow-y: auto;
-      margin-top: 1rem;
-      padding: 0.5rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--background);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-    }
-
-    .conversation-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem;
-      color: var(--text-light);
-      border-radius: 8px;
-      transition: background 0.2s ease;
-      margin: 0.5rem 0;
-    }
-
-    .conversation-item:hover {
-      background: rgba(59, 130, 246, 0.2);
-      color: var(--text-dark);
-    }
-
-    .conversation-item input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      accent-color: var(--primary);
-    }
-
-    .conversation-item span {
-      flex-grow: 1;
-    }
-
-    .conversation-item .timestamp {
-      font-size: 0.8rem;
-      color: var(--text-light);
     }
 
     .spinner-overlay {
@@ -400,16 +397,22 @@
       100% { transform: translateX(0); opacity: 1; }
     }
 
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
     @media (min-width: 768px) {
       .sidebar {
         display: flex;
       }
 
-      .settings-container {
+      .chat-container {
         padding: 2rem;
       }
 
-      .settings-header button {
+      .chat-header button {
         display: none;
       }
     }
@@ -429,25 +432,40 @@
         left: 0;
       }
 
-      .settings-header button {
+      .chat-header button {
         display: block;
+        font-size: 1.5rem;
+        color: var(--text-dark);
       }
 
-      .settings-container {
+      .chat-container {
         padding: 1rem;
       }
 
-      .settings-content {
-        margin: 0.5rem;
-        padding: 1rem;
+      .input-group {
+        padding: 0.5rem;
+      }
+
+      .input-group input {
+        padding: 0.5rem 1rem;
+      }
+
+      .input-group button {
+        padding: 0.5rem;
+        width: 40px;
+        height: 40px;
+      }
+
+      .chat-output .message {
+        max-width: 85%;
       }
     }
 
     @supports not (backdrop-filter: blur(10px)) {
-      .sidebar, .settings-header, .settings-content, .toast, .settings-btn, .signout-btn, .conversation-list {
+      .sidebar, .chat-header, .input-group, .chat-output .message, .chat-output .thinking-dots, .toast, .settings-btn, .signout-btn {
         background: var(--background-fallback);
       }
-      [data-theme="dark"] .sidebar, [data-theme="dark"] .settings-header, [data-theme="dark"] .settings-content, [data-theme="dark"] .toast, [data-theme="dark"] .settings-btn, [data-theme="dark"] .signout-btn, [data-theme="dark"] .conversation-list {
+      [data-theme="dark"] .sidebar, [data-theme="dark"] .chat-header, [data-theme="dark"] .input-group, [data-theme="dark"] .chat-output .message, [data-theme="dark"] .chat-output .thinking-dots, [data-theme="dark"] .toast, [data-theme="dark"] .settings-btn, [data-theme="dark"] .signout-btn {
         background: var(--background-dark-fallback);
       }
     }
@@ -461,11 +479,10 @@
           <div class="avatar" id="user-avatar"></div>
           <span class="username" id="username"></span>
         </div>
-        <div class="nav-btn" id="back-to-chat">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-          </svg>
-          Back to Chat
+        <div class="new-chat-btn" id="new-chat-btn">New Conversation</div>
+        <h2>Chat History</h2>
+        <div class="chat-history" id="chat-history">
+          <!-- Chat history will be populated here -->
         </div>
       </div>
       <div>
@@ -483,41 +500,18 @@
         </div>
       </div>
     </div>
-    <div class="settings-container">
-      <div class="settings-header">
-        <h1>Settings</h1>
+    <div class="chat-container">
+      <div class="chat-header">
+        <h1>Vynix AI</h1>
         <button id="toggle-sidebar">☰</button>
       </div>
-      <div class="settings-content">
-        <h2>Profile</h2>
-        <label for="display-name">Display Name</label>
-        <input type="text" id="display-name" placeholder="Enter your display name" aria-label="Display name input" />
-        <button id="update-profile">
+      <div class="chat-output" id="chat-output"></div>
+      <div class="input-group">
+        <input type="text" id="user-input" placeholder="Ask Vynix anything..." aria-label="Chat input" />
+        <button onclick="sendMessage()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M17 3H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H9V7h6v2z"/>
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
           </svg>
-          Update Profile
-        </button>
-        <h2>Appearance</h2>
-        <div class="theme-toggle">
-          <label for="theme-toggle">Dark Mode</label>
-          <input type="checkbox" id="theme-toggle" />
-        </div>
-        <h2>Conversations</h2>
-        <div class="conversation-list" id="conversation-list">
-          <!-- Conversations will be populated here -->
-        </div>
-        <button id="delete-selected">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-          </svg>
-          Delete Selected
-        </button>
-        <button id="delete-all">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-          </svg>
-          Delete All
         </button>
       </div>
     </div>
@@ -531,10 +525,11 @@
     <p id="toast-message"></p>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.2/dist/brain-browser.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, writeBatch, Timestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -549,22 +544,26 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    const net = new brain.NeuralNetwork({ hiddenLayers: [10], activation: 'sigmoid' });
+    let trainingData = [];
+    let currentConversationId = null;
+    let conversations = [];
+    let newDataCount = 0;
+    const RETRAIN_THRESHOLD = 5; // Retrain after 5 new data points
+    const DEBOUNCE_TIME = 10000; // 10 seconds debounce for saving model
+
     const spinner = document.getElementById("spinner");
     const toast = document.getElementById("toast");
     const toastMessage = document.getElementById("toast-message");
+    const signoutBtn = document.getElementById("signout-btn");
+    const settingsBtn = document.getElementById("settings-btn");
     const toggleSidebar = document.getElementById("toggle-sidebar");
     const sidebar = document.getElementById("sidebar");
+    const chatHistory = document.getElementById("chat-history");
     const userAvatar = document.getElementById("user-avatar");
     const usernameElement = document.getElementById("username");
-    const backToChatBtn = document.getElementById("back-to-chat");
-    const settingsBtn = document.getElementById("settings-btn");
-    const signoutBtn = document.getElementById("signout-btn");
-    const displayNameInput = document.getElementById("display-name");
-    const updateProfileBtn = document.getElementById("update-profile");
-    const themeToggle = document.getElementById("theme-toggle");
-    const conversationList = document.getElementById("conversation-list");
-    const deleteSelectedBtn = document.getElementById("delete-selected");
-    const deleteAllBtn = document.getElementById("delete-all");
+    const newChatBtn = document.getElementById("new-chat-btn");
+    const chatOutput = document.getElementById("chat-output");
 
     function showSpinner() {
       spinner.classList.add("active");
@@ -600,7 +599,6 @@
       if (user) {
         const displayName = user.displayName || "User";
         usernameElement.textContent = displayName;
-        displayNameInput.value = displayName;
         if (user.photoURL) {
           userAvatar.style.background = "none";
           userAvatar.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;" />`;
@@ -618,7 +616,6 @@
         if (userDoc.exists()) {
           const theme = userDoc.data().theme || "light";
           document.documentElement.setAttribute("data-theme", theme);
-          themeToggle.checked = theme === "dark";
         }
       } catch (error) {
         console.error("Failed to load user settings:", error.message);
@@ -626,120 +623,421 @@
       }
     }
 
-    async function saveUserSettings(user, theme) {
-      if (!user) return;
+    async function checkFirstInteraction(user) {
+      if (!user) return false;
+      const userDocRef = doc(db, `users/${user.uid}`);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists() || !userDoc.data().firstInteraction) {
+        await setDoc(userDocRef, { firstInteraction: true }, { merge: true });
+        return true;
+      }
+      return false;
+    }
+
+    // Debounce function to limit Firestore writes
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    async function saveTrainedModel() {
       try {
-        await setDoc(doc(db, `users/${user.uid}`), { theme }, { merge: true });
-        showToast("Settings saved successfully.");
+        const modelJSON = net.toJSON();
+        await setDoc(doc(db, `global-models/trained-model`), {
+          model: modelJSON,
+          updatedAt: Timestamp.now()
+        });
+        showToast("Shared model saved successfully.");
       } catch (error) {
-        console.error("Failed to save user settings:", error.message);
-        showToast(`Failed to save settings: ${error.message}`);
+        console.error("Failed to save trained model:", error.message);
+        showToast(`Failed to save model: ${error.message}`);
+      }
+    }
+
+    const debouncedSaveModel = debounce(saveTrainedModel, DEBOUNCE_TIME);
+
+    async function retrainModel(newData = []) {
+      try {
+        if (newData.length > 0) {
+          trainingData.push(...newData);
+        }
+        if (trainingData.length === 0) return;
+
+        // Incremental training with fewer iterations
+        net.train(trainingData.map(d => ({ input: d.input, output: d.output })), {
+          iterations: 200, // Reduced for incremental training
+          errorThresh: 0.005,
+          log: true,
+          logPeriod: 100
+        });
+
+        await debouncedSaveModel();
+        newDataCount = 0; // Reset counter after training
+      } catch (error) {
+        console.error("Failed to retrain model:", error.message);
+        showToast(`Failed to retrain model: ${error.message}`);
+      }
+    }
+
+    async function initializeDefaultModel() {
+      const defaultTrainingData = [
+        {
+          input: { happy: 1, great: 0, sad: 0, bad: 0 },
+          output: { positive: 1, negative: 0 },
+          text: "I'm so happy today!"
+        },
+        {
+          input: { happy: 0, great: 1, sad: 0, bad: 0 },
+          output: { positive: 1, negative: 0 },
+          text: "This is great!"
+        },
+        {
+          input: { happy: 0, great: 0, sad: 1, bad: 0 },
+          output: { positive: 0, negative: 1 },
+          text: "Feeling sad."
+        },
+        {
+          input: { happy: 0, great: 0, sad: 0, bad: 1 },
+          output: { positive: 0, negative: 1 },
+          text: "This is awful."
+        }
+      ];
+
+      try {
+        net.train(defaultTrainingData, {
+          iterations: 1000,
+          errorThresh: 0.005,
+          log: true,
+          logPeriod: 100
+        });
+
+        for (const data of defaultTrainingData) {
+          await addDoc(collection(db, `global-training-data`), {
+            ...data,
+            createdAt: Timestamp.now()
+          });
+        }
+
+        await saveTrainedModel();
+        trainingData = defaultTrainingData;
+        showToast("Default model initialized and saved successfully.");
+      } catch (error) {
+        console.error("Failed to initialize default model:", error.message);
+        showToast(`Failed to initialize default model: ${error.message}`);
+      }
+    }
+
+    async function loadTrainingData() {
+      try {
+        const modelDoc = await getDoc(doc(db, `global-models/trained-model`));
+        if (modelDoc.exists()) {
+          const modelJSON = modelDoc.data().model;
+          net.fromJSON(modelJSON);
+          showToast("Loaded saved shared model.");
+        } else {
+          await initializeDefaultModel();
+        }
+
+        // Load initial training data
+        const querySnapshot = await getDocs(collection(db, `global-training-data`));
+        trainingData = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (
+            data.input &&
+            data.output &&
+            data.text &&
+            Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
+            Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
+          ) {
+            trainingData.push(data);
+          }
+        });
+
+        // Set up real-time listener for new training data
+        onSnapshot(collection(db, `global-training-data`), (snapshot) => {
+          const newData = [];
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+              const data = change.doc.data();
+              if (
+                data.input &&
+                data.output &&
+                data.text &&
+                Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
+                Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
+              ) {
+                newData.push(data);
+                newDataCount++;
+              }
+            }
+          });
+
+          if (newDataCount >= RETRAIN_THRESHOLD) {
+            retrainModel(newData);
+          }
+        });
+      } catch (error) {
+        console.error("Failed to load shared training data or model:", error.message);
+        showToast(`Failed to load shared model, initializing default model: ${error.message}`);
+        await initializeDefaultModel();
+      }
+    }
+
+    async function addTrainingData(input, output, text) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        if (!input || !output || !text || typeof text !== 'string' || text.trim() === '') {
+          throw new Error('Invalid training data format');
+        }
+        await addDoc(collection(db, `global-training-data`), {
+          input,
+          output,
+          text,
+          createdBy: user.uid,
+          createdAt: Timestamp.now()
+        });
+        showToast("Training data added successfully.");
+
+        // Incrementally update training data and retrain if threshold met
+        trainingData.push({ input, output, text });
+        newDataCount++;
+        if (newDataCount >= RETRAIN_THRESHOLD) {
+          await retrainModel();
+        }
+      } catch (error) {
+        console.error("Failed to add training data:", error.message);
+        showToast(`Failed to add training data: ${error.message}`);
       }
     }
 
     async function loadConversations() {
       try {
         const user = auth.currentUser;
-        if (!user) {
-          showToast("Error: User not authenticated.");
-          return;
-        }
+        if (!user) return;
         const querySnapshot = await getDocs(collection(db, `users/${user.uid}/conversations`));
-        conversationList.innerHTML = "";
-        if (querySnapshot.empty) {
-          conversationList.innerHTML = `<p>No conversations yet.</p>`;
-          return;
-        }
+        conversations = [];
+        chatHistory.innerHTML = "";
         querySnapshot.forEach((doc) => {
           const data = doc.data();
+          conversations.push({ id: doc.id, ...data });
           const firstMessage = data.messages[0]?.text || "Conversation";
           const timestamp = formatTimestamp(data.createdAt);
-          const conversationItem = document.createElement("div");
-          conversationItem.className = "conversation-item";
-          conversationItem.innerHTML = `
-            <input type="checkbox" data-conversation-id="${doc.id}" />
-            <span>${firstMessage.substring(0, 20)}${firstMessage.length > 20 ? "..." : ""}</span>
-            <span class="timestamp">${timestamp}</span>
-          `;
-          conversationList.appendChild(conversationItem);
+          const historyItem = document.createElement("p");
+          historyItem.innerHTML = `${firstMessage.substring(0, 20)}${firstMessage.length > 20 ? "..." : ""} <span class="timestamp">${timestamp}</span>`;
+          historyItem.dataset.conversationId = doc.id;
+          historyItem.addEventListener("click", () => loadConversation(doc.id));
+          chatHistory.appendChild(historyItem);
         });
       } catch (error) {
-        console.error("Failed to load conversations:", error.code, error.message);
-        showToast(`Failed to load conversations: ${error.code} - ${error.message}`);
+        console.error("Failed to load conversations:", error.message);
+        showToast(`Failed to load conversations: ${error.message}`);
       }
     }
 
-    async function deleteSelectedConversations() {
+    async function loadConversation(conversationId) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const conversation = conversations.find(c => c.id === conversationId);
+        if (!conversation) return;
+        currentConversationId = conversationId;
+        chatOutput.innerHTML = "";
+        conversation.messages.forEach(msg => {
+          const timestamp = formatTimestamp(msg.timestamp);
+          chatOutput.innerHTML += `<div class="message ${msg.sender === 'user' ? 'user-message' : 'ai-message'}">${msg.text}<span class="timestamp">${timestamp}</span></div>`;
+        });
+        chatOutput.scrollTop = chatOutput.scrollHeight;
+      } catch (error) {
+        console.error("Failed to load conversation:", error.message);
+        showToast(`Failed to load conversation: ${error.message}`);
+      }
+    }
+
+    async function saveMessageToConversation(text, sender) {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          showToast("Error: User not authenticated. Please sign in again.");
+          throw new Error("User not authenticated");
+        }
+        const message = {
+          text,
+          sender,
+          timestamp: Timestamp.now()
+        };
+        if (!currentConversationId) {
+          const docRef = await addDoc(collection(db, `users/${user.uid}/conversations`), {
+            createdAt: Timestamp.now(),
+            messages: [message]
+          });
+          currentConversationId = docRef.id;
+          conversations.push({ id: docRef.id, createdAt: Timestamp.now(), messages: [message] });
+          const historyItem = document.createElement("p");
+          historyItem.innerHTML = `${text.substring(0, 20)}${text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(Timestamp.now())}</span>`;
+          historyItem.dataset.conversationId = docRef.id;
+          historyItem.addEventListener("click", () => loadConversation(docRef.id));
+          chatHistory.appendChild(historyItem);
+        } else {
+          const conversation = conversations.find(c => c.id === currentConversationId);
+          conversation.messages.push(message);
+          await setDoc(doc(db, `users/${user.uid}/conversations/${currentConversationId}`), {
+            messages: conversation.messages,
+            createdAt: conversation.createdAt
+          }, { merge: true });
+          const historyItem = chatHistory.querySelector(`[data-conversation-id="${currentConversationId}"]`);
+          if (historyItem) {
+            historyItem.innerHTML = `${conversation.messages[0].text.substring(0, 20)}${conversation.messages[0].text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>`;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to save message:", error.code, error.message);
+        showToast(`Failed to save message: ${error.code} - ${error.message}`);
+      }
+    }
+
+    function processInput(text) {
+      if (!text) return null;
+      const words = text.toLowerCase().split(" ");
+      return {
+        happy: words.includes("happy") || words.includes("awesome") ? 1 : 0,
+        great: words.includes("great") || words.includes("good") ? 1 : 0,
+        sad: words.includes("sad") || words.includes("terrible") ? 1 : 0,
+        bad: words.includes("bad") || words.includes("awful") ? 1 : 0
+      };
+    }
+
+    function generateHumanLikeResponse(output, inputText, isFirstInteraction, username) {
+      const isPositive = output.positive > output.negative;
+      const sentiment = isPositive ? "positive" : "negative";
+      const matchingData = trainingData.filter(d =>
+        (d.output.positive > d.output.negative && isPositive) ||
+        (d.output.negative > d.output.positive && !isPositive)
+      );
+
+      let response;
+      if (matchingData.length === 0) {
+        response = isPositive
+          ? "Sounds like you're in a great mood!"
+          : "I'm sorry you're feeling down.";
+      } else {
+        let bestMatch = null;
+        let maxOverlap = 0;
+        const inputWords = new Set(inputText.toLowerCase().split(" ").filter(w => w.length > 3));
+        for (const data of matchingData) {
+          const dataWords = new Set(data.text.toLowerCase().split(" ").filter(w => w.length > 3));
+          const overlap = [...inputWords].filter(w => dataWords.has(w)).length;
+          if (overlap > maxOverlap) {
+            maxOverlap = overlap;
+            bestMatch = data;
+          }
+        }
+
+        if (bestMatch && maxOverlap > 0) {
+          response = `I see you're feeling ${sentiment}, like when someone said "${bestMatch.text}". What's on your mind?`;
+        } else {
+          const randomIndex = Math.floor(Math.random() * matchingData.length);
+          const baseText = matchingData[randomIndex].text;
+          const responses = [
+            `Hey, that reminds me of "${baseText}"! You're feeling ${sentiment}, right?`,
+            `Sounds like you're ${sentiment}, kinda like "${baseText}". What's up?`,
+            `${isPositive ? "Awesome" : "Oh no"}, that's giving me "${baseText}" vibes! Tell me more!`
+          ];
+          response = responses[Math.floor(Math.random() * responses.length)];
+        }
+      }
+
+      if (isFirstInteraction && username) {
+        return `Hello, ${username}! Welcome to Vynix AI. ${response}`;
+      }
+      return response;
+    }
+
+    window.sendMessage = async function () {
+      const userInput = document.getElementById("user-input").value.trim();
+      if (!userInput) {
+        showToast("Please enter a message.");
+        return;
+      }
+
       const user = auth.currentUser;
-      if (!user) {
-        showToast("Error: User not authenticated.");
-        return;
-      }
-      const checkboxes = conversationList.querySelectorAll('input[type="checkbox"]:checked');
-      if (checkboxes.length === 0) {
-        showToast("Please select at least one conversation to delete.");
-        return;
-      }
-      showSpinner();
-      try {
-        const batch = writeBatch(db);
-        checkboxes.forEach((checkbox) => {
-          const conversationId = checkbox.dataset.conversationId;
-          const conversationRef = doc(db, `users/${user.uid}/conversations/${conversationId}`);
-          batch.delete(conversationRef);
-        });
-        await batch.commit();
-        showToast("Selected conversations deleted successfully.");
-        await loadConversations();
-      } catch (error) {
-        console.error("Failed to delete conversations:", error.code, error.message);
-        showToast(`Failed to delete conversations: ${error.code} - ${error.message}`);
-      } finally {
-        hideSpinner();
-      }
-    }
+      const isFirstInteraction = user ? await checkFirstInteraction(user) : false;
+      const username = user ? (user.displayName || "User") : "User";
+      const timestamp = formatTimestamp(Timestamp.now());
+      chatOutput.innerHTML += `<div class="message user-message">${userInput}<span class="timestamp">${timestamp}</span></div>`;
+      await saveMessageToConversation(userInput, "user");
+      chatOutput.scrollTop = chatOutput.scrollHeight;
 
-    async function deleteAllConversations() {
-      const user = auth.currentUser;
-      if (!user) {
-        showToast("Error: User not authenticated.");
-        return;
-      }
-      const querySnapshot = await getDocs(collection(db, `users/${user.uid}/conversations`));
-      if (querySnapshot.empty) {
-        showToast("No conversations to delete.");
-        return;
-      }
-      showSpinner();
-      try {
-        const batch = writeBatch(db);
-        querySnapshot.forEach((doc) => {
-          batch.delete(doc.ref);
-        });
-        await batch.commit();
-        showToast("All conversations deleted successfully.");
-        await loadConversations();
-      } catch (error) {
-        console.error("Failed to delete all conversations:", error.code, error.message);
-        showToast(`Failed to delete all conversations: ${error.code} - ${error.message}`);
-      } finally {
-        hideSpinner();
-      }
-    }
+      const thinkingDiv = document.createElement("div");
+      thinkingDiv.className = "thinking-dots";
+      chatOutput.appendChild(thinkingDiv);
+      chatOutput.scrollTop = chatOutput.scrollHeight;
 
-    window.goToChat = function () {
-      showSpinner();
-      try {
-        showToast("Redirecting to chat...");
-        setTimeout(() => {
-          window.location.href = "home.html";
-        }, 500);
-      } catch (error) {
-        console.error("Failed to redirect to chat:", error.message);
-        showToast(`Failed to redirect: ${error.message}`);
-      } finally {
-        hideSpinner();
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200, 100, 200]);
       }
+
+      const input = processInput(userInput);
+      if (!input) {
+        setTimeout(async () => {
+          if ('vibrate' in navigator) {
+            navigator.vibrate(0);
+          }
+          chatOutput.removeChild(thinkingDiv);
+          const errorMessage = "Invalid input. Please try again.";
+          chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
+          await saveMessageToConversation(errorMessage, "ai");
+          chatOutput.scrollTop = chatOutput.scrollHeight;
+        }, 3000);
+        return;
+      }
+
+      try {
+        setTimeout(async () => {
+          if ('vibrate' in navigator) {
+            navigator.vibrate(0);
+          }
+          chatOutput.removeChild(thinkingDiv);
+          const output = net.run(input);
+          const response = generateHumanLikeResponse(output, userInput, isFirstInteraction, username);
+          chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
+          await saveMessageToConversation(response, "ai");
+
+          const trainingOutput = {
+            positive: output.positive > output.negative ? 1 : 0,
+            negative: output.negative > output.positive ? 1 : 0
+          };
+          await addTrainingData(input, trainingOutput, userInput);
+
+          chatOutput.scrollTop = chatOutput.scrollHeight;
+        }, 3000);
+      } catch (error) {
+        setTimeout(async () => {
+          if ('vibrate' in navigator) {
+            navigator.vibrate(0);
+          }
+          chatOutput.removeChild(thinkingDiv);
+          console.error("Model prediction failed:", error.message);
+          const errorMessage = "Error processing input. Please try again.";
+          chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
+          await saveMessageToConversation(errorMessage, "ai");
+          chatOutput.scrollTop = chatOutput.scrollHeight;
+        }, 3000);
+      }
+
+      document.getElementById("user-input").value = "";
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    };
+
+    window.startNewConversation = function () {
+      currentConversationId = null;
+      chatOutput.innerHTML = "";
+      document.getElementById("user-input").value = "";
+      showToast("Started a new conversation.");
     };
 
     window.signOutUser = async function () {
@@ -751,7 +1049,7 @@
           await signOut(auth);
           showToast("Signed out successfully.");
           setTimeout(() => {
-            window.location.href = "signup.html";
+            window.location.href = "index.html";
           }, 500);
         } else {
           showToast("No user is signed in.");
@@ -764,26 +1062,16 @@
       }
     };
 
-    window.updateUserProfile = async function () {
-      const user = auth.currentUser;
-      if (!user) {
-        showToast("Error: User not authenticated. Please sign in again.");
-        return;
-      }
-      const newDisplayName = displayNameInput.value.trim();
-      if (!newDisplayName) {
-        showToast("Please enter a display name.");
-        return;
-      }
+    window.goToSettings = function () {
       showSpinner();
       try {
-        await updateProfile(user, { displayName: newDisplayName });
-        await setDoc(doc(db, `users/${user.uid}`), { displayName: newDisplayName }, { merge: true });
-        setUserProfile(user);
-        showToast("Profile updated successfully.");
+        showToast("Redirecting to settings...");
+        setTimeout(() => {
+          window.location.href = "settings.html";
+        }, 500);
       } catch (error) {
-        console.error("Failed to update profile:", error.code, error.message);
-        showToast(`Failed to update profile: ${error.code} - ${error.message}`);
+        console.error("Failed to redirect to settings:", error.message);
+        showToast(`Failed to redirect: ${error.message}`);
       } finally {
         hideSpinner();
       }
@@ -793,39 +1081,27 @@
       sidebar.classList.toggle("active");
     });
 
-    backToChatBtn.addEventListener("click", goToChat);
+    newChatBtn.addEventListener("click", startNewConversation);
 
-    settingsBtn.addEventListener("click", () => {
-      showToast("Already on settings page.");
-    });
+    settingsBtn.addEventListener("click", goToSettings);
 
     signoutBtn.addEventListener("click", signOutUser);
 
-    updateProfileBtn.addEventListener("click", updateUserProfile);
-
-    themeToggle.addEventListener("change", async () => {
-      const theme = themeToggle.checked ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", theme);
-      const user = auth.currentUser;
-      if (user) {
-        await saveUserSettings(user, theme);
-      }
+    document.getElementById("user-input").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
     });
-
-    deleteSelectedBtn.addEventListener("click", deleteSelectedConversations);
-
-    deleteAllBtn.addEventListener("click", deleteAllConversations);
 
     document.addEventListener("DOMContentLoaded", async () => {
       await new Promise((resolve, reject) => {
         onAuthStateChanged(auth, async (user) => {
           if (!user) {
             console.log("No user authenticated, redirecting to index.html");
-            window.location.href = "signup.html";
+            window.location.href = "index.html";
           } else {
             console.log("User authenticated:", user.uid);
             setUserProfile(user);
             await loadUserSettings(user);
+            await loadTrainingData();
             await loadConversations();
             resolve();
           }
