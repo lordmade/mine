@@ -182,6 +182,8 @@
       border: none;
       cursor: pointer;
       display: none;
+      font-size: 1.5rem;
+      color: var(--text-dark);
     }
 
     .chat-output {
@@ -189,6 +191,7 @@
       overflow-y: auto;
       padding: 1rem;
       background: transparent;
+      aria-live: "polite";
     }
 
     .chat-output .message {
@@ -246,6 +249,14 @@
       content: '...';
       display: inline-block;
       animation: pulse 1.5s infinite;
+    }
+
+    .ai-message.typing {
+      display: inline-block;
+      white-space: pre-wrap;
+      overflow: hidden;
+      border-right: 2px solid var(--text-dark);
+      animation: blinkCursor 0.7s infinite;
     }
 
     .input-group {
@@ -403,6 +414,12 @@
       100% { opacity: 1; }
     }
 
+    @keyframes blinkCursor {
+      0% { border-right-color: var(--text-dark); }
+      50% { border-right-color: transparent; }
+      100% { border-right-color: var(--text-dark); }
+    }
+
     @media (min-width: 768px) {
       .sidebar {
         display: flex;
@@ -434,8 +451,6 @@
 
       .chat-header button {
         display: block;
-        font-size: 1.5rem;
-        color: var(--text-dark);
       }
 
       .chat-container {
@@ -479,20 +494,20 @@
           <div class="avatar" id="user-avatar"></div>
           <span class="username" id="username"></span>
         </div>
-        <div class="new-chat-btn" id="new-chat-btn">New Conversation</div>
+        <div class="new-chat-btn" id="new-chat-btn" role="button" tabindex="0" aria-label="Start new conversation">New Conversation</div>
         <h2>Chat History</h2>
         <div class="chat-history" id="chat-history">
           <!-- Chat history will be populated here -->
         </div>
       </div>
       <div>
-        <div class="settings-btn" id="settings-btn">
+        <div class="settings-btn" id="settings-btn" role="button" tabindex="0" aria-label="Go to settings">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.49.49 0 0 0-.48-.41h-3.84a.49.49 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22l-1.92 3.32a.49.49 0 0 0 .12.61l2.03 1.58c-.04.3-.06.62-.06.94 0 .32.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32a.49.49 0 0 0 .59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54a.49.49 0 0 0 .48.41h3.84a.49.49 0 0 0 .48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96a.49.49 0 0 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
           </svg>
           Settings
         </div>
-        <div class="signout-btn" id="signout-btn">
+        <div class="signout-btn" id="signout-btn" role="button" tabindex="0" aria-label="Sign out">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M16 17v-2H9v-2h7V8l5 4-5 4zM14 2H9C7.34 2 6 3.34 6 5v14c0 1.66 1.34 3 3 3h5V2zM3 5v14c0 3.31 2.69 6 6 6H3c-1.66 0-3-1.34-3-3V8c0-1.66 1.34-3 3-3z"/>
           </svg>
@@ -503,12 +518,12 @@
     <div class="chat-container">
       <div class="chat-header">
         <h1>Vynix AI</h1>
-        <button id="toggle-sidebar">☰</button>
+        <button id="toggle-sidebar" aria-label="Toggle sidebar">☰</button>
       </div>
-      <div class="chat-output" id="chat-output"></div>
+      <div class="chat-output" id="chat-output" aria-live="polite"></div>
       <div class="input-group">
         <input type="text" id="user-input" placeholder="Ask Vynix anything..." aria-label="Chat input" />
-        <button onclick="sendMessage()">
+        <button onclick="sendMessage()" aria-label="Send message">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
           </svg>
@@ -525,603 +540,551 @@
     <p id="toast-message"></p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.2/dist/brain-browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder@1.3.3/dist/universal-sentence-encoder.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
-  authDomain: "fire-b-a8878.firebaseapp.com",
-  projectId: "fire-b-a8878",
-  storageBucket: "fire-b-a8878.firebasestorage.app",
-  messagingSenderId: "658673187627",
-  appId: "1:658673187627:web:6e4c29af661785f0afa36e",
-  measurementId: "G-V4W97VMSKL"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+      authDomain: "fire-b-a8878.firebaseapp.com",
+      projectId: "fire-b-a8878",
+      storageBucket: "fire-b-a8878.firebasestorage.app",
+      messagingSenderId: "658673187627",
+      appId: "1:658673187627:web:6e4c29af661785f0afa36e",
+      measurementId: "G-V4W97VMSKL"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-const net = new brain.NeuralNetwork({ hiddenLayers: [20, 10], activation: 'sigmoid' });
-let trainingData = [];
-let currentConversationId = null;
-let conversations = [];
-let newDataCount = 0;
-const RETRAIN_THRESHOLD = 3; // Reduced for faster updates
-const DEBOUNCE_TIME = 5000; // 5 seconds debounce for saving model
+    let useModel;
+    let trainingData = [];
+    let currentConversationId = null;
+    let conversations = [];
+    const spinner = document.getElementById("spinner");
+    const toast = document.getElementById("toast");
+    const toastMessage = document.getElementById("toast-message");
+    const signoutBtn = document.getElementById("signout-btn");
+    const settingsBtn = document.getElementById("settings-btn");
+    const toggleSidebar = document.getElementById("toggle-sidebar");
+    const sidebar = document.getElementById("sidebar");
+    const chatHistory = document.getElementById("chat-history");
+    const userAvatar = document.getElementById("user-avatar");
+    const usernameElement = document.getElementById("username");
+    const newChatBtn = document.getElementById("new-chat-btn");
+    const chatOutput = document.getElementById("chat-output");
 
-const spinner = document.getElementById("spinner");
-const toast = document.getElementById("toast");
-const toastMessage = document.getElementById("toast-message");
-const signoutBtn = document.getElementById("signout-btn");
-const settingsBtn = document.getElementById("settings-btn");
-const toggleSidebar = document.getElementById("toggle-sidebar");
-const sidebar = document.getElementById("sidebar");
-const chatHistory = document.getElementById("chat-history");
-const userAvatar = document.getElementById("user-avatar");
-const usernameElement = document.getElementById("username");
-const newChatBtn = document.getElementById("new-chat-btn");
-const chatOutput = document.getElementById("chat-output");
-
-function showSpinner() {
-  spinner.classList.add("active");
-}
-
-function hideSpinner() {
-  spinner.classList.remove("active");
-}
-
-function showToast(message) {
-  toastMessage.textContent = message;
-  toast.classList.add("active");
-  setTimeout(() => toast.classList.remove("active"), 3000);
-}
-
-function formatTimestamp(timestamp) {
-  if (timestamp instanceof Timestamp) {
-    const date = timestamp.toDate();
-    return date.toLocaleString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit', 
-      hour12: true 
-    });
-  }
-  return new Date().toLocaleString('en-US', { 
-    hour: 'numeric', 
-    minute: '2-digit', 
-    hour12: true 
-  });
-}
-
-function setUserProfile(user) {
-  if (user) {
-    const displayName = user.displayName || "User";
-    usernameElement.textContent = displayName;
-    if (user.photoURL) {
-      userAvatar.style.background = "none";
-      userAvatar.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;" />`;
-    } else {
-      userAvatar.textContent = displayName.charAt(0);
+    function showSpinner() {
+      spinner.classList.add("active");
     }
-  }
-}
 
-async function loadUserSettings(user) {
-  if (!user) return;
-  try {
-    const userDocRef = doc(db, `users/${user.uid}`);
-    const userDoc = await getDoc(userDocRef);
-    if (userDoc.exists()) {
-      const theme = userDoc.data().theme || "light";
-      document.documentElement.setAttribute("data-theme", theme);
+    function hideSpinner() {
+      spinner.classList.remove("active");
     }
-  } catch (error) {
-    console.error("Failed to load user settings:", error.message);
-    showToast(`Failed to load settings: ${error.message}`);
-  }
-}
 
-async function checkFirstInteraction(user) {
-  if (!user) return false;
-  const userDocRef = doc(db, `users/${user.uid}`);
-  const userDoc = await getDoc(userDocRef);
-  if (!userDoc.exists() || !userDoc.data().firstInteraction) {
-    await setDoc(userDocRef, { firstInteraction: true }, { merge: true });
-    return true;
-  }
-  return false;
-}
-
-function debounce(func, wait) {
-  let timeout;
-  return function (...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-}
-
-async function saveTrainedModel() {
-  try {
-    const modelJSON = net.toJSON();
-    await setDoc(doc(db, `global-models/trained-model`), {
-      model: modelJSON,
-      updatedAt: Timestamp.now()
-    });
-    showToast("Shared model saved successfully.");
-  } catch (error) {
-    console.error("Failed to save trained model:", error.message);
-    showToast(`Failed to save model: ${error.message}`);
-  }
-}
-
-const debouncedSaveModel = debounce(saveTrainedModel, DEBOUNCE_TIME);
-
-async function retrainModel(newData = []) {
-  try {
-    if (newData.length > 0) {
-      trainingData.push(...newData);
+    function showToast(message) {
+      toastMessage.textContent = message;
+      toast.classList.add("active");
+      setTimeout(() => toast.classList.remove("active"), 3000);
     }
-    if (trainingData.length === 0) return;
 
-    // Use a smaller learning rate for incremental training
-    net.train(trainingData.map(d => ({ input: d.input, output: d.output })), {
-      iterations: 100,
-      errorThresh: 0.005,
-      learningRate: 0.01, // Lower learning rate for stability
-      log: true,
-      logPeriod: 50
-    });
-
-    await debouncedSaveModel();
-    newDataCount = 0;
-  } catch (error) {
-    console.error("Failed to retrain model:", error.message);
-    showToast(`Failed to retrain model: ${error.message}`);
-  }
-}
-
-async function initializeDefaultModel() {
-  const defaultTrainingData = [
-    { input: { happy: 1, great: 0, sad: 0, bad: 0, excited: 1 }, output: { positive: 1, neutral: 0, negative: 0 }, text: "I'm so happy and excited today!" },
-    { input: { happy: 0, great: 1, sad: 0, bad: 0, excited: 0 }, output: { positive: 1, neutral: 0, negative: 0 }, text: "This is really great!" },
-    { input: { happy: 0, great: 0, sad: 1, bad: 0, tired: 1 }, output: { positive: 0, neutral: 0, negative: 1 }, text: "Feeling sad and tired." },
-    { input: { happy: 0, great: 0, sad: 0, bad: 1, frustrated: 1 }, output: { positive: 0, neutral: 0, negative: 1 }, text: "This is so bad and frustrating." },
-    { input: { happy: 0, great: 0, sad: 0, bad: 0, okay: 1 }, output: { positive: 0, neutral: 1, negative: 0 }, text: "I'm just okay, nothing special." },
-    { input: { happy: 1, great: 1, sad: 0, bad: 0, awesome: 1 }, output: { positive: 1, neutral: 0, negative: 0 }, text: "Everything is awesome today!" },
-    { input: { happy: 0, great: 0, sad: 1, bad: 1, upset: 1 }, output: { positive: 0, neutral: 0, negative: 1 }, text: "I'm really upset and sad." },
-    { input: { happy: 0, great: 0, sad: 0, bad: 0, curious: 1 }, output: { positive: 0, neutral: 1, negative: 0 }, text: "I'm curious about something." }
-  ];
-
-  try {
-    net.train(defaultTrainingData, {
-      iterations: 1000,
-      errorThresh: 0.005,
-      learningRate: 0.1,
-      log: true,
-      logPeriod: 100
-    });
-
-    for (const data of defaultTrainingData) {
-      await addDoc(collection(db, `global-training-data`), {
-        ...data,
-        createdAt: Timestamp.now()
+    function formatTimestamp(timestamp) {
+      if (timestamp instanceof Timestamp) {
+        const date = timestamp.toDate();
+        return date.toLocaleString("en-US", { 
+          hour: "numeric", 
+          minute: "2-digit", 
+          hour12: true 
+        });
+      }
+      return new Date().toLocaleString("en-US", { 
+        hour: "numeric", 
+        minute: "2-digit", 
+        hour12: true 
       });
     }
 
-    await saveTrainedModel();
-    trainingData = defaultTrainingData;
-    showToast("Default model initialized and saved successfully.");
-  } catch (error) {
-    console.error("Failed to initialize default model:", error.message);
-    showToast(`Failed to initialize default model: ${error.message}`);
-  }
-}
-
-async function loadTrainingData() {
-  try {
-    const modelDoc = await getDoc(doc(db, `global-models/trained-model`));
-    if (modelDoc.exists()) {
-      const modelJSON = modelDoc.data().model;
-      net.fromJSON(modelJSON);
-      showToast("Loaded saved shared model.");
-    } else {
-      await initializeDefaultModel();
+    function setUserProfile(user) {
+      if (user) {
+        const displayName = user.displayName || "User";
+        usernameElement.textContent = displayName;
+        if (user.photoURL) {
+          userAvatar.style.background = "none";
+          userAvatar.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;" />`;
+        } else {
+          userAvatar.textContent = displayName.charAt(0);
+        }
+      }
     }
 
-    const querySnapshot = await getDocs(collection(db, `global-training-data`));
-    trainingData = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      if (
-        data.input &&
-        data.output &&
-        data.text &&
-        Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
-        Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
-      ) {
-        trainingData.push(data);
+    async function loadUserSettings(user) {
+      if (!user) return;
+      try {
+        const userDocRef = doc(db, `users/${user.uid}`);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const theme = userDoc.data().theme || "light";
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {
+        console.error("Failed to load user settings:", error.message);
+        showToast(`Failed to load settings: ${error.message}`);
       }
-    });
+    }
 
-    onSnapshot(collection(db, `global-training-data`), (snapshot) => {
-      const newData = [];
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          const data = change.doc.data();
-          if (
-            data.input &&
-            data.output &&
-            data.text &&
-            Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
-            Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
-          ) {
-            newData.push(data);
-            newDataCount++;
+    async function checkFirstInteraction(user) {
+      if (!user) return false;
+      const userDocRef = doc(db, `users/${user.uid}`);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists() || !userDoc.data().firstInteraction) {
+        await setDoc(userDocRef, { firstInteraction: true }, { merge: true });
+        return true;
+      }
+      return false;
+    }
+
+    async function loadTrainingData() {
+      try {
+        const querySnapshot = await getDocs(collection(db, `global-training-data`));
+        trainingData = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.text && data.response && data.embedding && data.sentiment) {
+            trainingData.push(data);
+          }
+        });
+        showToast("Loaded training data.");
+
+        onSnapshot(collection(db, `global-training-data`), (snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+              const data = change.doc.data();
+              if (data.text && data.response && data.embedding && data.sentiment) {
+                trainingData.push(data);
+              }
+            }
+          });
+        });
+      } catch (error) {
+        console.error("Failed to load training data:", error.message);
+        showToast(`Failed to load training data: ${error.message}`);
+      }
+    }
+
+    async function initializeDefaultTrainingData() {
+      const defaultTrainingData = [
+        { text: "I'm really happy about my job!", response: "That's awesome to hear! What's so great about your job?", sentiment: "positive" },
+        { text: "This is so great!", response: "Love the enthusiasm! What's making things so great?", sentiment: "positive" },
+        { text: "Feeling sad and tired today.", response: "I'm sorry you're feeling down. Want to talk about what's going on?", sentiment: "negative" },
+        { text: "This is bad and frustrating.", response: "Ouch, sounds tough. What's making it so frustrating?", sentiment: "negative" },
+        { text: "I'm just okay.", response: "Sounds like you're keeping it chill. What's up?", sentiment: "neutral" },
+        { text: "I'm curious, what's new?", response: "Curiosity is the best! What's sparking your interest?", sentiment: "neutral", question: true },
+        { text: "Why is my project failing?", response: "That sounds frustrating. Can you share more about what's going wrong with your project?", sentiment: "negative", question: true },
+        { text: "Super excited about my new project!", response: "That's the spirit! What's this new project all about?", sentiment: "positive" },
+        { text: "My day was awesome!", response: "Awesome day, huh? Tell me what made it so special!", sentiment: "positive" },
+        { text: "Why am I so tired?", response: "Sorry you're feeling tired. Any idea what's draining you? Want to talk about it?", sentiment: "negative", question: true }
+      ];
+
+      try {
+        showSpinner();
+        for (const data of defaultTrainingData) {
+          const embedding = await useModel.embed(data.text);
+          const embeddingArray = embedding.arraySync()[0];
+          await addDoc(collection(db, `global-training-data`), {
+            ...data,
+            embedding: embeddingArray,
+            createdAt: Timestamp.now()
+          });
+        }
+        await loadTrainingData();
+        showToast("Default training data initialized.");
+      } catch (error) {
+        console.error("Failed to initialize training data:", error.message);
+        showToast(`Failed to initialize training data: ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    async function addTrainingData(text, response, sentiment, question = false) {
+      try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("User not authenticated");
+        if (!text || !response || !sentiment) throw new Error("Invalid training data");
+        const embedding = await useModel.embed(text);
+        const embeddingArray = embedding.arraySync()[0];
+        await addDoc(collection(db, `global-training-data`), {
+          text,
+          response,
+          sentiment,
+          question,
+          embedding: embeddingArray,
+          createdBy: user.uid,
+          createdAt: Timestamp.now()
+        });
+        showToast("Training data added successfully.");
+      } catch (error) {
+        console.error("Failed to add training data:", error.message);
+        showToast(`Failed to add training data: ${error.message}`);
+      }
+    }
+
+    async function loadConversations() {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const querySnapshot = await getDocs(collection(db, `users/${user.uid}/conversations`));
+        conversations = [];
+        chatHistory.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          conversations.push({ id: doc.id, ...data });
+          const firstMessage = data.messages[0]?.text || "Conversation";
+          const timestamp = formatTimestamp(data.createdAt);
+          const historyItem = document.createElement("p");
+          historyItem.innerHTML = `${firstMessage.substring(0, 30)}${firstMessage.length > 30 ? "..." : ""} <span class="timestamp">${timestamp}</span>`;
+          historyItem.dataset.conversationId = doc.id;
+          historyItem.title = firstMessage; // Tooltip for full message
+          historyItem.addEventListener("click", () => {
+            loadConversation(doc.id);
+            if (window.innerWidth < 768) sidebar.classList.remove("active");
+          });
+          chatHistory.appendChild(historyItem);
+        });
+      } catch (error) {
+        console.error("Failed to load conversations:", error.message);
+        showToast(`Failed to load conversations: ${error.message}`);
+      }
+    }
+
+    async function loadConversation(conversationId) {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const conversation = conversations.find(c => c.id === conversationId);
+        if (!conversation) return;
+        currentConversationId = conversationId;
+        chatOutput.innerHTML = "";
+        conversation.messages.forEach(msg => {
+          const timestamp = formatTimestamp(msg.timestamp);
+          const messageDiv = document.createElement("div");
+          messageDiv.className = `message ${msg.sender === "user" ? "user-message" : "ai-message"}`;
+          messageDiv.innerHTML = `${msg.text}<span class="timestamp">${timestamp}</span>`;
+          chatOutput.appendChild(messageDiv);
+        });
+        chatOutput.scrollTop = chatOutput.scrollHeight;
+      } catch (error) {
+        console.error("Failed to load conversation:", error.message);
+        showToast(`Failed to load conversation: ${error.message}`);
+      }
+    }
+
+    async function saveMessageToConversation(text, sender) {
+      try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("User not authenticated");
+        if (text.length > 500) throw new Error("Message too long. Keep it under 500 characters.");
+        const message = {
+          text,
+          sender,
+          timestamp: Timestamp.now()
+        };
+        if (!currentConversationId) {
+          const docRef = await addDoc(collection(db, `users/${user.uid}/conversations`), {
+            createdAt: Timestamp.now(),
+            messages: [message]
+          });
+          currentConversationId = docRef.id;
+          conversations.push({ id: docRef.id, createdAt: Timestamp.now(), messages: [message] });
+          const historyItem = document.createElement("p");
+          historyItem.innerHTML = `${text.substring(0, 30)}${text.length > 30 ? "..." : ""} <span class="timestamp">${formatTimestamp(Timestamp.now())}</span>`;
+          historyItem.dataset.conversationId = docRef.id;
+          historyItem.title = text;
+          historyItem.addEventListener("click", () => {
+            loadConversation(docRef.id);
+            if (window.innerWidth < 768) sidebar.classList.remove("active");
+          });
+          chatHistory.appendChild(historyItem);
+        } else {
+          const conversation = conversations.find(c => c.id === currentConversationId);
+          conversation.messages.push(message);
+          await setDoc(doc(db, `users/${user.uid}/conversations/${currentConversationId}`), {
+            messages: conversation.messages,
+            createdAt: conversation.createdAt
+          }, { merge: true });
+          const historyItem = chatHistory.querySelector(`[data-conversation-id="${currentConversationId}"]`);
+          if (historyItem) {
+            historyItem.innerHTML = `${conversation.messages[0].text.substring(0, 30)}${conversation.messages[0].text.length > 30 ? "..." : ""} <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>`;
+            historyItem.title = conversation.messages[0].text;
           }
         }
-      });
-
-      if (newDataCount >= RETRAIN_THRESHOLD) {
-        retrainModel(newData);
-      }
-    });
-  } catch (error) {
-    console.error("Failed to load shared training data or model:", error.message);
-    showToast(`Failed to load shared model, initializing default model: ${error.message}`);
-    await initializeDefaultModel();
-  }
-}
-
-async function addTrainingData(input, output, text) {
-  try {
-    const user = auth.currentUser;
-    if (!user) return;
-    if (!input || !output || !text || typeof text !== 'string' || text.trim() === '') {
-      throw new Error('Invalid training data format');
-    }
-    await addDoc(collection(db, `global-training-data`), {
-      input,
-      output,
-      text,
-      createdBy: user.uid,
-      createdAt: Timestamp.now()
-    });
-    showToast("Training data added successfully.");
-
-    trainingData.push({ input, output, text });
-    newDataCount++;
-    if (newDataCount >= RETRAIN_THRESHOLD) {
-      await retrainModel();
-    }
-  } catch (error) {
-    console.error("Failed to add training data:", error.message);
-    showToast(`Failed to add training data: ${error.message}`);
-  }
-}
-
-async function loadConversations() {
-  try {
-    const user = auth.currentUser;
-    if (!user) return;
-    const querySnapshot = await getDocs(collection(db, `users/${user.uid}/conversations`));
-    conversations = [];
-    chatHistory.innerHTML = "";
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      conversations.push({ id: doc.id, ...data });
-      const firstMessage = data.messages[0]?.text || "Conversation";
-      const timestamp = formatTimestamp(data.createdAt);
-      const historyItem = document.createElement("p");
-      historyItem.innerHTML = `${firstMessage.substring(0, 20)}${firstMessage.length > 20 ? "..." : ""} <span class="timestamp">${timestamp}</span>`;
-      historyItem.dataset.conversationId = doc.id;
-      historyItem.addEventListener("click", () => loadConversation(doc.id));
-      chatHistory.appendChild(historyItem);
-    });
-  } catch (error) {
-    console.error("Failed to load conversations:", error.message);
-    showToast(`Failed to load conversations: ${error.message}`);
-  }
-}
-
-async function loadConversation(conversationId) {
-  try {
-    const user = auth.currentUser;
-    if (!user) return;
-    const conversation = conversations.find(c => c.id === conversationId);
-    if (!conversation) return;
-    currentConversationId = conversationId;
-    chatOutput.innerHTML = "";
-    conversation.messages.forEach(msg => {
-      const timestamp = formatTimestamp(msg.timestamp);
-      chatOutput.innerHTML += `<div class="message ${msg.sender === 'user' ? 'user-message' : 'ai-message'}">${msg.text}<span class="timestamp">${timestamp}</span></div>`;
-    });
-    chatOutput.scrollTop = chatOutput.scrollHeight;
-  } catch (error) {
-    console.error("Failed to load conversation:", error.message);
-    showToast(`Failed to load conversation: ${error.message}`);
-  }
-}
-
-async function saveMessageToConversation(text, sender) {
-  try {
-    const user = auth.currentUser;
-    if (!user) {
-      showToast("Error: User not authenticated. Please sign in again.");
-      throw new Error("User not authenticated");
-    }
-    const message = {
-      text,
-      sender,
-      timestamp: Timestamp.now()
-    };
-    if (!currentConversationId) {
-      const docRef = await addDoc(collection(db, `users/${user.uid}/conversations`), {
-        createdAt: Timestamp.now(),
-        messages: [message]
-      });
-      currentConversationId = docRef.id;
-      conversations.push({ id: docRef.id, createdAt: Timestamp.now(), messages: [message] });
-      const historyItem = document.createElement("p");
-      historyItem.innerHTML = `${text.substring(0, 20)}${text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(Timestamp.now())}</span>`;
-      historyItem.dataset.conversationId = docRef.id;
-      historyItem.addEventListener("click", () => loadConversation(docRef.id));
-      chatHistory.appendChild(historyItem);
-    } else {
-      const conversation = conversations.find(c => c.id === currentConversationId);
-      conversation.messages.push(message);
-      await setDoc(doc(db, `users/${user.uid}/conversations/${currentConversationId}`), {
-        messages: conversation.messages,
-        createdAt: conversation.createdAt
-      }, { merge: true });
-      const historyItem = chatHistory.querySelector(`[data-conversation-id="${currentConversationId}"]`);
-      if (historyItem) {
-        historyItem.innerHTML = `${conversation.messages[0].text.substring(0, 20)}${conversation.messages[0].text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>`;
-      }
-    }
-  } catch (error) {
-    console.error("Failed to save message:", error.code, error.message);
-    showToast(`Failed to save message: ${error.code} - ${error.message}`);
-  }
-}
-
-function processInput(text) {
-  if (!text) return null;
-  const words = text.toLowerCase().split(" ").filter(w => w.length > 2);
-  const input = {
-    happy: words.some(w => ["happy", "awesome", "joyful", "excited"].includes(w)) ? 1 : 0,
-    great: words.some(w => ["great", "good", "fantastic", "amazing"].includes(w)) ? 1 : 0,
-    sad: words.some(w => ["sad", "terrible", "down", "depressed"].includes(w)) ? 1 : 0,
-    bad: words.some(w => ["bad", "awful", "horrible", "poor"].includes(w)) ? 1 : 0,
-    tired: words.some(w => ["tired", "exhausted", "drained"].includes(w)) ? 1 : 0,
-    frustrated: words.some(w => ["frustrated", "annoyed", "irritated"].includes(w)) ? 1 : 0,
-    okay: words.some(w => ["okay", "fine", "alright"].includes(w)) ? 1 : 0,
-    curious: words.some(w => ["curious", "wondering", "interested"].includes(w)) ? 1 : 0,
-    question: words.some(w => w.endsWith("?")) ? 1 : 0
-  };
-  return input;
-}
-
-function generateHumanLikeResponse(output, inputText, isFirstInteraction, username) {
-  const maxOutput = Math.max(output.positive, output.neutral, output.negative);
-  const sentiment = output.positive === maxOutput ? "positive" : output.neutral === maxOutput ? "neutral" : "negative";
-  const inputWords = new Set(inputText.toLowerCase().split(" ").filter(w => w.length > 3));
-  
-  // Find matching training data based on sentiment
-  const matchingData = trainingData.filter(d => {
-    const dSentiment = d.output.positive === 1 ? "positive" : d.output.neutral === 1 ? "neutral" : "negative";
-    return dSentiment === sentiment;
-  });
-
-  let response;
-  if (matchingData.length === 0) {
-    response = sentiment === "positive" ? "Wow, you're in a great mood!" :
-              sentiment === "neutral" ? "Sounds like things are steady. What's up?" :
-              "Sorry you're feeling off. Want to talk about it?";
-  } else {
-    // Find the best match based on word overlap
-    let bestMatch = null;
-    let maxOverlap = 0;
-    for (const data of matchingData) {
-      const dataWords = new Set(data.text.toLowerCase().split(" ").filter(w => w.length > 3));
-      const overlap = [...inputWords].filter(w => dataWords.has(w)).length;
-      if (overlap > maxOverlap) {
-        maxOverlap = overlap;
-        bestMatch = data;
+      } catch (error) {
+        console.error("Failed to save message:", error.message);
+        showToast(`Failed to save message: ${error.message}`);
       }
     }
 
-    // Response templates for variation
-    const templates = {
-      positive: [
-        `Hey, you're vibing like "${bestMatch?.text || "someone super cheerful"}"! What's got you so ${inputWords.has("excited") ? "excited" : "happy"}?`,
-        `That’s awesome, reminds me of "${bestMatch?.text || "pure joy"}"! What's the story behind this mood?`,
-        `You're radiating ${inputWords.has("awesome") ? "awesome" : "great"} energy! What's sparking it?`
-      ],
-      neutral: [
-        `Sounds like you're keeping it chill, like "${bestMatch?.text || "just going with the flow"}". What's on your mind?`,
-        `Pretty balanced vibe there! Reminds me of "${bestMatch?.text || "a calm moment"}". What's up?`,
-        `You're in a steady zone. Got anything interesting going on?`
-      ],
-      negative: [
-        `Oof, feeling a bit like "${bestMatch?.text || "things aren't great"}"? Want to share what's going on?`,
-        `Sorry you're down, kinda like "${bestMatch?.text || "a rough moment"}". I'm here if you want to talk!`,
-        `Sounds tough. What's got you feeling ${inputWords.has("sad") ? "sad" : "off"}?`
-      ]
-    };
-
-    const selectedTemplates = templates[sentiment];
-    response = selectedTemplates[Math.floor(Math.random() * selectedTemplates.length)];
-    
-    // Add question-specific response if input contains a question
-    if (inputText.includes("?")) {
-      response += " By the way, what's the answer to your question? I'm curious!";
+    async function processInput(text) {
+      if (!text) return null;
+      const words = text.toLowerCase().split(" ").filter(w => w.length > 2);
+      const embedding = await useModel.embed(text);
+      const embeddingArray = embedding.arraySync()[0];
+      const sentiment = words.some(w => ["happy", "awesome", "great", "excited"].includes(w)) ? "positive" :
+                       words.some(w => ["sad", "bad", "tired", "frustrated"].includes(w)) ? "negative" :
+                       "neutral";
+      const keyTopic = words.some(w => ["job", "work", "career"].includes(w)) ? "your job" :
+                       words.some(w => ["project", "task"].includes(w)) ? "your project" :
+                       words.some(w => ["day", "today"].includes(w)) ? "your day" :
+                       words.some(w => ["feel", "feeling"].includes(w)) ? "how you're feeling" : "that";
+      const question = text.includes("?");
+      return { embedding: embeddingArray, sentiment, keyTopic, question, text };
     }
-  }
 
-  if (isFirstInteraction && username) {
-    return `Hey ${username}, welcome to Vynix AI! ${response}`;
-  }
-  return response;
-}
+    async function generateHumanLikeResponse(input, inputText, isFirstInteraction, username) {
+      const { embedding, sentiment, keyTopic, question } = input;
 
-window.sendMessage = async function () {
-  const userInput = document.getElementById("user-input").value.trim();
-  if (!userInput) {
-    showToast("Please enter a message.");
-    return;
-  }
-
-  const user = auth.currentUser;
-  const isFirstInteraction = user ? await checkFirstInteraction(user) : false;
-  const username = user ? (user.displayName || "User") : "User";
-  const timestamp = formatTimestamp(Timestamp.now());
-  chatOutput.innerHTML += `<div class="message user-message">${userInput}<span class="timestamp">${timestamp}</span></div>`;
-  await saveMessageToConversation(userInput, "user");
-  chatOutput.scrollTop = chatOutput.scrollHeight;
-
-  const thinkingDiv = document.createElement("div");
-  thinkingDiv.className = "thinking-dots";
-  chatOutput.appendChild(thinkingDiv);
-  chatOutput.scrollTop = chatOutput.scrollHeight;
-
-  if ('vibrate' in navigator) {
-    navigator.vibrate([200, 100, 200, 100, 200]);
-  }
-
-  const input = processInput(userInput);
-  if (!input) {
-    setTimeout(async () => {
-      if ('vibrate' in navigator) {
-        navigator.vibrate(0);
+      let bestMatch = { similarity: -1 };
+      for (const data of trainingData) {
+        const similarity = tf.tidy(() => {
+          const inputEmbedding = tf.tensor1d(embedding);
+          const dataEmbedding = tf.tensor1d(data.embedding);
+          return inputEmbedding.dot(dataEmbedding).dataSync()[0];
+        });
+        if (similarity > bestMatch.similarity) {
+          bestMatch = { similarity, ...data };
+        }
       }
-      chatOutput.removeChild(thinkingDiv);
-      const errorMessage = "Invalid input. Please try again.";
-      chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
-      await saveMessageToConversation(errorMessage, "ai");
-      chatOutput.scrollTop = chatOutput.scrollHeight;
-    }, 3000);
-    return;
-  }
 
-  try {
-    setTimeout(async () => {
-      if ('vibrate' in navigator) {
-        navigator.vibrate(0);
-      }
-      chatOutput.removeChild(thinkingDiv);
-      const output = net.run(input);
-      const response = generateHumanLikeResponse(output, userInput, isFirstInteraction, username);
-      chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
-      await saveMessageToConversation(response, "ai");
-
-      const trainingOutput = {
-        positive: output.positive === Math.max(output.positive, output.neutral, output.negative) ? 1 : 0,
-        neutral: output.neutral === Math.max(output.positive, output.neutral, output.negative) ? 1 : 0,
-        negative: output.negative === Math.max(output.positive, output.neutral, output.negative) ? 1 : 0
-      };
-      await addTrainingData(input, trainingOutput, userInput);
-
-      chatOutput.scrollTop = chatOutput.scrollHeight;
-    }, 2000); // Reduced response delay for better UX
-  } catch (error) {
-    setTimeout(async () => {
-      if ('vibrate' in navigator) {
-        navigator.vibrate(0);
-      }
-      chatOutput.removeChild(thinkingDiv);
-      console.error("Model prediction failed:", error.message);
-      const errorMessage = "Error processing input. Please try again.";
-      chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
-      await saveMessageToConversation(errorMessage, "ai");
-      chatOutput.scrollTop = chatOutput.scrollHeight;
-    }, 2000);
-  }
-
-  document.getElementById("user-input").value = "";
-  chatHistory.scrollTop = chatHistory.scrollHeight;
-};
-
-window.startNewConversation = function () {
-  currentConversationId = null;
-  chatOutput.innerHTML = "";
-  document.getElementById("user-input").value = "";
-  showToast("Started a new conversation.");
-};
-
-window.signOutUser = async function () {
-  showSpinner();
-  try {
-    const user = auth.currentUser;
-    if (user) {
-      await setDoc(doc(db, `users/${user.uid}`), { online: false }, { merge: true });
-      await signOut(auth);
-      showToast("Signed out successfully.");
-      setTimeout(() => {
-        window.location.href = "signup.html";
-      }, 500);
-    } else {
-      showToast("No user is signed in.");
-    }
-  } catch (error) {
-    console.error("Sign out failed:", error.message);
-    showToast(`Failed to sign out: ${error.message}`);
-  } finally {
-    hideSpinner();
-  }
-};
-
-window.goToSettings = function () {
-  showSpinner();
-  try {
-    showToast("Redirecting to settings...");
-    setTimeout(() => {
-      window.location.href = "settings.html";
-    }, 500);
-  } catch (error) {
-    console.error("Failed to redirect to settings:", error.message);
-    showToast(`Failed to redirect: ${error.message}`);
-  } finally {
-    hideSpinner();
-  }
-};
-
-toggleSidebar.addEventListener("click", () => {
-  sidebar.classList.toggle("active");
-});
-
-newChatBtn.addEventListener("click", startNewConversation);
-
-settingsBtn.addEventListener("click", goToSettings);
-
-signoutBtn.addEventListener("click", signOutUser);
-
-document.getElementById("user-input").addEventListener("keypress", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
-
-document.addEventListener("DOMContentLoaded", async () => {
-  await new Promise((resolve, reject) => {
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        console.log("No user authenticated, redirecting to index.html");
-        window.location.href = "signup.html";
+      let response;
+      if (bestMatch.similarity < 0.5 || !bestMatch.response) {
+        response = sentiment === "positive" ? `Nice to hear you're excited about ${keyTopic}! What's the best part?` :
+                  sentiment === "neutral" ? `Sounds like ${keyTopic} is going okay. What's up?` :
+                  `Sorry to hear ${keyTopic} is tough. Want to talk about it?`;
       } else {
-        console.log("User authenticated:", user.uid);
-        setUserProfile(user);
-        await loadUserSettings(user);
-        await loadTrainingData();
-        await loadConversations();
-        resolve();
+        response = bestMatch.response.replace(/your \w+/i, keyTopic);
+        if (sentiment !== bestMatch.sentiment) {
+          response = sentiment === "positive" ? response.replace(/tough|sorry/i, "great") :
+                    sentiment === "negative" ? response.replace(/great|excited/i, "tough") :
+                    response.replace(/great|excited|tough|sorry/i, "okay");
+        }
       }
-    }, (error) => {
-      console.error("Auth state check failed:", error);
-      showToast("Authentication check failed.");
-      reject(error);
+
+      if (question) {
+        const questionWord = inputText.toLowerCase().split(" ").find(w => ["what", "why", "how", "when"].includes(w)) || "that";
+        response += ` By the way, about your question on ${questionWord}, can you share more details?`;
+      }
+
+      if (isFirstInteraction && username) {
+        response = `Hey ${username}, welcome to Vynix AI! ${response}`;
+      }
+
+      return response;
+    }
+
+    window.sendMessage = async function () {
+      const userInput = document.getElementById("user-input").value.trim();
+      if (!userInput) {
+        showToast("Please enter a message.");
+        return;
+      }
+      if (userInput.length > 500) {
+        showToast("Message too long. Please keep it under 500 characters.");
+        return;
+      }
+
+      const user = auth.currentUser;
+      const isFirstInteraction = user ? await checkFirstInteraction(user) : false;
+      const username = user ? (user.displayName || "User") : "User";
+      const timestamp = formatTimestamp(Timestamp.now());
+
+      const userMessageDiv = document.createElement("div");
+      userMessageDiv.className = "message user-message";
+      userMessageDiv.innerHTML = `${userInput}<span class="timestamp">${timestamp}</span>`;
+      chatOutput.appendChild(userMessageDiv);
+      await saveMessageToConversation(userInput, "user");
+      chatOutput.scrollTop = chatOutput.scrollHeight;
+
+      const thinkingDiv = document.createElement("div");
+      thinkingDiv.className = "thinking-dots";
+      chatOutput.appendChild(thinkingDiv);
+      chatOutput.scrollTop = chatOutput.scrollHeight;
+
+      if ("vibrate" in navigator) {
+        navigator.vibrate([200, 100, 200, 100, 200]);
+      }
+
+      const input = await processInput(userInput);
+      if (!input) {
+        setTimeout(async () => {
+          if ("vibrate" in navigator) navigator.vibrate(0);
+          chatOutput.removeChild(thinkingDiv);
+          const errorMessage = "Invalid input. Please try again.";
+          const errorDiv = document.createElement("div");
+          errorDiv.className = "message ai-message";
+          errorDiv.innerHTML = `${errorMessage}<span class="timestamp">${timestamp}</span>`;
+          chatOutput.appendChild(errorDiv);
+          await saveMessageToConversation(errorMessage, "ai");
+          chatOutput.scrollTop = chatOutput.scrollHeight;
+        }, 2000);
+        return;
+      }
+
+      try {
+        setTimeout(async () => {
+          if ("vibrate" in navigator) navigator.vibrate(0);
+          chatOutput.removeChild(thinkingDiv);
+
+          const response = await generateHumanLikeResponse(input, userInput, isFirstInteraction, username);
+
+          const aiMessageDiv = document.createElement("div");
+          aiMessageDiv.className = "message ai-message typing";
+          chatOutput.appendChild(aiMessageDiv);
+          chatOutput.scrollTop = chatOutput.scrollHeight;
+
+          let i = 0;
+          const typingSpeed = Math.min(50, 5000 / response.length); // Max 5s for typing
+          function type() {
+            if (i < response.length) {
+              aiMessageDiv.textContent = response.substring(0, i + 1);
+              i++;
+              setTimeout(type, typingSpeed);
+            } else {
+              aiMessageDiv.classList.remove("typing");
+              aiMessageDiv.innerHTML = `${response}<span class="timestamp">${timestamp}</span>`;
+              chatOutput.scrollTop = chatOutput.scrollHeight;
+            }
+          }
+          type();
+
+          await saveMessageToConversation(response, "ai");
+          await addTrainingData(userInput, response, input.sentiment, input.question);
+        }, 2000);
+      } catch (error) {
+        setTimeout(async () => {
+          if ("vibrate" in navigator) navigator.vibrate(0);
+          chatOutput.removeChild(thinkingDiv);
+          console.error("Processing failed:", error.message);
+          const errorMessage = "Error processing input. Please try again.";
+          const errorDiv = document.createElement("div");
+          errorDiv.className = "message ai-message";
+          errorDiv.innerHTML = `${errorMessage}<span class="timestamp">${timestamp}</span>`;
+          chatOutput.appendChild(errorDiv);
+          await saveMessageToConversation(errorMessage, "ai");
+          chatOutput.scrollTop = chatOutput.scrollHeight;
+        }, 2000);
+      }
+
+      document.getElementById("user-input").value = "";
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    };
+
+    window.startNewConversation = function () {
+      currentConversationId = null;
+      chatOutput.innerHTML = "";
+      document.getElementById("user-input").value = "";
+      showToast("Started a new conversation.");
+    };
+
+    window.signOutUser = async function () {
+      showSpinner();
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          await setDoc(doc(db, `users/${user.uid}`), { online: false }, { merge: true });
+          await signOut(auth);
+          showToast("Signed out successfully.");
+          setTimeout(() => {
+            window.location.href = "signup.html";
+          }, 500);
+        } else {
+          showToast("No user is signed in.");
+        }
+      } catch (error) {
+        console.error("Sign out failed:", error.message);
+        showToast(`Failed to sign out: ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
+    };
+
+    window.goToSettings = function () {
+      showSpinner();
+      try {
+        showToast("Redirecting to settings...");
+        setTimeout(() => {
+          window.location.href = "settings.html";
+        }, 500);
+      } catch (error) {
+        console.error("Failed to redirect to settings:", error.message);
+        showToast(`Failed to redirect: ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
+    };
+
+    toggleSidebar.addEventListener("click", () => {
+      sidebar.classList.toggle("active");
     });
-  });
-});
+
+    newChatBtn.addEventListener("click", startNewConversation);
+    newChatBtn.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" || e.key === " ") startNewConversation();
+    });
+
+    settingsBtn.addEventListener("click", goToSettings);
+    settingsBtn.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" || e.key === " ") goToSettings();
+    });
+
+    signoutBtn.addEventListener("click", signOutUser);
+    signoutBtn.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" || e.key === " ") signOutUser();
+    });
+
+    document.getElementById("user-input").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await new Promise((resolve, reject) => {
+        onAuthStateChanged(auth, async (user) => {
+          if (!user) {
+            console.log("No user authenticated, redirecting to signup.html");
+            window.location.href = "signup.html";
+          } else {
+            console.log("User authenticated:", user.uid);
+            setUserProfile(user);
+            await loadUserSettings(user);
+
+            showSpinner();
+            try {
+              useModel = await universalSentenceEncoder.load();
+              await loadTrainingData();
+              if (trainingData.length === 0) {
+                await initializeDefaultTrainingData();
+              }
+              showToast("Model and data loaded successfully.");
+              resolve();
+            } catch (error) {
+              console.error("Failed to load USE model:", error.message);
+              showToast(`Failed to load model: ${error.message}`);
+              reject(error);
+            } finally {
+              hideSpinner();
+            }
+
+            await loadConversations();
+          }
+        }, (error) => {
+          console.error("Auth state check failed:", error);
+          showToast("Authentication check failed.");
+          reject(error);
+        });
+      });
+    });
   </script>
 </body>
 </html>
