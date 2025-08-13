@@ -308,7 +308,7 @@
       fill: var(--secondary);
     }
 
-    .signout-btn {
+    .settings-btn, .signout-btn {
       background: var(--background);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
@@ -321,11 +321,22 @@
       transition: background 0.2s ease, transform 0.2s ease;
       border: 1px solid var(--border);
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
     }
 
-    .signout-btn:hover {
+    .settings-btn:hover, .signout-btn:hover {
       background: rgba(75, 85, 99, 0.3);
       transform: scale(1.05);
+    }
+
+    .settings-btn svg, .signout-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--text-dark);
     }
 
     .spinner-overlay {
@@ -451,10 +462,10 @@
     }
 
     @supports not (backdrop-filter: blur(10px)) {
-      .sidebar, .chat-header, .input-group, .chat-output .message, .chat-output .thinking-dots, .toast, .signout-btn {
+      .sidebar, .chat-header, .input-group, .chat-output .message, .chat-output .thinking-dots, .toast, .settings-btn, .signout-btn {
         background: var(--background-fallback);
       }
-      [data-theme="dark"] .sidebar, [data-theme="dark"] .chat-header, [data-theme="dark"] .input-group, [data-theme="dark"] .chat-output .message, [data-theme="dark"] .chat-output .thinking-dots, [data-theme="dark"] .toast, [data-theme="dark"] .signout-btn {
+      [data-theme="dark"] .sidebar, [data-theme="dark"] .chat-header, [data-theme="dark"] .input-group, [data-theme="dark"] .chat-output .message, [data-theme="dark"] .chat-output .thinking-dots, [data-theme="dark"] .toast, [data-theme="dark"] .settings-btn, [data-theme="dark"] .signout-btn {
         background: var(--background-dark-fallback);
       }
     }
@@ -474,7 +485,20 @@
           <!-- Chat history will be populated here -->
         </div>
       </div>
-      <div class="signout-btn" id="signout-btn">Sign Out</div>
+      <div>
+        <div class="settings-btn" id="settings-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.49.49 0 0 0-.48-.41h-3.84a.49.49 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22l-1.92 3.32a.49.49 0 0 0 .12.61l2.03 1.58c-.04.3-.06.62-.06.94 0 .32.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32a.49.49 0 0 0 .59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54a.49.49 0 0 0 .48.41h3.84a.49.49 0 0 0 .48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96a.49.49 0 0 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
+          Settings
+        </div>
+        <div class="signout-btn" id="signout-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M16 17v-2H9v-2h7V8l5 4-5 4zM14 2H9C7.34 2 6 3.34 6 5v14c0 1.66 1.34 3 3 3h5V2zM3 5v14c0 3.31 2.69 6 6 6H3c-1.66 0-3-1.34-3-3V8c0-1.66 1.34-3 3-3z"/>
+          </svg>
+          Sign Out
+        </div>
+      </div>
     </div>
     <div class="chat-container">
       <div class="chat-header">
@@ -529,6 +553,7 @@
     const toast = document.getElementById("toast");
     const toastMessage = document.getElementById("toast-message");
     const signoutBtn = document.getElementById("signout-btn");
+    const settingsBtn = document.getElementById("settings-btn");
     const toggleSidebar = document.getElementById("toggle-sidebar");
     const sidebar = document.getElementById("sidebar");
     const chatHistory = document.getElementById("chat-history");
@@ -630,7 +655,6 @@
       ];
 
       try {
-        // Train the model with default data
         net.train(defaultTrainingData, {
           iterations: 1000,
           errorThresh: 0.005,
@@ -638,7 +662,6 @@
           logPeriod: 100
         });
 
-        // Save the default training data to global-training-data
         for (const data of defaultTrainingData) {
           await addDoc(collection(db, `global-training-data`), {
             ...data,
@@ -646,7 +669,6 @@
           });
         }
 
-        // Save the trained model
         await saveTrainedModel();
         trainingData = defaultTrainingData;
         showToast("Default model initialized and saved successfully.");
@@ -658,14 +680,12 @@
 
     async function loadTrainingData() {
       try {
-        // Check for saved model first
         const modelDoc = await getDoc(doc(db, `global-models/trained-model`));
         if (modelDoc.exists()) {
           const modelJSON = modelDoc.data().model;
           net.fromJSON(modelJSON);
           showToast("Loaded saved shared model.");
         } else {
-          // Check for training data in global-training-data
           const querySnapshot = await getDocs(collection(db, `global-training-data`));
           trainingData = [];
           querySnapshot.forEach((doc) => {
@@ -691,12 +711,10 @@
             await saveTrainedModel();
             showToast("Shared model trained and saved successfully.");
           } else {
-            // Initialize and use default model
             await initializeDefaultModel();
           }
         }
 
-        // Load training data for use in generateHumanLikeResponse
         const querySnapshot = await getDocs(collection(db, `global-training-data`));
         trainingData = [];
         querySnapshot.forEach((doc) => {
@@ -722,11 +740,9 @@
       try {
         const user = auth.currentUser;
         if (!user) return;
-        // Validate input data
         if (!input || !output || !text || typeof text !== 'string' || text.trim() === '') {
           throw new Error('Invalid training data format');
         }
-        // Save directly to global-training-data
         await addDoc(collection(db, `global-training-data`), {
           input,
           output,
@@ -735,7 +751,6 @@
           createdAt: Timestamp.now()
         });
         showToast("Training data added successfully.");
-        // Reload training data to include new entry
         const querySnapshot = await getDocs(collection(db, `global-training-data`));
         trainingData = [];
         querySnapshot.forEach((doc) => {
@@ -802,7 +817,10 @@
     async function saveMessageToConversation(text, sender) {
       try {
         const user = auth.currentUser;
-        if (!user) return;
+        if (!user) {
+          showToast("Error: User not authenticated. Please sign in again.");
+          throw new Error("User not authenticated");
+        }
         const message = {
           text,
           sender,
@@ -833,8 +851,8 @@
           }
         }
       } catch (error) {
-        console.error("Failed to save message:", error.message);
-        showToast(`Failed to save message: ${error.message}`);
+        console.error("Failed to save message:", error.code, error.message);
+        showToast(`Failed to save message: ${error.code} - ${error.message}`);
       }
     }
 
@@ -863,7 +881,6 @@
           ? "Sounds like you're in a great mood!"
           : "I'm sorry you're feeling down.";
       } else {
-        // Find the most similar input text using simple word overlap
         let bestMatch = null;
         let maxOverlap = 0;
         const inputWords = new Set(inputText.toLowerCase().split(" ").filter(w => w.length > 3));
@@ -916,15 +933,13 @@
       chatOutput.appendChild(thinkingDiv);
       chatOutput.scrollTop = chatOutput.scrollHeight;
 
-      // Trigger vibration if supported
       if ('vibrate' in navigator) {
-        navigator.vibrate([200, 100, 200, 100, 200]); // Vibration pattern: 200ms on, 100ms off, etc.
+        navigator.vibrate([200, 100, 200, 100, 200]);
       }
 
       const input = processInput(userInput);
       if (!input) {
         setTimeout(async () => {
-          // Stop vibration
           if ('vibrate' in navigator) {
             navigator.vibrate(0);
           }
@@ -939,7 +954,6 @@
 
       try {
         setTimeout(async () => {
-          // Stop vibration
           if ('vibrate' in navigator) {
             navigator.vibrate(0);
           }
@@ -949,7 +963,6 @@
           chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
           await saveMessageToConversation(response, "ai");
 
-          // Add training data directly to global-training-data
           const trainingOutput = {
             positive: output.positive > output.negative ? 1 : 0,
             negative: output.negative > output.positive ? 1 : 0
@@ -960,7 +973,6 @@
         }, 3000);
       } catch (error) {
         setTimeout(async () => {
-          // Stop vibration
           if ('vibrate' in navigator) {
             navigator.vibrate(0);
           }
@@ -1006,17 +1018,34 @@
       }
     };
 
+    window.goToSettings = function () {
+      showSpinner();
+      try {
+        showToast("Redirecting to settings...");
+        setTimeout(() => {
+          window.location.href = "settings.html";
+        }, 500);
+      } catch (error) {
+        console.error("Failed to redirect to settings:", error.message);
+        showToast(`Failed to redirect: ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
+    };
+
     toggleSidebar.addEventListener("click", () => {
       sidebar.classList.toggle("active");
     });
 
     newChatBtn.addEventListener("click", startNewConversation);
 
+    settingsBtn.addEventListener("click", goToSettings);
+
+    signoutBtn.addEventListener("click", signOutUser);
+
     document.getElementById("user-input").addEventListener("keypress", (e) => {
       if (e.key === "Enter") sendMessage();
     });
-
-    signoutBtn.addEventListener("click", signOutUser);
 
     document.addEventListener("DOMContentLoaded", async () => {
       await new Promise((resolve, reject) => {
