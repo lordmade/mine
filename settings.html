@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vynix - Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary: #3B82F6;
+      --secondary: #FFFFFF;
+      --text-dark: #111827;
+      --text-light: #6B7280;
+      --border: rgba(255, 255, 255, 0.3);
+      --background: rgba(255, 255, 255, 0.1);
+      --background-fallback: #F3F4F6;
+      --background-dark: rgba(0, 0, 0, 0.2);
+      --background-dark-fallback: #111827;
+      --text-dark-dark: #F9FAFB;
+      --text-light-dark: #9CA3AF;
+      --border-dark: rgba(255, 255, 255, 0.2);
+      --white-dark: rgba(31, 41, 55, 0.3);
+      --avatar-bg: #3B82F6;
+    }
+
+    [data-theme="dark"] {
+      --background: var(--background-dark);
+      --background-fallback: var(--background-dark-fallback);
+      --text-dark: var(--text-dark-dark);
+      --text-light: var(--text-light-dark);
+      --border: var(--border-dark);
+      --white: var(--white-dark);
+      --avatar-bg: #1E3A8A;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background: url('https://source.unsplash.com/random/1920x1080?abstract') no-repeat center center fixed;
+      background-size: cover;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s ease;
+    }
+
+    .main-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: var(--background);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar.active {
+      display: flex;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      background: var(--avatar-bg);
+      color: var(--secondary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .username {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .nav-btn {
+      background: var(--primary);
+      color: var(--secondary);
+      padding: 0.5rem;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .nav-btn:hover {
+      background: #1E3A8A;
+      transform: scale(1.05);
+    }
+
+    .nav-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--secondary);
+    }
+
+    .settings-btn, .signout-btn {
+      background: var(--background);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--text-dark);
+      padding: 0.75rem;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .settings-btn:hover, .signout-btn:hover {
+      background: rgba(75, 85, 99, 0.3);
+      transform: scale(1.05);
+    }
+
+    .settings-btn svg, .signout-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--text-dark);
+    }
+
+    .settings-container {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+    }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: var(--background);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .settings-header h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+
+    .settings-header button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: none;
+      font-size: 1.5rem;
+      color: var(--text-dark);
+    }
+
+    .settings-content {
+      flex-grow: 1;
+      padding: 2rem;
+      background: var(--background);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 12px;
+      margin: 1rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .settings-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 1rem;
+    }
+
+    .settings-content label {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .settings-content input {
+      width: 100%;
+      max-width: 400px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: var(--background);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .settings-content input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+
+    .settings-content button {
+      background: var(--primary);
+      color: var(--secondary);
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+      margin-top: 1rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .settings-content button:hover {
+      background: #1E3A8A;
+      transform: scale(1.05);
+    }
+
+    .settings-content button svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--secondary);
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .theme-toggle input[type="checkbox"] {
+      appearance: none;
+      width: 48px;
+      height: 24px;
+      background: var(--text-light);
+      border-radius: 9999px;
+      position: relative;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.2s ease;
+    }
+
+    .theme-toggle input[type="checkbox"]:checked {
+      background: var(--primary);
+    }
+
+    .theme-toggle input[type="checkbox"]::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: var(--secondary);
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s ease;
+    }
+
+    .theme-toggle input[type="checkbox"]:checked::before {
+      transform: translateX(24px);
+    }
+
+    .conversation-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 1rem;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--background);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+    }
+
+    .conversation-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      color: var(--text-light);
+      border-radius: 8px;
+      transition: background 0.2s ease;
+      margin: 0.5rem 0;
+    }
+
+    .conversation-item:hover {
+      background: rgba(59, 130, 246, 0.2);
+      color: var(--text-dark);
+    }
+
+    .conversation-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+    }
+
+    .conversation-item span {
+      flex-grow: 1;
+    }
+
+    .conversation-item .timestamp {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+
+    .spinner-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .spinner-overlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--primary);
+      border-top: 4px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .toast {
+      display: none;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--background);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--text-dark);
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      font-weight: 500;
+      animation: slideIn 0.3s ease-out forwards;
+      border: 1px solid var(--border);
+    }
+
+    .toast.active {
+      display: block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes slideIn {
+      0% { transform: translateX(100%); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+
+    @media (min-width: 768px) {
+      .sidebar {
+        display: flex;
+      }
+
+      .settings-container {
+        padding: 2rem;
+      }
+
+      .settings-header button {
+        display: none;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: -250px;
+        width: 250px;
+        height: 100%;
+        z-index: 1000;
+        transition: left 0.3s ease;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .settings-header button {
+        display: block;
+      }
+
+      .settings-container {
+        padding: 1rem;
+      }
+
+      .settings-content {
+        margin: 0.5rem;
+        padding: 1rem;
+      }
+    }
+
+    @supports not (backdrop-filter: blur(10px)) {
+      .sidebar, .settings-header, .settings-content, .toast, .settings-btn, .signout-btn, .conversation-list {
+        background: var(--background-fallback);
+      }
+      [data-theme="dark"] .sidebar, [data-theme="dark"] .settings-header, [data-theme="dark"] .settings-content, [data-theme="dark"] .toast, [data-theme="dark"] .settings-btn, [data-theme="dark"] .signout-btn, [data-theme="dark"] .conversation-list {
+        background: var(--background-dark-fallback);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="sidebar" id="sidebar">
+      <div>
+        <div class="user-profile">
+          <div class="avatar" id="user-avatar"></div>
+          <span class="username" id="username"></span>
+        </div>
+        <div class="nav-btn" id="back-to-chat">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+          </svg>
+          Back to Chat
+        </div>
+      </div>
+      <div>
+        <div class="settings-btn" id="settings-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.49.49 0 0 0-.48-.41h-3.84a.49.49 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22l-1.92 3.32a.49.49 0 0 0 .12.61l2.03 1.58c-.04.3-.06.62-.06.94 0 .32.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32a.49.49 0 0 0 .59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54a.49.49 0 0 0 .48.41h3.84a.49.49 0 0 0 .48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96a.49.49 0 0 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
+          Settings
+        </div>
+        <div class="signout-btn" id="signout-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M16 17v-2H9v-2h7V8l5 4-5 4zM14 2H9C7.34 2 6 3.34 6 5v14c0 1.66 1.34 3 3 3h5V2zM3 5v14c0 3.31 2.69 6 6 6H3c-1.66 0-3-1.34-3-3V8c0-1.66 1.34-3 3-3z"/>
+          </svg>
+          Sign Out
+        </div>
+      </div>
+    </div>
+    <div class="settings-container">
+      <div class="settings-header">
+        <h1>Settings</h1>
+        <button id="toggle-sidebar">☰</button>
+      </div>
+      <div class="settings-content">
+        <h2>Profile</h2>
+        <label for="display-name">Display Name</label>
+        <input type="text" id="display-name" placeholder="Enter your display name" aria-label="Display name input" />
+        <button id="update-profile">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M17 3H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H9V7h6v2z"/>
+          </svg>
+          Update Profile
+        </button>
+        <h2>Appearance</h2>
+        <div class="theme-toggle">
+          <label for="theme-toggle">Dark Mode</label>
+          <input type="checkbox" id="theme-toggle" />
+        </div>
+        <h2>Conversations</h2>
+        <div class="conversation-list" id="conversation-list">
+          <!-- Conversations will be populated here -->
+        </div>
+        <button id="delete-selected">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+          </svg>
+          Delete Selected
+        </button>
+        <button id="delete-all">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+          </svg>
+          Delete All
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="spinner-overlay" id="spinner">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="toast" id="toast">
+    <p id="toast-message"></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, writeBatch, Timestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+      authDomain: "fire-b-a8878.firebaseapp.com",
+      projectId: "fire-b-a8878",
+      storageBucket: "fire-b-a8878.firebasestorage.app",
+      messagingSenderId: "658673187627",
+      appId: "1:658673187627:web:6e4c29af661785f0afa36e",
+      measurementId: "G-V4W97VMSKL"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const spinner = document.getElementById("spinner");
+    const toast = document.getElementById("toast");
+    const toastMessage = document.getElementById("toast-message");
+    const toggleSidebar = document.getElementById("toggle-sidebar");
+    const sidebar = document.getElementById("sidebar");
+    const userAvatar = document.getElementById("user-avatar");
+    const usernameElement = document.getElementById("username");
+    const backToChatBtn = document.getElementById("back-to-chat");
+    const settingsBtn = document.getElementById("settings-btn");
+    const signoutBtn = document.getElementById("signout-btn");
+    const displayNameInput = document.getElementById("display-name");
+    const updateProfileBtn = document.getElementById("update-profile");
+    const themeToggle = document.getElementById("theme-toggle");
+    const conversationList = document.getElementById("conversation-list");
+    const deleteSelectedBtn = document.getElementById("delete-selected");
+    const deleteAllBtn = document.getElementById("delete-all");
+
+    function showSpinner() {
+      spinner.classList.add("active");
+    }
+
+    function hideSpinner() {
+      spinner.classList.remove("active");
+    }
+
+    function showToast(message) {
+      toastMessage.textContent = message;
+      toast.classList.add("active");
+      setTimeout(() => toast.classList.remove("active"), 3000);
+    }
+
+    function formatTimestamp(timestamp) {
+      if (timestamp instanceof Timestamp) {
+        const date = timestamp.toDate();
+        return date.toLocaleString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit', 
+          hour12: true 
+        });
+      }
+      return new Date().toLocaleString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit', 
+        hour12: true 
+      });
+    }
+
+    function setUserProfile(user) {
+      if (user) {
+        const displayName = user.displayName || "User";
+        usernameElement.textContent = displayName;
+        displayNameInput.value = displayName;
+        if (user.photoURL) {
+          userAvatar.style.background = "none";
+          userAvatar.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;" />`;
+        } else {
+          userAvatar.textContent = displayName.charAt(0);
+        }
+      }
+    }
+
+    async function loadUserSettings(user) {
+      if (!user) return;
+      try {
+        const userDocRef = doc(db, `users/${user.uid}`);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const theme = userDoc.data().theme || "light";
+          document.documentElement.setAttribute("data-theme", theme);
+          themeToggle.checked = theme === "dark";
+        }
+      } catch (error) {
+        console.error("Failed to load user settings:", error.message);
+        showToast(`Failed to load settings: ${error.message}`);
+      }
+    }
+
+    async function saveUserSettings(user, theme) {
+      if (!user) return;
+      try {
+        await setDoc(doc(db, `users/${user.uid}`), { theme }, { merge: true });
+        showToast("Settings saved successfully.");
+      } catch (error) {
+        console.error("Failed to save user settings:", error.message);
+        showToast(`Failed to save settings: ${error.message}`);
+      }
+    }
+
+    async function loadConversations() {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          showToast("Error: User not authenticated.");
+          return;
+        }
+        const querySnapshot = await getDocs(collection(db, `users/${user.uid}/conversations`));
+        conversationList.innerHTML = "";
+        if (querySnapshot.empty) {
+          conversationList.innerHTML = `<p>No conversations yet.</p>`;
+          return;
+        }
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const firstMessage = data.messages[0]?.text || "Conversation";
+          const timestamp = formatTimestamp(data.createdAt);
+          const conversationItem = document.createElement("div");
+          conversationItem.className = "conversation-item";
+          conversationItem.innerHTML = `
+            <input type="checkbox" data-conversation-id="${doc.id}" />
+            <span>${firstMessage.substring(0, 20)}${firstMessage.length > 20 ? "..." : ""}</span>
+            <span class="timestamp">${timestamp}</span>
+          `;
+          conversationList.appendChild(conversationItem);
+        });
+      } catch (error) {
+        console.error("Failed to load conversations:", error.code, error.message);
+        showToast(`Failed to load conversations: ${error.code} - ${error.message}`);
+      }
+    }
+
+    async function deleteSelectedConversations() {
+      const user = auth.currentUser;
+      if (!user) {
+        showToast("Error: User not authenticated.");
+        return;
+      }
+      const checkboxes = conversationList.querySelectorAll('input[type="checkbox"]:checked');
+      if (checkboxes.length === 0) {
+        showToast("Please select at least one conversation to delete.");
+        return;
+      }
+      showSpinner();
+      try {
+        const batch = writeBatch(db);
+        checkboxes.forEach((checkbox) => {
+          const conversationId = checkbox.dataset.conversationId;
+          const conversationRef = doc(db, `users/${user.uid}/conversations/${conversationId}`);
+          batch.delete(conversationRef);
+        });
+        await batch.commit();
+        showToast("Selected conversations deleted successfully.");
+        await loadConversations();
+      } catch (error) {
+        console.error("Failed to delete conversations:", error.code, error.message);
+        showToast(`Failed to delete conversations: ${error.code} - ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    async function deleteAllConversations() {
+      const user = auth.currentUser;
+      if (!user) {
+        showToast("Error: User not authenticated.");
+        return;
+      }
+      const querySnapshot = await getDocs(collection(db, `users/${user.uid}/conversations`));
+      if (querySnapshot.empty) {
+        showToast("No conversations to delete.");
+        return;
+      }
+      showSpinner();
+      try {
+        const batch = writeBatch(db);
+        querySnapshot.forEach((doc) => {
+          batch.delete(doc.ref);
+        });
+        await batch.commit();
+        showToast("All conversations deleted successfully.");
+        await loadConversations();
+      } catch (error) {
+        console.error("Failed to delete all conversations:", error.code, error.message);
+        showToast(`Failed to delete all conversations: ${error.code} - ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    window.goToChat = function () {
+      showSpinner();
+      try {
+        showToast("Redirecting to chat...");
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 500);
+      } catch (error) {
+        console.error("Failed to redirect to chat:", error.message);
+        showToast(`Failed to redirect: ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
+    };
+
+    window.signOutUser = async function () {
+      showSpinner();
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          await setDoc(doc(db, `users/${user.uid}`), { online: false }, { merge: true });
+          await signOut(auth);
+          showToast("Signed out successfully.");
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 500);
+        } else {
+          showToast("No user is signed in.");
+        }
+      } catch (error) {
+        console.error("Sign out failed:", error.message);
+        showToast(`Failed to sign out: ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
+    };
+
+    window.updateUserProfile = async function () {
+      const user = auth.currentUser;
+      if (!user) {
+        showToast("Error: User not authenticated. Please sign in again.");
+        return;
+      }
+      const newDisplayName = displayNameInput.value.trim();
+      if (!newDisplayName) {
+        showToast("Please enter a display name.");
+        return;
+      }
+      showSpinner();
+      try {
+        await updateProfile(user, { displayName: newDisplayName });
+        await setDoc(doc(db, `users/${user.uid}`), { displayName: newDisplayName }, { merge: true });
+        setUserProfile(user);
+        showToast("Profile updated successfully.");
+      } catch (error) {
+        console.error("Failed to update profile:", error.code, error.message);
+        showToast(`Failed to update profile: ${error.code} - ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
+    };
+
+    toggleSidebar.addEventListener("click", () => {
+      sidebar.classList.toggle("active");
+    });
+
+    backToChatBtn.addEventListener("click", goToChat);
+
+    settingsBtn.addEventListener("click", () => {
+      showToast("Already on settings page.");
+    });
+
+    signoutBtn.addEventListener("click", signOutUser);
+
+    updateProfileBtn.addEventListener("click", updateUserProfile);
+
+    themeToggle.addEventListener("change", async () => {
+      const theme = themeToggle.checked ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", theme);
+      const user = auth.currentUser;
+      if (user) {
+        await saveUserSettings(user, theme);
+      }
+    });
+
+    deleteSelectedBtn.addEventListener("click", deleteSelectedConversations);
+
+    deleteAllBtn.addEventListener("click", deleteAllConversations);
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await new Promise((resolve, reject) => {
+        onAuthStateChanged(auth, async (user) => {
+          if (!user) {
+            console.log("No user authenticated, redirecting to index.html");
+            window.location.href = "index.html";
+          } else {
+            console.log("User authenticated:", user.uid);
+            setUserProfile(user);
+            await loadUserSettings(user);
+            await loadConversations();
+            resolve();
+          }
+        }, (error) => {
+          console.error("Auth state check failed:", error);
+          showToast("Authentication check failed.");
+          reject(error);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
