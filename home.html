@@ -591,13 +591,17 @@
         return date.toLocaleString('en-US', { 
           hour: 'numeric', 
           minute: '2-digit', 
-          hour12: true 
+          hour12: true,
+          month: 'short',
+          day: 'numeric'
         });
       }
       return new Date().toLocaleString('en-US', { 
         hour: 'numeric', 
         minute: '2-digit', 
-        hour12: true 
+        hour12: true,
+        month: 'short',
+        day: 'numeric'
       });
     }
 
@@ -615,17 +619,22 @@
     }
 
     async function checkFirstInteraction(user) {
-      if (!user) return false;
+      if (!user) {
+        console.error('No user provided for checkFirstInteraction');
+        return false;
+      }
       try {
+        console.log('Checking first interaction for user:', user.uid);
         const userDocRef = doc(db, `users/${user.uid}`);
         const userDoc = await getDoc(userDocRef);
         if (!userDoc.exists() || !userDoc.data().firstInteraction) {
+          console.log('Setting firstInteraction to true for user:', user.uid);
           await setDoc(userDocRef, { firstInteraction: true }, { merge: true });
           return true;
         }
         return false;
       } catch (error) {
-        console.error('Error checking first interaction:', error.message);
+        console.error('Error checking first interaction:', error.message, error.code);
         showToast('Error checking user profile.');
         return false;
       }
@@ -633,6 +642,7 @@
 
     async function loadTrainingData() {
       try {
+        console.log('Loading training data from global-training-data');
         const querySnapshot = await getDocs(collection(db, `global-training-data`));
         trainingData = [];
         querySnapshot.forEach((doc) => {
@@ -642,6 +652,7 @@
           }
         });
         if (trainingData.length === 0) {
+          console.log('No training data found, initializing default data');
           trainingData = [
             { text: "I love this product!", sentiment: "POSITIVE" },
             { text: "This is disappointing.", sentiment: "NEGATIVE" },
@@ -657,8 +668,9 @@
           }
           showToast('Default training data initialized.');
         }
+        console.log('Training data loaded:', trainingData.length, 'items');
       } catch (error) {
-        console.error('Failed to load training data:', error.message);
+        console.error('Failed to load training data:', error.message, error.code);
         showToast(`Failed to load training data: ${error.message}`);
       }
     }
@@ -667,10 +679,12 @@
       try {
         const user = auth.currentUser;
         if (!user) {
+          console.error('No authenticated user found for loading conversations');
           showToast('Please sign in to view conversations.');
-          console.error('No authenticated user found for loading conversations.');
+          window.location.href = "index.html";
           return;
         }
+        console.log('Loading conversations for user:', user.uid);
         const conversationsQuery = query(
           collection(db, `users/${user.uid}/conversations`),
           orderBy('createdAt', 'desc')
@@ -691,13 +705,15 @@
             chatHistory.appendChild(historyItem);
           }
         });
+        console.log('Conversations loaded:', conversations.length);
         if (conversations.length === 0) {
           showToast('No conversations found. Start a new chat!');
         }
       } catch (error) {
-        console.error("Failed to load conversations:", error.message);
+        console.error('Failed to load conversations:', error.message, error.code);
         if (error.code === 'permission-denied') {
-          showToast('Permission denied: Unable to load conversations.');
+          showToast('Permission denied: Unable to load conversations. Please sign in again.');
+          window.location.href = "index.html";
         } else {
           showToast(`Failed to load conversations: ${error.message}`);
         }
@@ -708,13 +724,16 @@
       try {
         const user = auth.currentUser;
         if (!user) {
+          console.error('No authenticated user found for loading conversation:', conversationId);
           showToast('Please sign in to view conversation.');
-          console.error('No authenticated user found for loading conversation.');
+          window.location.href = "index.html";
           return;
         }
+        console.log('Loading conversation:', conversationId);
         const conversation = conversations.find(c => c.id === conversationId);
         if (!conversation) {
           showToast('Conversation not found.');
+          console.error('Conversation not found in local array:', conversationId);
           return;
         }
         currentConversationId = conversationId;
@@ -728,8 +747,9 @@
           if (msg.sender === 'user') lastUserMessage = msg.text;
         });
         chatOutput.scrollTop = chatOutput.scrollHeight;
+        console.log('Conversation loaded:', conversationId);
       } catch (error) {
-        console.error("Failed to load conversation:", error.message);
+        console.error('Failed to load conversation:', error.message, error.code);
         showToast(`Failed to load conversation: ${error.message}`);
       }
     }
@@ -738,11 +758,12 @@
       try {
         const user = auth.currentUser;
         if (!user) {
+          console.error('No authenticated user found for saving message');
           showToast('Please sign in to save messages.');
-          console.error('No authenticated user found.');
-          localStorage.setItem(`message_${Date.now()}`, JSON.stringify({ text, sender, timestamp: new Date() }));
+          window.location.href = "index.html";
           return false;
         }
+        console.log('Saving message:', { text, sender, userId: user.uid, conversationId: currentConversationId });
         const message = {
           text: DOMPurify.sanitize(text),
           sender,
@@ -750,6 +771,7 @@
         };
         let historyItem;
         if (!currentConversationId) {
+          console.log('Creating new conversation for user:', user.uid);
           const docRef = await addDoc(collection(db, `users/${user.uid}/conversations`), {
             createdAt: Timestamp.now(),
             messages: [message]
@@ -761,11 +783,13 @@
           historyItem.dataset.conversationId = docRef.id;
           historyItem.addEventListener("click", () => loadConversation(docRef.id));
           chatHistory.prepend(historyItem);
+          console.log('New conversation created:', docRef.id);
         } else {
+          console.log('Updating existing conversation:', currentConversationId);
           const conversation = conversations.find(c => c.id === currentConversationId);
           if (!conversation) {
+            console.error('Conversation not found in local array:', currentConversationId);
             showToast('Conversation not found.');
-            console.error(`Conversation ${currentConversationId} not found in local array.`);
             return false;
           }
           conversation.messages.push(message);
@@ -779,14 +803,16 @@
             historyItem.innerHTML = `${DOMPurify.sanitize(firstMessage.substring(0, 20))}${firstMessage.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>`;
             chatHistory.prepend(historyItem); // Move to top
           }
+          console.log('Conversation updated:', currentConversationId);
         }
         if (sender === 'user') lastUserMessage = text;
         await loadConversations(); // Refresh chat history
         return true;
       } catch (error) {
-        console.error("Failed to save message:", error.message);
+        console.error('Failed to save message:', error.message, error.code);
         if (error.code === 'permission-denied') {
-          showToast('Permission denied: Please ensure you are signed in and have access.');
+          showToast('Permission denied: Please sign in again.');
+          window.location.href = "index.html";
         } else {
           showToast(`Failed to save message: ${error.message}`);
         }
@@ -852,10 +878,13 @@
 
       const user = auth.currentUser;
       if (!user) {
+        console.error('No authenticated user found for sending message');
         showToast("Please sign in to send messages.");
+        window.location.href = "index.html";
         return;
       }
 
+      console.log('Sending message for user:', user.uid, 'Input:', userInput);
       const isFirstInteraction = await checkFirstInteraction(user);
       const username = user.displayName || "User";
       const timestamp = formatTimestamp(Timestamp.now());
@@ -888,6 +917,7 @@
 
           const sentimentResult = await sentimentAnalyzer(userInput);
           const sentiment = sentimentResult[0];
+          console.log('Sentiment analysis result:', sentiment);
 
           let response;
           try {
@@ -910,6 +940,7 @@
             if (response.length > 100) {
               response = response.substring(0, 100) + '...';
             }
+            console.log('Generated response:', response);
           } catch (genError) {
             console.warn('Text generation failed, falling back to human-like response:', genError.message);
             response = generateHumanLikeResponse(sentiment, userInput, isFirstInteraction, username);
@@ -927,13 +958,18 @@
           if (!aiSaved) {
             console.warn('AI response displayed locally but not saved to Firestore.');
           }
-          await addDoc(collection(db, `global-training-data`), {
-            text: userInput,
-            sentiment: sentiment.label,
-            createdBy: user.uid,
-            createdAt: Timestamp.now()
-          });
-          trainingData.push({ text: userInput, sentiment: sentiment.label });
+          try {
+            await addDoc(collection(db, `global-training-data`), {
+              text: userInput,
+              sentiment: sentiment.label,
+              createdBy: user.uid,
+              createdAt: Timestamp.now()
+            });
+            trainingData.push({ text: userInput, sentiment: sentiment.label });
+            console.log('Training data saved:', { text: userInput, sentiment: sentiment.label });
+          } catch (error) {
+            console.error('Failed to save training data:', error.message, error.code);
+          }
 
           chatOutput.scrollTop = chatOutput.scrollHeight;
         }, 1500);
@@ -942,7 +978,7 @@
           navigator.vibrate(0);
         }
         chatOutput.removeChild(thinkingDiv);
-        console.error("Processing failed:", error.message);
+        console.error('Processing failed:', error.message, error.code);
         const errorMessage = "Error processing input. Please try again.";
         const errorMessageDiv = document.createElement("div");
         errorMessageDiv.className = "message ai-message";
@@ -969,6 +1005,7 @@
       try {
         const user = auth.currentUser;
         if (user) {
+          console.log('Signing out user:', user.uid);
           await setDoc(doc(db, `users/${user.uid}`), { online: false }, { merge: true });
           await signOut(auth);
           showToast("Signed out successfully.");
@@ -976,10 +1013,11 @@
             window.location.href = "index.html";
           }, 500);
         } else {
+          console.warn('No user is signed in for sign out');
           showToast("No user is signed in.");
         }
       } catch (error) {
-        console.error("Sign out failed:", error.message);
+        console.error('Sign out failed:', error.message, error.code);
         showToast(`Failed to sign out: ${error.message}`);
       } finally {
         hideSpinner();
@@ -1002,14 +1040,14 @@
       await new Promise((resolve, reject) => {
         onAuthStateChanged(auth, async (user) => {
           if (!user) {
-            console.log("No user authenticated, redirecting to index.html");
+            console.error('No user authenticated, redirecting to index.html');
             showToast("Please sign in to continue.");
             setTimeout(() => {
               window.location.href = "index.html";
             }, 1000);
             reject(new Error("No user authenticated"));
           } else {
-            console.log("User authenticated:", user.uid);
+            console.log('User authenticated:', user.uid);
             setUserProfile(user);
             showToast("Initializing AI models, please wait...");
             await Promise.all([initializeSentimentAnalyzer(), initializeTextGenerator()]);
@@ -1019,7 +1057,7 @@
             resolve();
           }
         }, (error) => {
-          console.error("Auth state check failed:", error);
+          console.error('Auth state check failed:', error.message, error.code);
           showToast("Authentication check failed.");
           reject(error);
         });
