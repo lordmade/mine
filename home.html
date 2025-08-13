@@ -1059,7 +1059,7 @@ window.signOutUser = async function () {
       await signOut(auth);
       showToast("Signed out successfully.");
       setTimeout(() => {
-        window.location.href = "index.html";
+        window.location.href = "signup.html";
       }, 500);
     } else {
       showToast("No user is signed in.");
@@ -1106,7 +1106,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         console.log("No user authenticated, redirecting to index.html");
-        window.location.href = "index.html";
+        window.location.href = "signup.html";
       } else {
         console.log("User authenticated:", user.uid);
         setUserProfile(user);
