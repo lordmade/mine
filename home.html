@@ -529,7 +529,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -548,6 +548,9 @@
     let trainingData = [];
     let currentConversationId = null;
     let conversations = [];
+    let newDataCount = 0;
+    const RETRAIN_THRESHOLD = 5; // Retrain after 5 new data points
+    const DEBOUNCE_TIME = 10000; // 10 seconds debounce for saving model
 
     const spinner = document.getElementById("spinner");
     const toast = document.getElementById("toast");
@@ -631,6 +634,15 @@
       return false;
     }
 
+    // Debounce function to limit Firestore writes
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
     async function saveTrainedModel() {
       try {
         const modelJSON = net.toJSON();
@@ -642,6 +654,31 @@
       } catch (error) {
         console.error("Failed to save trained model:", error.message);
         showToast(`Failed to save model: ${error.message}`);
+      }
+    }
+
+    const debouncedSaveModel = debounce(saveTrainedModel, DEBOUNCE_TIME);
+
+    async function retrainModel(newData = []) {
+      try {
+        if (newData.length > 0) {
+          trainingData.push(...newData);
+        }
+        if (trainingData.length === 0) return;
+
+        // Incremental training with fewer iterations
+        net.train(trainingData.map(d => ({ input: d.input, output: d.output })), {
+          iterations: 200, // Reduced for incremental training
+          errorThresh: 0.005,
+          log: true,
+          logPeriod: 100
+        });
+
+        await debouncedSaveModel();
+        newDataCount = 0; // Reset counter after training
+      } catch (error) {
+        console.error("Failed to retrain model:", error.message);
+        showToast(`Failed to retrain model: ${error.message}`);
       }
     }
 
@@ -701,35 +738,10 @@
           net.fromJSON(modelJSON);
           showToast("Loaded saved shared model.");
         } else {
-          const querySnapshot = await getDocs(collection(db, `global-training-data`));
-          trainingData = [];
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (
-              data.input &&
-              data.output &&
-              data.text &&
-              Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
-              Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
-            ) {
-              trainingData.push(data);
-            }
-          });
-
-          if (trainingData.length > 0) {
-            net.train(trainingData.map(d => ({ input: d.input, output: d.output })), {
-              iterations: 1000,
-              errorThresh: 0.005,
-              log: true,
-              logPeriod: 100
-            });
-            await saveTrainedModel();
-            showToast("Shared model trained and saved successfully.");
-          } else {
-            await initializeDefaultModel();
-          }
+          await initializeDefaultModel();
         }
 
+        // Load initial training data
         const querySnapshot = await getDocs(collection(db, `global-training-data`));
         trainingData = [];
         querySnapshot.forEach((doc) => {
@@ -742,6 +754,30 @@
             Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
           ) {
             trainingData.push(data);
+          }
+        });
+
+        // Set up real-time listener for new training data
+        onSnapshot(collection(db, `global-training-data`), (snapshot) => {
+          const newData = [];
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+              const data = change.doc.data();
+              if (
+                data.input &&
+                data.output &&
+                data.text &&
+                Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
+                Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
+              ) {
+                newData.push(data);
+                newDataCount++;
+              }
+            }
+          });
+
+          if (newDataCount >= RETRAIN_THRESHOLD) {
+            retrainModel(newData);
           }
         });
       } catch (error) {
@@ -766,20 +802,13 @@
           createdAt: Timestamp.now()
         });
         showToast("Training data added successfully.");
-        const querySnapshot = await getDocs(collection(db, `global-training-data`));
-        trainingData = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          if (
-            data.input &&
-            data.output &&
-            data.text &&
-            Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
-            Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
-          ) {
-            trainingData.push(data);
-          }
-        });
+
+        // Incrementally update training data and retrain if threshold met
+        trainingData.push({ input, output, text });
+        newDataCount++;
+        if (newDataCount >= RETRAIN_THRESHOLD) {
+          await retrainModel();
+        }
       } catch (error) {
         console.error("Failed to add training data:", error.message);
         showToast(`Failed to add training data: ${error.message}`);
