@@ -605,6 +605,21 @@
       }
     }
 
+    async function loadUserSettings(user) {
+      if (!user) return;
+      try {
+        const userDocRef = doc(db, `users/${user.uid}`);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const theme = userDoc.data().theme || "light";
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+      } catch (error) {
+        console.error("Failed to load user settings:", error.message);
+        showToast(`Failed to load settings: ${error.message}`);
+      }
+    }
+
     async function checkFirstInteraction(user) {
       if (!user) return false;
       const userDocRef = doc(db, `users/${user.uid}`);
@@ -1056,6 +1071,7 @@
           } else {
             console.log("User authenticated:", user.uid);
             setUserProfile(user);
+            await loadUserSettings(user);
             await loadTrainingData();
             await loadConversations();
             resolve();
