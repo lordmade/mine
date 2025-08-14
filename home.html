@@ -182,8 +182,6 @@
       border: none;
       cursor: pointer;
       display: none;
-      font-size: 1.5rem;
-      color: var(--text-dark);
     }
 
     .chat-output {
@@ -436,6 +434,8 @@
 
       .chat-header button {
         display: block;
+        font-size: 1.5rem;
+        color: var(--text-dark);
       }
 
       .chat-container {
@@ -479,18 +479,20 @@
           <div class="avatar" id="user-avatar"></div>
           <span class="username" id="username"></span>
         </div>
-        <div class="new-chat-btn" id="new-chat-btn" role="button" aria-label="Start new conversation">New Conversation</div>
+        <div class="new-chat-btn" id="new-chat-btn">New Conversation</div>
         <h2>Chat History</h2>
-        <div class="chat-history" id="chat-history"></div>
+        <div class="chat-history" id="chat-history">
+          <!-- Chat history will be populated here -->
+        </div>
       </div>
       <div>
-        <div class="settings-btn" id="settings-btn" role="button" aria-label="Go to settings">
+        <div class="settings-btn" id="settings-btn">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.49.49 0 0 0-.48-.41h-3.84a.49.49 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22l-1.92 3.32a.49.49 0 0 0 .12.61l2.03 1.58c-.04.3-.06.62-.06.94 0 .32.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32a.49.49 0 0 0 .59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54a.49.49 0 0 0 .48.41h3.84a.49.49 0 0 0 .48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96a.49.49 0 0 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
           </svg>
           Settings
         </div>
-        <div class="signout-btn" id="signout-btn" role="button" aria-label="Sign out">
+        <div class="signout-btn" id="signout-btn">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M16 17v-2H9v-2h7V8l5 4-5 4zM14 2H9C7.34 2 6 3.34 6 5v14c0 1.66 1.34 3 3 3h5V2zM3 5v14c0 3.31 2.69 6 6 6H3c-1.66 0-3-1.34-3-3V8c0-1.66 1.34-3 3-3z"/>
           </svg>
@@ -501,12 +503,12 @@
     <div class="chat-container">
       <div class="chat-header">
         <h1>Vynix AI</h1>
-        <button id="toggle-sidebar" aria-label="Toggle sidebar">☰</button>
+        <button id="toggle-sidebar">☰</button>
       </div>
       <div class="chat-output" id="chat-output"></div>
       <div class="input-group">
         <input type="text" id="user-input" placeholder="Ask Vynix anything..." aria-label="Chat input" />
-        <button id="send-btn" aria-label="Send message">
+        <button onclick="sendMessage()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
           </svg>
@@ -523,607 +525,603 @@
     <p id="toast-message"></p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna@1.0.1/dist/qna.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.2/dist/brain-browser.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-    import * as qna from '@tensorflow-models/qna';
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-    // WARNING: Move firebaseConfig to a server-side environment for production!
-    const firebaseConfig = {
-      apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
-      authDomain: "fire-b-a8878.firebaseapp.com",
-      projectId: "fire-b-a8878",
-      storageBucket: "fire-b-a8878.firebasestorage.app",
-      messagingSenderId: "658673187627",
-      appId: "1:658673187627:web:6e4c29af661785f0afa36e",
-      measurementId: "G-V4W97VMSKL"
+const firebaseConfig = {
+  apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+  authDomain: "fire-b-a8878.firebaseapp.com",
+  projectId: "fire-b-a8878",
+  storageBucket: "fire-b-a8878.firebasestorage.app",
+  messagingSenderId: "658673187627",
+  appId: "1:658673187627:web:6e4c29af661785f0afa36e",
+  measurementId: "G-V4W97VMSKL"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const net = new brain.NeuralNetwork({ hiddenLayers: [20, 10], activation: 'sigmoid' });
+let trainingData = [];
+let currentConversationId = null;
+let conversations = [];
+let newDataCount = 0;
+const RETRAIN_THRESHOLD = 3; // Reduced for faster updates
+const DEBOUNCE_TIME = 5000; // 5 seconds debounce for saving model
+
+const spinner = document.getElementById("spinner");
+const toast = document.getElementById("toast");
+const toastMessage = document.getElementById("toast-message");
+const signoutBtn = document.getElementById("signout-btn");
+const settingsBtn = document.getElementById("settings-btn");
+const toggleSidebar = document.getElementById("toggle-sidebar");
+const sidebar = document.getElementById("sidebar");
+const chatHistory = document.getElementById("chat-history");
+const userAvatar = document.getElementById("user-avatar");
+const usernameElement = document.getElementById("username");
+const newChatBtn = document.getElementById("new-chat-btn");
+const chatOutput = document.getElementById("chat-output");
+
+function showSpinner() {
+  spinner.classList.add("active");
+}
+
+function hideSpinner() {
+  spinner.classList.remove("active");
+}
+
+function showToast(message) {
+  toastMessage.textContent = message;
+  toast.classList.add("active");
+  setTimeout(() => toast.classList.remove("active"), 3000);
+}
+
+function formatTimestamp(timestamp) {
+  if (timestamp instanceof Timestamp) {
+    const date = timestamp.toDate();
+    return date.toLocaleString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit', 
+      hour12: true 
+    });
+  }
+  return new Date().toLocaleString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit', 
+    hour12: true 
+  });
+}
+
+function setUserProfile(user) {
+  if (user) {
+    const displayName = user.displayName || "User";
+    usernameElement.textContent = displayName;
+    if (user.photoURL) {
+      userAvatar.style.background = "none";
+      userAvatar.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;" />`;
+    } else {
+      userAvatar.textContent = displayName.charAt(0);
+    }
+  }
+}
+
+async function loadUserSettings(user) {
+  if (!user) return;
+  try {
+    const userDocRef = doc(db, `users/${user.uid}`);
+    const userDoc = await getDoc(userDocRef);
+    if (userDoc.exists()) {
+      const theme = userDoc.data().theme || "light";
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+  } catch (error) {
+    console.error("Failed to load user settings:", error.message);
+    showToast(`Failed to load settings: ${error.message}`);
+  }
+}
+
+async function checkFirstInteraction(user) {
+  if (!user) return false;
+  const userDocRef = doc(db, `users/${user.uid}`);
+  const userDoc = await getDoc(userDocRef);
+  if (!userDoc.exists() || !userDoc.data().firstInteraction) {
+    await setDoc(userDocRef, { firstInteraction: true }, { merge: true });
+    return true;
+  }
+  return false;
+}
+
+function debounce(func, wait) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+async function saveTrainedModel() {
+  try {
+    const modelJSON = net.toJSON();
+    await setDoc(doc(db, `global-models/trained-model`), {
+      model: modelJSON,
+      updatedAt: Timestamp.now()
+    });
+    showToast("Shared model saved successfully.");
+  } catch (error) {
+    console.error("Failed to save trained model:", error.message);
+    showToast(`Failed to save model: ${error.message}`);
+  }
+}
+
+const debouncedSaveModel = debounce(saveTrainedModel, DEBOUNCE_TIME);
+
+async function retrainModel(newData = []) {
+  try {
+    if (newData.length > 0) {
+      trainingData.push(...newData);
+    }
+    if (trainingData.length === 0) return;
+
+    // Use a smaller learning rate for incremental training
+    net.train(trainingData.map(d => ({ input: d.input, output: d.output })), {
+      iterations: 100,
+      errorThresh: 0.005,
+      learningRate: 0.01, // Lower learning rate for stability
+      log: true,
+      logPeriod: 50
+    });
+
+    await debouncedSaveModel();
+    newDataCount = 0;
+  } catch (error) {
+    console.error("Failed to retrain model:", error.message);
+    showToast(`Failed to retrain model: ${error.message}`);
+  }
+}
+
+async function initializeDefaultModel() {
+  const defaultTrainingData = [
+    { input: { happy: 1, great: 0, sad: 0, bad: 0, excited: 1 }, output: { positive: 1, neutral: 0, negative: 0 }, text: "I'm so happy and excited today!" },
+    { input: { happy: 0, great: 1, sad: 0, bad: 0, excited: 0 }, output: { positive: 1, neutral: 0, negative: 0 }, text: "This is really great!" },
+    { input: { happy: 0, great: 0, sad: 1, bad: 0, tired: 1 }, output: { positive: 0, neutral: 0, negative: 1 }, text: "Feeling sad and tired." },
+    { input: { happy: 0, great: 0, sad: 0, bad: 1, frustrated: 1 }, output: { positive: 0, neutral: 0, negative: 1 }, text: "This is so bad and frustrating." },
+    { input: { happy: 0, great: 0, sad: 0, bad: 0, okay: 1 }, output: { positive: 0, neutral: 1, negative: 0 }, text: "I'm just okay, nothing special." },
+    { input: { happy: 1, great: 1, sad: 0, bad: 0, awesome: 1 }, output: { positive: 1, neutral: 0, negative: 0 }, text: "Everything is awesome today!" },
+    { input: { happy: 0, great: 0, sad: 1, bad: 1, upset: 1 }, output: { positive: 0, neutral: 0, negative: 1 }, text: "I'm really upset and sad." },
+    { input: { happy: 0, great: 0, sad: 0, bad: 0, curious: 1 }, output: { positive: 0, neutral: 1, negative: 0 }, text: "I'm curious about something." }
+  ];
+
+  try {
+    net.train(defaultTrainingData, {
+      iterations: 1000,
+      errorThresh: 0.005,
+      learningRate: 0.1,
+      log: true,
+      logPeriod: 100
+    });
+
+    for (const data of defaultTrainingData) {
+      await addDoc(collection(db, `global-training-data`), {
+        ...data,
+        createdAt: Timestamp.now()
+      });
+    }
+
+    await saveTrainedModel();
+    trainingData = defaultTrainingData;
+    showToast("Default model initialized and saved successfully.");
+  } catch (error) {
+    console.error("Failed to initialize default model:", error.message);
+    showToast(`Failed to initialize default model: ${error.message}`);
+  }
+}
+
+async function loadTrainingData() {
+  try {
+    const modelDoc = await getDoc(doc(db, `global-models/trained-model`));
+    if (modelDoc.exists()) {
+      const modelJSON = modelDoc.data().model;
+      net.fromJSON(modelJSON);
+      showToast("Loaded saved shared model.");
+    } else {
+      await initializeDefaultModel();
+    }
+
+    const querySnapshot = await getDocs(collection(db, `global-training-data`));
+    trainingData = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (
+        data.input &&
+        data.output &&
+        data.text &&
+        Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
+        Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
+      ) {
+        trainingData.push(data);
+      }
+    });
+
+    onSnapshot(collection(db, `global-training-data`), (snapshot) => {
+      const newData = [];
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          if (
+            data.input &&
+            data.output &&
+            data.text &&
+            Object.values(data.input).every(v => typeof v === 'number' && !isNaN(v)) &&
+            Object.values(data.output).every(v => typeof v === 'number' && !isNaN(v))
+          ) {
+            newData.push(data);
+            newDataCount++;
+          }
+        }
+      });
+
+      if (newDataCount >= RETRAIN_THRESHOLD) {
+        retrainModel(newData);
+      }
+    });
+  } catch (error) {
+    console.error("Failed to load shared training data or model:", error.message);
+    showToast(`Failed to load shared model, initializing default model: ${error.message}`);
+    await initializeDefaultModel();
+  }
+}
+
+async function addTrainingData(input, output, text) {
+  try {
+    const user = auth.currentUser;
+    if (!user) return;
+    if (!input || !output || !text || typeof text !== 'string' || text.trim() === '') {
+      throw new Error('Invalid training data format');
+    }
+    await addDoc(collection(db, `global-training-data`), {
+      input,
+      output,
+      text,
+      createdBy: user.uid,
+      createdAt: Timestamp.now()
+    });
+    showToast("Training data added successfully.");
+
+    trainingData.push({ input, output, text });
+    newDataCount++;
+    if (newDataCount >= RETRAIN_THRESHOLD) {
+      await retrainModel();
+    }
+  } catch (error) {
+    console.error("Failed to add training data:", error.message);
+    showToast(`Failed to add training data: ${error.message}`);
+  }
+}
+
+async function loadConversations() {
+  try {
+    const user = auth.currentUser;
+    if (!user) return;
+    const querySnapshot = await getDocs(collection(db, `users/${user.uid}/conversations`));
+    conversations = [];
+    chatHistory.innerHTML = "";
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      conversations.push({ id: doc.id, ...data });
+      const firstMessage = data.messages[0]?.text || "Conversation";
+      const timestamp = formatTimestamp(data.createdAt);
+      const historyItem = document.createElement("p");
+      historyItem.innerHTML = `${firstMessage.substring(0, 20)}${firstMessage.length > 20 ? "..." : ""} <span class="timestamp">${timestamp}</span>`;
+      historyItem.dataset.conversationId = doc.id;
+      historyItem.addEventListener("click", () => loadConversation(doc.id));
+      chatHistory.appendChild(historyItem);
+    });
+  } catch (error) {
+    console.error("Failed to load conversations:", error.message);
+    showToast(`Failed to load conversations: ${error.message}`);
+  }
+}
+
+async function loadConversation(conversationId) {
+  try {
+    const user = auth.currentUser;
+    if (!user) return;
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (!conversation) return;
+    currentConversationId = conversationId;
+    chatOutput.innerHTML = "";
+    conversation.messages.forEach(msg => {
+      const timestamp = formatTimestamp(msg.timestamp);
+      chatOutput.innerHTML += `<div class="message ${msg.sender === 'user' ? 'user-message' : 'ai-message'}">${msg.text}<span class="timestamp">${timestamp}</span></div>`;
+    });
+    chatOutput.scrollTop = chatOutput.scrollHeight;
+  } catch (error) {
+    console.error("Failed to load conversation:", error.message);
+    showToast(`Failed to load conversation: ${error.message}`);
+  }
+}
+
+async function saveMessageToConversation(text, sender) {
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      showToast("Error: User not authenticated. Please sign in again.");
+      throw new Error("User not authenticated");
+    }
+    const message = {
+      text,
+      sender,
+      timestamp: Timestamp.now()
+    };
+    if (!currentConversationId) {
+      const docRef = await addDoc(collection(db, `users/${user.uid}/conversations`), {
+        createdAt: Timestamp.now(),
+        messages: [message]
+      });
+      currentConversationId = docRef.id;
+      conversations.push({ id: docRef.id, createdAt: Timestamp.now(), messages: [message] });
+      const historyItem = document.createElement("p");
+      historyItem.innerHTML = `${text.substring(0, 20)}${text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(Timestamp.now())}</span>`;
+      historyItem.dataset.conversationId = docRef.id;
+      historyItem.addEventListener("click", () => loadConversation(docRef.id));
+      chatHistory.appendChild(historyItem);
+    } else {
+      const conversation = conversations.find(c => c.id === currentConversationId);
+      conversation.messages.push(message);
+      await setDoc(doc(db, `users/${user.uid}/conversations/${currentConversationId}`), {
+        messages: conversation.messages,
+        createdAt: conversation.createdAt
+      }, { merge: true });
+      const historyItem = chatHistory.querySelector(`[data-conversation-id="${currentConversationId}"]`);
+      if (historyItem) {
+        historyItem.innerHTML = `${conversation.messages[0].text.substring(0, 20)}${conversation.messages[0].text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>`;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to save message:", error.code, error.message);
+    showToast(`Failed to save message: ${error.code} - ${error.message}`);
+  }
+}
+
+function processInput(text) {
+  if (!text) return null;
+  const words = text.toLowerCase().split(" ").filter(w => w.length > 2);
+  const input = {
+    happy: words.some(w => ["happy", "awesome", "joyful", "excited"].includes(w)) ? 1 : 0,
+    great: words.some(w => ["great", "good", "fantastic", "amazing"].includes(w)) ? 1 : 0,
+    sad: words.some(w => ["sad", "terrible", "down", "depressed"].includes(w)) ? 1 : 0,
+    bad: words.some(w => ["bad", "awful", "horrible", "poor"].includes(w)) ? 1 : 0,
+    tired: words.some(w => ["tired", "exhausted", "drained"].includes(w)) ? 1 : 0,
+    frustrated: words.some(w => ["frustrated", "annoyed", "irritated"].includes(w)) ? 1 : 0,
+    okay: words.some(w => ["okay", "fine", "alright"].includes(w)) ? 1 : 0,
+    curious: words.some(w => ["curious", "wondering", "interested"].includes(w)) ? 1 : 0,
+    question: words.some(w => w.endsWith("?")) ? 1 : 0
+  };
+  return input;
+}
+
+function generateHumanLikeResponse(output, inputText, isFirstInteraction, username) {
+  const maxOutput = Math.max(output.positive, output.neutral, output.negative);
+  const sentiment = output.positive === maxOutput ? "positive" : output.neutral === maxOutput ? "neutral" : "negative";
+  const inputWords = new Set(inputText.toLowerCase().split(" ").filter(w => w.length > 3));
+  
+  // Find matching training data based on sentiment
+  const matchingData = trainingData.filter(d => {
+    const dSentiment = d.output.positive === 1 ? "positive" : d.output.neutral === 1 ? "neutral" : "negative";
+    return dSentiment === sentiment;
+  });
+
+  let response;
+  if (matchingData.length === 0) {
+    response = sentiment === "positive" ? "Wow, you're in a great mood!" :
+              sentiment === "neutral" ? "Sounds like things are steady. What's up?" :
+              "Sorry you're feeling off. Want to talk about it?";
+  } else {
+    // Find the best match based on word overlap
+    let bestMatch = null;
+    let maxOverlap = 0;
+    for (const data of matchingData) {
+      const dataWords = new Set(data.text.toLowerCase().split(" ").filter(w => w.length > 3));
+      const overlap = [...inputWords].filter(w => dataWords.has(w)).length;
+      if (overlap > maxOverlap) {
+        maxOverlap = overlap;
+        bestMatch = data;
+      }
+    }
+
+    // Response templates for variation
+    const templates = {
+      positive: [
+        `Hey, you're vibing like "${bestMatch?.text || "someone super cheerful"}"! What's got you so ${inputWords.has("excited") ? "excited" : "happy"}?`,
+        `That’s awesome, reminds me of "${bestMatch?.text || "pure joy"}"! What's the story behind this mood?`,
+        `You're radiating ${inputWords.has("awesome") ? "awesome" : "great"} energy! What's sparking it?`
+      ],
+      neutral: [
+        `Sounds like you're keeping it chill, like "${bestMatch?.text || "just going with the flow"}". What's on your mind?`,
+        `Pretty balanced vibe there! Reminds me of "${bestMatch?.text || "a calm moment"}". What's up?`,
+        `You're in a steady zone. Got anything interesting going on?`
+      ],
+      negative: [
+        `Oof, feeling a bit like "${bestMatch?.text || "things aren't great"}"? Want to share what's going on?`,
+        `Sorry you're down, kinda like "${bestMatch?.text || "a rough moment"}". I'm here if you want to talk!`,
+        `Sounds tough. What's got you feeling ${inputWords.has("sad") ? "sad" : "off"}?`
+      ]
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    const selectedTemplates = templates[sentiment];
+    response = selectedTemplates[Math.floor(Math.random() * selectedTemplates.length)];
+    
+    // Add question-specific response if input contains a question
+    if (inputText.includes("?")) {
+      response += " By the way, what's the answer to your question? I'm curious!";
+    }
+  }
 
-    const VynixAI = (function () {
-      // DOM Elements
-      const elements = {
-        spinner: document.getElementById("spinner"),
-        toast: document.getElementById("toast"),
-        toastMessage: document.getElementById("toast-message"),
-        sidebar: document.getElementById("sidebar"),
-        toggleSidebar: document.getElementById("toggle-sidebar"),
-        userAvatar: document.getElementById("user-avatar"),
-        username: document.getElementById("username"),
-        newChatBtn: document.getElementById("new-chat-btn"),
-        chatHistory: document.getElementById("chat-history"),
-        chatOutput: document.getElementById("chat-output"),
-        userInput: document.getElementById("user-input"),
-        sendBtn: document.getElementById("send-btn"),
-        settingsBtn: document.getElementById("settings-btn"),
-        signoutBtn: document.getElementById("signout-btn")
+  if (isFirstInteraction && username) {
+    return `Hey ${username}, welcome to Vynix AI! ${response}`;
+  }
+  return response;
+}
+
+window.sendMessage = async function () {
+  const userInput = document.getElementById("user-input").value.trim();
+  if (!userInput) {
+    showToast("Please enter a message.");
+    return;
+  }
+
+  const user = auth.currentUser;
+  const isFirstInteraction = user ? await checkFirstInteraction(user) : false;
+  const username = user ? (user.displayName || "User") : "User";
+  const timestamp = formatTimestamp(Timestamp.now());
+  chatOutput.innerHTML += `<div class="message user-message">${userInput}<span class="timestamp">${timestamp}</span></div>`;
+  await saveMessageToConversation(userInput, "user");
+  chatOutput.scrollTop = chatOutput.scrollHeight;
+
+  const thinkingDiv = document.createElement("div");
+  thinkingDiv.className = "thinking-dots";
+  chatOutput.appendChild(thinkingDiv);
+  chatOutput.scrollTop = chatOutput.scrollHeight;
+
+  if ('vibrate' in navigator) {
+    navigator.vibrate([200, 100, 200, 100, 200]);
+  }
+
+  const input = processInput(userInput);
+  if (!input) {
+    setTimeout(async () => {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(0);
+      }
+      chatOutput.removeChild(thinkingDiv);
+      const errorMessage = "Invalid input. Please try again.";
+      chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
+      await saveMessageToConversation(errorMessage, "ai");
+      chatOutput.scrollTop = chatOutput.scrollHeight;
+    }, 3000);
+    return;
+  }
+
+  try {
+    setTimeout(async () => {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(0);
+      }
+      chatOutput.removeChild(thinkingDiv);
+      const output = net.run(input);
+      const response = generateHumanLikeResponse(output, userInput, isFirstInteraction, username);
+      chatOutput.innerHTML += `<div class="message ai-message">${response}<span class="timestamp">${timestamp}</span></div>`;
+      await saveMessageToConversation(response, "ai");
+
+      const trainingOutput = {
+        positive: output.positive === Math.max(output.positive, output.neutral, output.negative) ? 1 : 0,
+        neutral: output.neutral === Math.max(output.positive, output.neutral, output.negative) ? 1 : 0,
+        negative: output.negative === Math.max(output.positive, output.neutral, output.negative) ? 1 : 0
       };
+      await addTrainingData(input, trainingOutput, userInput);
 
-      // TensorFlow.js Model
-      let model = null;
-      let trainingData = [];
-      let currentConversationId = null;
-      let conversations = [];
-      let newDataCount = 0;
-      const RETRAIN_THRESHOLD = 5;
-      const DEBOUNCE_TIME = 5000;
-      let isModelLoaded = false;
-
-      // UI Utilities
-      function showSpinner() {
-        elements.spinner.classList.add("active");
+      chatOutput.scrollTop = chatOutput.scrollHeight;
+    }, 2000); // Reduced response delay for better UX
+  } catch (error) {
+    setTimeout(async () => {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(0);
       }
+      chatOutput.removeChild(thinkingDiv);
+      console.error("Model prediction failed:", error.message);
+      const errorMessage = "Error processing input. Please try again.";
+      chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
+      await saveMessageToConversation(errorMessage, "ai");
+      chatOutput.scrollTop = chatOutput.scrollHeight;
+    }, 2000);
+  }
 
-      function hideSpinner() {
-        elements.spinner.classList.remove("active");
+  document.getElementById("user-input").value = "";
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+};
+
+window.startNewConversation = function () {
+  currentConversationId = null;
+  chatOutput.innerHTML = "";
+  document.getElementById("user-input").value = "";
+  showToast("Started a new conversation.");
+};
+
+window.signOutUser = async function () {
+  showSpinner();
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      await setDoc(doc(db, `users/${user.uid}`), { online: false }, { merge: true });
+      await signOut(auth);
+      showToast("Signed out successfully.");
+      setTimeout(() => {
+        window.location.href = "signup.html";
+      }, 500);
+    } else {
+      showToast("No user is signed in.");
+    }
+  } catch (error) {
+    console.error("Sign out failed:", error.message);
+    showToast(`Failed to sign out: ${error.message}`);
+  } finally {
+    hideSpinner();
+  }
+};
+
+window.goToSettings = function () {
+  showSpinner();
+  try {
+    showToast("Redirecting to settings...");
+    setTimeout(() => {
+      window.location.href = "settings.html";
+    }, 500);
+  } catch (error) {
+    console.error("Failed to redirect to settings:", error.message);
+    showToast(`Failed to redirect: ${error.message}`);
+  } finally {
+    hideSpinner();
+  }
+};
+
+toggleSidebar.addEventListener("click", () => {
+  sidebar.classList.toggle("active");
+});
+
+newChatBtn.addEventListener("click", startNewConversation);
+
+settingsBtn.addEventListener("click", goToSettings);
+
+signoutBtn.addEventListener("click", signOutUser);
+
+document.getElementById("user-input").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await new Promise((resolve, reject) => {
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        console.log("No user authenticated, redirecting to index.html");
+        window.location.href = "signup.html";
+      } else {
+        console.log("User authenticated:", user.uid);
+        setUserProfile(user);
+        await loadUserSettings(user);
+        await loadTrainingData();
+        await loadConversations();
+        resolve();
       }
-
-      function showToast(message) {
-        elements.toastMessage.textContent = message;
-        elements.toast.classList.add("active");
-        setTimeout(() => elements.toast.classList.remove("active"), 3000);
-      }
-
-      function formatTimestamp(timestamp) {
-        if (timestamp instanceof Timestamp) {
-          return timestamp.toDate().toLocaleString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit', 
-            hour12: true 
-          });
-        }
-        return new Date().toLocaleString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit', 
-          hour12: true 
-        });
-      }
-
-      // User Profile and Settings
-      function setUserProfile(user) {
-        if (user) {
-          const displayName = user.displayName || "User";
-          elements.username.textContent = displayName;
-          if (user.photoURL) {
-            elements.userAvatar.style.background = "none";
-            elements.userAvatar.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;" />`;
-          } else {
-            elements.userAvatar.textContent = displayName.charAt(0);
-          }
-        }
-      }
-
-      async function loadUserSettings(user) {
-        if (!user) return;
-        showSpinner(); // Show spinner during Firebase fetch
-        try {
-          const userDocRef = doc(db, `users/${user.uid}`);
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            const theme = userDoc.data().theme || "light";
-            document.documentElement.setAttribute("data-theme", theme);
-          }
-        } catch (error) {
-          console.error("Failed to load user settings:", error.message);
-          showToast(`Failed to load settings: ${error.message}`);
-        } finally {
-          hideSpinner(); // Hide spinner after fetch
-        }
-      }
-
-      async function checkFirstInteraction(user) {
-        if (!user) return false;
-        showSpinner(); // Show spinner during Firebase fetch
-        try {
-          const userDocRef = doc(db, `users/${user.uid}`);
-          const userDoc = await getDoc(userDocRef);
-          if (!userDoc.exists() || !userDoc.data().firstInteraction) {
-            await setDoc(userDocRef, { firstInteraction: true }, { merge: true });
-            return true;
-          }
-          return false;
-        } catch (error) {
-          console.error("Failed to check first interaction:", error.message);
-          showToast(`Failed to check first interaction: ${error.message}`);
-          return false;
-        } finally {
-          hideSpinner(); // Hide spinner after fetch
-        }
-      }
-
-      // TensorFlow.js Model Management
-      async function initializeTensorFlowModel() {
-        if (isModelLoaded) return;
-        showSpinner(); // Show spinner during model loading
-        try {
-          // Load MobileBERT via @tensorflow-models/qna
-          model = await qna.load();
-          isModelLoaded = true;
-          showToast("MobileBERT Q&A model loaded successfully.");
-        } catch (error) {
-          console.error("Failed to load MobileBERT model:", error.message);
-          showToast("Failed to load AI model. Using fallback responses.");
-          model = null; // Fallback to keyword-based responses
-        } finally {
-          hideSpinner(); // Hide spinner after model loading
-        }
-      }
-
-      async function saveTrainedModel() {
-        // Note: @tensorflow-models/qna doesn't support direct saving
-        // Store training data metadata instead
-        showSpinner(); // Show spinner during Firebase write
-        try {
-          await setDoc(doc(db, `global-models/trained-model`), {
-            updatedAt: Timestamp.now(),
-            trainingDataCount: trainingData.length
-          });
-          showToast("Model metadata saved successfully.");
-        } catch (error) {
-          console.error("Failed to save model metadata:", error.message);
-          showToast(`Failed to save model metadata: ${error.message}`);
-        } finally {
-          hideSpinner(); // Hide spinner after write
-        }
-      }
-
-      const debouncedSaveModel = (() => {
-        let timeout;
-        return () => {
-          clearTimeout(timeout);
-          timeout = setTimeout(saveTrainedModel, DEBOUNCE_TIME);
-        };
-      })();
-
-      async function retrainModel(newData = []) {
-        if (!model || newData.length === 0) return;
-        showSpinner(); // Show spinner during retraining
-        try {
-          trainingData.push(...newData);
-          // Note: Fine-tuning Q&A model requires custom logic
-          // For now, update training data only
-          showToast("Training data updated.");
-          debouncedSaveModel();
-          newDataCount = 0;
-        } catch (error) {
-          console.error("Failed to update training data:", error.message);
-          showToast(`Failed to update training data: ${error.message}`);
-        } finally {
-          hideSpinner(); // Hide spinner after retraining
-        }
-      }
-
-      async function loadTrainingData() {
-        showSpinner(); // Show spinner during Firebase fetch
-        try {
-          const querySnapshot = await getDocs(collection(db, `global-training-data`));
-          trainingData = [];
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.input && data.output && data.text) {
-              trainingData.push(data);
-            }
-          });
-
-          // Set up real-time listener without spinner (runs in background)
-          onSnapshot(collection(db, `global-training-data`), (snapshot) => {
-            const newData = [];
-            snapshot.docChanges().forEach((change) => {
-              if (change.type === "added") {
-                const data = change.doc.data();
-                if (data.input && data.output && data.text) {
-                  newData.push(data);
-                  newDataCount++;
-                }
-              }
-            });
-            if (newDataCount >= RETRAIN_THRESHOLD) {
-              retrainModel(newData);
-            }
-          });
-        } catch (error) {
-          console.error("Failed to load training data:", error.message);
-          showToast(`Failed to load training data: ${error.message}`);
-        } finally {
-          hideSpinner(); // Hide spinner after fetch
-        }
-      }
-
-      async function addTrainingData(input, output, text) {
-        showSpinner(); // Show spinner during Firebase write
-        try {
-          const user = auth.currentUser;
-          if (!user || !input || !output || !text || typeof text !== 'string' || text.trim() === '') {
-            throw new Error('Invalid training data');
-          }
-          await addDoc(collection(db, `global-training-data`), {
-            input,
-            output,
-            text,
-            createdBy: user.uid,
-            createdAt: Timestamp.now()
-          });
-          trainingData.push({ input, output, text });
-          newDataCount++;
-          if (newDataCount >= RETRAIN_THRESHOLD) {
-            await retrainModel();
-          }
-        } catch (error) {
-          console.error("Failed to add training data:", error.message);
-          showToast(`Failed to add training data: ${error.message}`);
-        } finally {
-          hideSpinner(); // Hide spinner after write
-        }
-      }
-
-      // Conversation Management
-      async function loadConversations() {
-        showSpinner(); // Show spinner during Firebase fetch
-        try {
-          const user = auth.currentUser;
-          if (!user) return;
-          const querySnapshot = await getDocs(collection(db, `users/${user.uid}/conversations`));
-          conversations = [];
-          elements.chatHistory.innerHTML = "";
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            conversations.push({ id: doc.id, ...data });
-            const firstMessage = data.messages[0]?.text || "Conversation";
-            const timestamp = formatTimestamp(data.createdAt);
-            const historyItem = document.createElement("p");
-            historyItem.innerHTML = `${firstMessage.substring(0, 20)}${firstMessage.length > 20 ? "..." : ""} <span class="timestamp">${timestamp}</span>`;
-            historyItem.dataset.conversationId = doc.id;
-            historyItem.setAttribute("role", "button");
-            historyItem.setAttribute("aria-label", `Load conversation: ${firstMessage.substring(0, 20)}`);
-            historyItem.addEventListener("click", () => loadConversation(doc.id));
-            elements.chatHistory.appendChild(historyItem);
-          });
-        } catch (error) {
-          console.error("Failed to load conversations:", error.message);
-          showToast(`Failed to load conversations: ${error.message}`);
-        } finally {
-          hideSpinner(); // Hide spinner after fetch
-        }
-      }
-
-      async function loadConversation(conversationId) {
-        showSpinner(); // Show spinner during Firebase fetch
-        try {
-          const user = auth.currentUser;
-          if (!user) return;
-          const conversation = conversations.find(c => c.id === conversationId);
-          if (!conversation) return;
-          currentConversationId = conversationId;
-          elements.chatOutput.innerHTML = "";
-          conversation.messages.forEach(msg => {
-            const timestamp = formatTimestamp(msg.timestamp);
-            elements.chatOutput.innerHTML += `<div class="message ${msg.sender === 'user' ? 'user-message' : 'ai-message'}" aria-label="${msg.sender} message">${msg.text}<span class="timestamp">${timestamp}</span></div>`;
-          });
-          elements.chatOutput.scrollTop = elements.chatOutput.scrollHeight;
-        } catch (error) {
-          console.error("Failed to load conversation:", error.message);
-          showToast(`Failed to load conversation: ${error.message}`);
-        } finally {
-          hideSpinner(); // Hide spinner after fetch
-        }
-      }
-
-      async function saveMessageToConversation(text, sender) {
-        showSpinner(); // Show spinner during Firebase write
-        try {
-          const user = auth.currentUser;
-          if (!user) throw new Error("User not authenticated");
-          const message = { text, sender, timestamp: Timestamp.now() };
-          if (!currentConversationId) {
-            const docRef = await addDoc(collection(db, `users/${user.uid}/conversations`), {
-              createdAt: Timestamp.now(),
-              messages: [message]
-            });
-            currentConversationId = docRef.id;
-            conversations.push({ id: docRef.id, createdAt: Timestamp.now(), messages: [message] });
-            const historyItem = document.createElement("p");
-            historyItem.innerHTML = `${text.substring(0, 20)}${text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(Timestamp.now())}</span>`;
-            historyItem.dataset.conversationId = docRef.id;
-            historyItem.setAttribute("role", "button");
-            historyItem.setAttribute("aria-label", `Load conversation: ${text.substring(0, 20)}`);
-            historyItem.addEventListener("click", () => loadConversation(docRef.id));
-            elements.chatHistory.appendChild(historyItem);
-          } else {
-            const conversation = conversations.find(c => c.id === currentConversationId);
-            conversation.messages.push(message);
-            await setDoc(doc(db, `users/${user.uid}/conversations/${currentConversationId}`), {
-              messages: conversation.messages,
-              createdAt: conversation.createdAt
-            }, { merge: true });
-            const historyItem = elements.chatHistory.querySelector(`[data-conversation-id="${currentConversationId}"]`);
-            if (historyItem) {
-              historyItem.innerHTML = `${conversation.messages[0].text.substring(0, 20)}${conversation.messages[0].text.length > 20 ? "..." : ""} <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>`;
-            }
-          }
-        } catch (error) {
-          console.error("Failed to save message:", error.message);
-          showToast(`Failed to save message: ${error.message}`);
-        } finally {
-          hideSpinner(); // Hide spinner after write
-        }
-      }
-
-      // AI Processing
-      function processInput(text) {
-        if (!text) return null;
-        const words = text.toLowerCase().split(" ").filter(w => w.length > 2);
-        return {
-          happy: words.some(w => ["happy", "awesome", "joyful", "excited"].includes(w)) ? 1 : 0,
-          great: words.some(w => ["great", "good", "fantastic", "amazing"].includes(w)) ? 1 : 0,
-          sad: words.some(w => ["sad", "terrible", "down", "depressed"].includes(w)) ? 1 : 0,
-          bad: words.some(w => ["bad", "awful", "horrible", "poor"].includes(w)) ? 1 : 0,
-          tired: words.some(w => ["tired", "exhausted", "drained"].includes(w)) ? 1 : 0,
-          frustrated: words.some(w => ["frustrated", "annoyed", "irritated"].includes(w)) ? 1 : 0,
-          okay: words.some(w => ["okay", "fine", "alright"].includes(w)) ? 1 : 0,
-          curious: words.some(w => ["curious", "wondering", "interested"].includes(w)) ? 1 : 0,
-          question: words.some(w => w.endsWith("?")) ? 1 : 0
-        };
-      }
-
-      async function processInputTensorFlow(text) {
-        if (!model) return null;
-        try {
-          // Use MobileBERT Q&A model to analyze sentiment
-          const passage = text; // Use input text as passage
-          const question = "What is the sentiment expressed in the text?"; // Simplified sentiment question
-          const answers = await model.findAnswers(question, passage);
-          if (answers.length === 0) return null;
-          const topAnswer = answers[0].text.toLowerCase();
-          return {
-            positive: topAnswer.includes("positive") || topAnswer.includes("happy") || topAnswer.includes("good") ? 1 : 0,
-            neutral: topAnswer.includes("neutral") || topAnswer.includes("okay") ? 1 : 0,
-            negative: topAnswer.includes("negative") || topAnswer.includes("sad") || topAnswer.includes("bad") ? 1 : 0
-          };
-        } catch (error) {
-          console.error("MobileBERT prediction failed:", error.message);
-          return null;
-        }
-      }
-
-      function generateHumanLikeResponse(output, inputText, isFirstInteraction, username) {
-        if (!output) {
-          return isFirstInteraction && username
-            ? `Hey ${username}, welcome to Vynix AI! How can I assist you today?`
-            : "Sorry, I couldn't process that. Try something else!";
-        }
-
-        const maxOutput = Math.max(output.positive, output.neutral, output.negative);
-        const sentiment = output.positive === maxOutput ? "positive" : output.neutral === maxOutput ? "neutral" : "negative";
-        const inputWords = new Set(inputText.toLowerCase().split(" ").filter(w => w.length > 3));
-
-        const matchingData = trainingData.filter(d => {
-          const dSentiment = d.output.positive === 1 ? "positive" : d.output.neutral === 1 ? "neutral" : "negative";
-          return dSentiment === sentiment;
-        });
-
-        let response;
-        if (matchingData.length === 0) {
-          response = sentiment === "positive" ? "Wow, you're in a great mood!" :
-                    sentiment === "neutral" ? "Sounds like things are steady. What's up?" :
-                    "Sorry you're feeling off. Want to talk about it?";
-        } else {
-          let bestMatch = null;
-          let maxOverlap = 0;
-          for (const data of matchingData) {
-            const dataWords = new Set(data.text.toLowerCase().split(" ").filter(w => w.length > 3));
-            const overlap = [...inputWords].filter(w => dataWords.has(w)).length;
-            if (overlap > maxOverlap) {
-              maxOverlap = overlap;
-              bestMatch = data;
-            }
-          }
-
-          const templates = {
-            positive: [
-              `Hey, you're vibing like "${bestMatch?.text || "someone super cheerful"}"! What's got you so ${inputWords.has("excited") ? "excited" : "happy"}?`,
-              `That’s awesome, reminds me of "${bestMatch?.text || "pure joy"}"! What's the story behind this mood?`,
-              `You're radiating ${inputWords.has("awesome") ? "awesome" : "great"} energy! What's sparking it?`
-            ],
-            neutral: [
-              `Sounds like you're keeping it chill, like "${bestMatch?.text || "just going with the flow"}". What's on your mind?`,
-              `Pretty balanced vibe there! Reminds me of "${bestMatch?.text || "a calm moment"}". What's up?`,
-              `You're in a steady zone. Got anything interesting going on?`
-            ],
-            negative: [
-              `Oof, feeling a bit like "${bestMatch?.text || "things aren't great"}"? Want to share what's going on?`,
-              `Sorry you're down, kinda like "${bestMatch?.text || "a rough moment"}". I'm here if you want to talk!`,
-              `Sounds tough. What's got you feeling ${inputWords.has("sad") ? "sad" : "off"}?`
-            ]
-          };
-
-          response = templates[sentiment][Math.floor(Math.random() * templates[sentiment].length)];
-          if (inputText.includes("?")) {
-            response += " By the way, what's the answer to your question? I'm curious!";
-          }
-        }
-
-        if (isFirstInteraction && username) {
-          return `Hey ${username}, welcome to Vynix AI! ${response}`;
-        }
-        return response;
-      }
-
-      // Core Functionality
-      async function sendMessage() {
-        const userInput = elements.userInput.value.trim();
-        if (!userInput) {
-          showToast("Please enter a message.");
-          return;
-        }
-
-        if (userInput.length > 500) {
-          showToast("Message is too long. Keep it under 500 characters.");
-          return;
-        }
-
-        const user = auth.currentUser;
-        const isFirstInteraction = user ? await checkFirstInteraction(user) : false;
-        const username = user ? (user.displayName || "User") : "User";
-        const timestamp = formatTimestamp(Timestamp.now());
-
-        elements.chatOutput.innerHTML += `<div class="message user-message" aria-label="User message">${userInput}<span class="timestamp">${timestamp}</span></div>`;
-        await saveMessageToConversation(userInput, "user");
-        elements.chatOutput.scrollTop = elements.chatOutput.scrollHeight;
-
-        const thinkingDiv = document.createElement("div");
-        thinkingDiv.className = "thinking-dots";
-        elements.chatOutput.appendChild(thinkingDiv);
-        elements.chatOutput.scrollTop = elements.chatOutput.scrollHeight;
-
-        if ('vibrate' in navigator) {
-          navigator.vibrate([200, 100, 200]);
-        }
-
-        if (!isModelLoaded) {
-          await initializeTensorFlowModel();
-        }
-
-        const input = processInput(userInput);
-        const tfOutput = await processInputTensorFlow(userInput);
-        const output = tfOutput || input; // Fallback to keyword-based if TensorFlow fails
-
-        setTimeout(async () => {
-          if ('vibrate' in navigator) {
-            navigator.vibrate(0);
-          }
-          elements.chatOutput.removeChild(thinkingDiv);
-          const response = generateHumanLikeResponse(output, userInput, isFirstInteraction, username);
-          elements.chatOutput.innerHTML += `<div class="message ai-message" aria-label="AI response">${response}<span class="timestamp">${timestamp}</span></div>`;
-          await saveMessageToConversation(response, "ai");
-          if (output) {
-            await addTrainingData(input, output, userInput);
-          }
-          elements.chatOutput.scrollTop = elements.chatOutput.scrollHeight;
-        }, 1000);
-
-        elements.userInput.value = "";
-      }
-
-      function startNewConversation() {
-        currentConversationId = null;
-        elements.chatOutput.innerHTML = "";
-        elements.userInput.value = "";
-        showToast("Started a new conversation.");
-      }
-
-      async function signOutUser() {
-        showSpinner(); // Show spinner during sign-out and Firebase write
-        try {
-          const user = auth.currentUser;
-          if (user) {
-            await setDoc(doc(db, `users/${user.uid}`), { online: false }, { merge: true });
-            await signOut(auth);
-            showToast("Signed out successfully.");
-            setTimeout(() => window.location.href = "signup.html", 500);
-          } else {
-            showToast("No user is signed in.");
-          }
-        } catch (error) {
-          console.error("Sign out failed:", error.message);
-          showToast(`Failed to sign out: ${error.message}`);
-        } finally {
-          hideSpinner(); // Hide spinner after sign-out
-        }
-      }
-
-      async function goToSettings() {
-        showSpinner(); // Show spinner during redirect
-        try {
-          showToast("Redirecting to settings...");
-          setTimeout(() => window.location.href = "settings.html", 500);
-        } catch (error) {
-          console.error("Failed to redirect to settings:", error.message);
-          showToast(`Failed to redirect: ${error.message}`);
-        } finally {
-          hideSpinner(); // Hide spinner after redirect
-        }
-      }
-
-      // Event Listeners
-      function initializeEventListeners() {
-        elements.toggleSidebar.addEventListener("click", () => {
-          elements.sidebar.classList.toggle("active");
-        });
-
-        document.addEventListener("click", (e) => {
-          if (elements.sidebar.classList.contains("active") &&
-              !elements.sidebar.contains(e.target) &&
-              !elements.toggleSidebar.contains(e.target)) {
-            elements.sidebar.classList.remove("active");
-          }
-        });
-
-        elements.newChatBtn.addEventListener("click", startNewConversation);
-        elements.settingsBtn.addEventListener("click", goToSettings);
-        elements.signoutBtn.addEventListener("click", signOutUser);
-        elements.sendBtn.addEventListener("click", sendMessage);
-        elements.userInput.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") sendMessage();
-        });
-      }
-
-      // Initialization
-      async function init() {
-        initializeEventListeners();
-        showSpinner(); // Show spinner during auth state check
-        await new Promise((resolve, reject) => {
-          onAuthStateChanged(auth, async (user) => {
-            hideSpinner(); // Hide spinner after auth check
-            if (!user) {
-              console.log("No user authenticated, redirecting to signup.html");
-              window.location.href = "signup.html";
-            } else {
-              console.log("User authenticated:", user.uid);
-              setUserProfile(user);
-              await loadUserSettings(user);
-              await loadTrainingData();
-              await loadConversations();
-              resolve();
-            }
-          }, (error) => {
-            hideSpinner(); // Hide spinner on auth error
-            console.error("Auth state check failed:", error);
-            showToast("Authentication check failed.");
-            reject(error);
-          });
-        });
-      }
-
-      return { init };
-    })();
-
-    document.addEventListener("DOMContentLoaded", VynixAI.init);
+    }, (error) => {
+      console.error("Auth state check failed:", error);
+      showToast("Authentication check failed.");
+      reject(error);
+    });
+  });
+});
   </script>
 </body>
 </html>
