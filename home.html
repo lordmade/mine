@@ -3,32 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vynix AI</title>
+  <title>Grok-like AI Chat</title>
   <script src="https://cdn.tailwindcss.com/3.4.14"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/transformers@0.0.4/dist/transformers.min.js"></script>
   <style>
     :root {
-      --primary: #4f46e5;
-      --background: #f3f4f6;
-      --background-dark: #111827;
-      --text: #1f2937;
-      --text-light: #6b7280;
-      --chat-bg: #ffffff;
-      --chat-bg-dark: #1f2937;
-      --message-bg: #e5e7eb;
-      --message-bg-dark: #374151;
-      --ai-message-bg: #e0e7ff;
-      --ai-message-bg-dark: #4b5e8e;
-    }
-
-    [data-theme="dark"] {
-      --background: var(--background-dark);
-      --text: #f3f4f6;
-      --text-light: #9ca3af;
-      --chat-bg: var(--chat-bg-dark);
-      --message-bg: var(--message-bg-dark);
-      --ai-message-bg: var(--ai-message-bg-dark);
+      --primary: #1d9bf0; /* Grok-like blue */
+      --background: #000000; /* Dark theme */
+      --text: #e7e9ea;
+      --text-light: #71767b;
+      --chat-bg: #15202b;
+      --message-bg: #1e2732;
+      --ai-message-bg: #22303c;
     }
 
     * {
@@ -38,78 +25,81 @@
     }
 
     body {
-      font-family: "Inter", sans-serif;
-      background: url("https://source.unsplash.com/random/1920x1080?abstract") no-repeat center center fixed;
-      background-size: cover;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--background);
       color: var(--text);
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
+      padding-top: 10px;
     }
 
     .main-container {
-      display: flex;
       width: 100%;
-      max-width: 1200px;
+      max-width: 500px; /* Mobile-friendly width */
       height: 90vh;
       background: var(--chat-bg);
-      border-radius: 1rem;
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      border-radius: 0.5rem;
       overflow: hidden;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .sidebar {
       width: 250px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      overflow-y: auto;
+      background: #192734;
+      padding: 1rem;
+      position: fixed;
+      top: 0;
+      left: -250px;
+      height: 100%;
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar.active {
+      left: 0;
     }
 
     .sidebar .profile {
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      margin-bottom: 1rem;
     }
 
-    .sidebar .profile .avatar {
-      width: 40px;
-      height: 40px;
+    .sidebar .avatar {
+      width: 32px;
+      height: 32px;
       background: var(--primary);
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: 50%;
-      font-size: 1.2rem;
       font-weight: bold;
     }
 
     .sidebar button {
       background: var(--primary);
       color: white;
-      padding: 0.5rem 1rem;
+      padding: 0.5rem;
       border: none;
-      border-radius: 0.5rem;
+      border-radius: 0.25rem;
+      width: 100%;
+      margin-bottom: 0.5rem;
       cursor: pointer;
       transition: background 0.3s ease;
     }
 
     .sidebar button:hover {
-      background: #4338ca;
+      background: #1a8cd8;
     }
 
     .sidebar h2 {
-      font-size: 1.2rem;
+      font-size: 1rem;
       color: var(--text);
+      margin-bottom: 0.5rem;
     }
 
     .sidebar p {
@@ -117,19 +107,15 @@
       cursor: pointer;
       color: var(--text-light);
       transition: background 0.2s ease;
-      position: relative;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
 
     .sidebar p:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 0.5rem;
+      background: #22303c;
+      border-radius: 0.25rem;
     }
 
     .sidebar p .timestamp {
-      font-size: 0.8rem;
+      font-size: 0.7rem;
       color: var(--text-light);
     }
 
@@ -137,21 +123,19 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      background: var(--chat-bg);
+      height: 100%;
     }
 
     .chat-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
+      padding: 0.75rem;
+      background: #192734;
     }
 
     .chat-header h1 {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       color: var(--text);
     }
 
@@ -161,12 +145,11 @@
       font-size: 1.5rem;
       color: var(--text);
       cursor: pointer;
-      display: none;
     }
 
     .chat-output {
       flex: 1;
-      padding: 1rem;
+      padding: 0.75rem;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -174,13 +157,10 @@
     }
 
     .message {
-      max-width: 70%;
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
+      max-width: 85%;
+      padding: 0.5rem;
+      border-radius: 0.25rem;
       position: relative;
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
     }
 
     .user-message {
@@ -195,19 +175,17 @@
     }
 
     .message .timestamp {
-      font-size: 0.7rem;
+      font-size: 0.6rem;
       color: var(--text-light);
-      margin-left: auto;
-      padding-left: 0.5rem;
+      margin-left: 0.5rem;
     }
 
     .feedback-btn {
       background: none;
       border: none;
       color: var(--text-light);
-      cursor: pointer;
-      font-size: 0.9rem;
-      margin-left: 0.5rem;
+      font-size: 0.8rem;
+      margin-left: 0.25rem;
       transition: color 0.2s ease;
     }
 
@@ -217,44 +195,43 @@
 
     .input-group {
       display: flex;
-      padding: 1rem;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
+      padding: 0.75rem;
+      background: #192734;
     }
 
     .input-group input {
       flex: 1;
       padding: 0.5rem;
       border: none;
-      border-radius: 0.5rem 0 0 0.5rem;
+      border-radius: 0.25rem 0 0 0.25rem;
       background: var(--message-bg);
       color: var(--text);
       outline: none;
+      font-size: 0.9rem;
     }
 
     .input-group button {
-      padding: 0.5rem 1rem;
+      padding: 0.5rem;
       background: var(--primary);
       border: none;
-      border-radius: 0 0.5rem 0.5rem 0;
+      border-radius: 0 0.25rem 0.25rem 0;
       cursor: pointer;
       transition: background 0.3s ease;
     }
 
     .input-group button:hover {
-      background: #4338ca;
+      background: #1a8cd8;
     }
 
     .input-group button svg {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       fill: white;
     }
 
     .thinking-dots {
       display: flex;
-      gap: 0.3rem;
+      gap: 0.2rem;
       align-self: flex-start;
       padding: 0.5rem;
     }
@@ -263,8 +240,8 @@
     .thinking-dots::after,
     .thinking-dots div {
       content: "";
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
       background: var(--text-light);
       border-radius: 50%;
       animation: dot-flashing 1s infinite linear alternate;
@@ -279,13 +256,8 @@
     }
 
     @keyframes dot-flashing {
-      0% {
-        opacity: 0.2;
-      }
-      50%,
-      100% {
-        opacity: 1;
-      }
+      0% { opacity: 0.2; }
+      50%, 100% { opacity: 1; }
     }
 
     .spinner-overlay {
@@ -310,18 +282,16 @@
     }
 
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid var(--primary);
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--primary);
       border-top-color: transparent;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
 
     @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+      to { transform: rotate(360deg); }
     }
 
     .toast {
@@ -330,8 +300,8 @@
       right: 1rem;
       background: var(--primary);
       color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 0.25rem;
       opacity: 0;
       transform: translateY(20px);
       transition: opacity 0.3s ease, transform 0.3s ease;
@@ -340,50 +310,6 @@
     .toast.active {
       opacity: 1;
       transform: translateY(0);
-    }
-
-    @media (max-width: 768px) {
-      .main-container {
-        flex-direction: column;
-        height: 100vh;
-        border-radius: 0;
-      }
-
-      .sidebar {
-        position: fixed;
-        top: 0;
-        left: -250px;
-        height: 100%;
-        width: 250px;
-        transition: left 0.3s ease;
-        z-index: 1000;
-      }
-
-      .sidebar.active {
-        left: 0;
-      }
-
-      .chat-header button {
-        display: block;
-      }
-
-      .chat-container {
-        flex: 1;
-        height: 100%;
-      }
-
-      .message {
-        max-width: 85%;
-      }
-    }
-
-    @supports not (backdrop-filter: blur(10px)) {
-      .main-container,
-      .sidebar,
-      .chat-header,
-      .input-group {
-        background: var(--chat-bg);
-      }
     }
   </style>
 </head>
@@ -402,12 +328,12 @@
     </div>
     <div class="chat-container">
       <div class="chat-header">
-        <h1>Vynix AI</h1>
+        <h1>Grok-like AI</h1>
         <button id="toggle-sidebar">☰</button>
       </div>
       <div class="chat-output" id="chat-output"></div>
       <div class="input-group">
-        <input type="text" id="user-input" placeholder="Ask Vynix anything..." aria-label="Chat input" />
+        <input type="text" id="user-input" placeholder="Ask Grok anything..." aria-label="Chat input" />
         <button onclick="sendMessage()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
@@ -428,22 +354,20 @@
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
     import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-    // Firebase Configuration
     const firebaseConfig = {
-  apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
-  authDomain: "fire-b-a8878.firebaseapp.com",
-  databaseURL: "https://fire-b-a8878.firebaseio.com",
-  projectId: "fire-b-a8878",
-  storageBucket: "fire-b-a8878.firebasestorage.app",
-  messagingSenderId: "658673187627",
-  appId: "1:658673187627:web:6e4c29af661785f0afa36e",
-  measurementId: "G-V4W97VMSKL"
-};
+      apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+      authDomain: "fire-b-a8878.firebaseapp.com",
+      databaseURL: "https://fire-b-a8878.firebaseio.com",
+      projectId: "fire-b-a8878",
+      storageBucket: "fire-b-a8878.firebasestorage.app",
+      messagingSenderId: "658673187627",
+      appId: "1:658673187627:web:6e4c29af661785f0afa36e",
+      measurementId: "G-V4W97VMSKL"
+    };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // UI Elements
     const spinner = document.getElementById("spinner");
     const toast = document.getElementById("toast");
     const toastMessage = document.getElementById("toast-message");
@@ -457,69 +381,41 @@
     const newChatBtn = document.getElementById("new-chat-btn");
     const chatOutput = document.getElementById("chat-output");
 
-    // State
     let currentConversationId = null;
     let conversations = [];
 
-    // Utility Functions
-    function showSpinner() {
-      spinner.classList.add("active");
-    }
-
-    function hideSpinner() {
-      spinner.classList.remove("active");
-    }
-
+    function showSpinner() { spinner.classList.add("active"); }
+    function hideSpinner() { spinner.classList.remove("active"); }
     function showToast(message) {
       toastMessage.textContent = message;
       toast.classList.add("active");
       setTimeout(() => toast.classList.remove("active"), 3000);
     }
-
     function formatTimestamp(timestamp) {
-      if (timestamp instanceof Timestamp) {
-        const date = timestamp.toDate();
-        return date.toLocaleString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit', 
-          hour12: true 
-        });
-      }
-      return new Date().toLocaleString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit', 
-        hour12: true 
-      });
+      if (timestamp instanceof Timestamp) return timestamp.toDate().toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      return new Date().toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     }
-
     function setUserProfile(user) {
       if (user) {
         const displayName = user.displayName || "User";
         usernameElement.textContent = displayName;
         if (user.photoURL) {
           userAvatar.style.background = "none";
-          userAvatar.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%;" />`;
-        } else {
-          userAvatar.textContent = displayName.charAt(0);
-        }
+          userAvatar.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" style="width: 32px; height: 32px; border-radius: 50%;" />`;
+        } else userAvatar.textContent = displayName.charAt(0);
       }
     }
-
     async function loadUserSettings(user) {
       if (!user) return;
       try {
         const userDocRef = doc(db, `users/${user.uid}`);
         const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const theme = userDoc.data().theme || "light";
-          document.documentElement.setAttribute("data-theme", theme);
-        }
+        if (userDoc.exists()) document.documentElement.setAttribute("data-theme", userDoc.data().theme || "dark");
       } catch (error) {
         console.error("Failed to load user settings:", error.message);
         showToast(`Failed to load settings: ${error.message}`);
       }
     }
-
     async function checkFirstInteraction(user) {
       if (!user) return false;
       const userDocRef = doc(db, `users/${user.uid}`);
@@ -531,8 +427,63 @@
       return false;
     }
 
-    // Web Worker for Model Inference
-    const worker = new Worker('modelWorker.js');
+    const workerCode = `
+      let model, tokenizer;
+
+      async function init() {
+        try {
+          const modelKey = 'distilbert-model';
+          model = await tf.io.browser.fromIndexedDB(modelKey);
+          if (!model) {
+            model = await transformers.loadModel('distilbert', 'distilbert-base-uncased-finetuned-sst-2-english');
+            await model.save(\`indexeddb://\${modelKey}\`);
+          }
+          tokenizer = await transformers.loadTokenizer('distilbert', 'distilbert-base-uncased-finetuned-sst-2-english');
+        } catch (error) {
+          self.postMessage({ error: error.message });
+        }
+      }
+
+      function generateHumanLikeResponse(output, inputText, isFirstInteraction, username) {
+        const sentiment = output.label === 'POSITIVE' ? 'positive' : output.label === 'NEGATIVE' ? 'negative' : 'neutral';
+        const confidence = output.score;
+        const words = inputText.toLowerCase().split(' ').filter(w => w.length > 3);
+        const keyword = words.find(w => ['happy', 'sad', 'great', 'bad', 'okay'].includes(w)) || sentiment;
+
+        const templates = {
+          positive: [\`Wow, you're full of \${confidence > 0.8 ? 'amazing' : 'great'} \${keyword} vibes! What's the story?\`, \`That’s super uplifting! What’s sparking this \${keyword} mood?\`, \`Loving this \${keyword} energy! Tell me more!\`, \`You're radiating \${keyword}! What's got you so pumped?\`],
+          neutral: [\`Sounds like you're keeping it \${keyword}. What's up?\`, \`Pretty chill \${keyword} vibe! What's on your mind?\`, \`Just cruising with \${keyword}? Got anything exciting to share?\`, \`Keeping it \${keyword}, huh? What's next?\`],
+          negative: [\`Sorry you're feeling \${keyword}. Want to talk about it?\`, \`That sounds tough with \${keyword}. I'm here if you need to vent!\`, \`Ouch, a \${keyword} moment? Let’s chat about it.\`, \`Feeling \${keyword}? I'm all ears if you want to share.\`]
+        };
+
+        const selectedTemplates = templates[sentiment];
+        let response = selectedTemplates[Math.floor(Math.random() * selectedTemplates.length)];
+        if (inputText.includes('?')) response += ' By the way, what’s the answer to your question? I’m curious!';
+        if (isFirstInteraction && username) response = \`Hey \${username}, welcome to Grok-like AI! \${response}\`;
+        return response;
+      }
+
+      self.onmessage = async (e) => {
+        const { input, isFirstInteraction, username } = e.data;
+        try {
+          if (!model) await init();
+          const tokens = await tokenizer.encode(input);
+          if (!tokens) throw new Error('Invalid input');
+          const tensor = tf.tensor([tokens]);
+          const prediction = await model.predict(tensor);
+          const output = { label: prediction.label, score: prediction.score };
+          const response = generateHumanLikeResponse(output, input, isFirstInteraction, username);
+          self.postMessage({ response });
+        } catch (error) {
+          self.postMessage({ error: error.message });
+        }
+      };
+    `;
+
+    const workerBlob = new Blob([workerCode], { type: 'text/javascript' });
+    const workerUrl = URL.createObjectURL(workerBlob);
+    const worker = new Worker(workerUrl);
+
     worker.onmessage = (e) => {
       const { response, error } = e.data;
       const thinkingDiv = chatOutput.querySelector('.thinking-dots');
@@ -554,9 +505,8 @@
             <button class="feedback-btn thumbs-down" data-message-id="${messageId}" aria-label="Thumbs down">👎</button>
           </div>`;
         saveMessageToConversation(response, 'ai');
-        // Attach feedback listeners
         document.querySelectorAll('.feedback-btn').forEach(btn => {
-          btn.removeEventListener('click', handleFeedback); // Prevent duplicate listeners
+          btn.removeEventListener('click', handleFeedback);
           btn.addEventListener('click', handleFeedback);
         });
       }
@@ -570,7 +520,6 @@
       submitFeedback(messageId, isPositive);
     }
 
-    // Submit Feedback
     async function submitFeedback(messageId, isPositive) {
       const user = auth.currentUser;
       if (!user) {
@@ -590,7 +539,6 @@
       }
     }
 
-    // Load Conversations
     async function loadConversations() {
       try {
         const user = auth.currentUser;
@@ -618,7 +566,6 @@
       }
     }
 
-    // Load Specific Conversation
     async function loadConversation(conversationId) {
       try {
         const user = auth.currentUser;
@@ -642,9 +589,8 @@
             </div>`;
         });
         chatOutput.scrollTop = chatOutput.scrollHeight;
-        // Attach feedback listeners
         document.querySelectorAll('.feedback-btn').forEach(btn => {
-          btn.removeEventListener('click', handleFeedback); // Prevent duplicate listeners
+          btn.removeEventListener('click', handleFeedback);
           btn.addEventListener('click', handleFeedback);
         });
       } catch (error) {
@@ -653,7 +599,6 @@
       }
     }
 
-    // Save Message to Firestore
     async function saveMessageToConversation(text, sender) {
       try {
         const user = auth.currentUser;
@@ -661,11 +606,7 @@
           showToast("Error: User not authenticated. Please sign in again.");
           throw new Error("User not authenticated");
         }
-        const message = {
-          text,
-          sender,
-          timestamp: Timestamp.now()
-        };
+        const message = { text, sender, timestamp: Timestamp.now() };
         if (!currentConversationId) {
           const docRef = await addDoc(collection(db, `users/${user.uid}/conversations`), {
             createdAt: Timestamp.now(),
@@ -702,7 +643,6 @@
       }
     }
 
-    // Send Message
     window.sendMessage = async function () {
       const userInput = document.getElementById("user-input").value.trim();
       if (!userInput) {
@@ -723,16 +663,12 @@
       chatOutput.appendChild(thinkingDiv);
       chatOutput.scrollTop = chatOutput.scrollHeight;
 
-      if ('vibrate' in navigator) {
-        navigator.vibrate([200, 100, 200]);
-      }
-
+      if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
       worker.postMessage({ input: userInput, isFirstInteraction, username });
       document.getElementById("user-input").value = "";
       chatHistory.scrollTop = chatHistory.scrollHeight;
     };
 
-    // Start New Conversation
     window.startNewConversation = function () {
       currentConversationId = null;
       chatOutput.innerHTML = "";
@@ -740,7 +676,6 @@
       showToast("Started a new conversation.");
     };
 
-    // Sign Out
     window.signOutUser = async function () {
       showSpinner();
       try {
@@ -749,49 +684,31 @@
           await setDoc(doc(db, `users/${user.uid}`), { online: false }, { merge: true });
           await signOut(auth);
           showToast("Signed out successfully.");
-          setTimeout(() => {
-            window.location.href = "signup.html";
-          }, 500);
-        } else {
-          showToast("No user is signed in.");
-        }
+          setTimeout(() => window.location.href = "signup.html", 500);
+        } else showToast("No user is signed in.");
       } catch (error) {
         console.error("Sign out failed:", error.message);
         showToast(`Failed to sign out: ${error.message}`);
-      } finally {
-        hideSpinner();
-      }
+      } finally { hideSpinner(); }
     };
 
-    // Go to Settings
     window.goToSettings = function () {
       showSpinner();
       try {
         showToast("Redirecting to settings...");
-        setTimeout(() => {
-          window.location.href = "settings.html";
-        }, 500);
+        setTimeout(() => window.location.href = "settings.html", 500);
       } catch (error) {
         console.error("Failed to redirect to settings:", error.message);
         showToast(`Failed to redirect: ${error.message}`);
-      } finally {
-        hideSpinner();
-      }
+      } finally { hideSpinner(); }
     };
 
-    // Event Listeners
-    toggleSidebar.addEventListener("click", () => {
-      sidebar.classList.toggle("active");
-    });
-
+    toggleSidebar.addEventListener("click", () => sidebar.classList.toggle("active"));
     newChatBtn.addEventListener("click", startNewConversation);
     settingsBtn.addEventListener("click", goToSettings);
     signoutBtn.addEventListener("click", signOutUser);
-    document.getElementById("user-input").addEventListener("keypress", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
+    document.getElementById("user-input").addEventListener("keypress", (e) => e.key === "Enter" && sendMessage());
 
-    // Initialize
     document.addEventListener("DOMContentLoaded", async () => {
       showSpinner();
       await new Promise((resolve, reject) => {
