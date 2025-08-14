@@ -621,6 +621,7 @@
 
       async function loadUserSettings(user) {
         if (!user) return;
+        showSpinner(); // Show spinner during Firebase fetch
         try {
           const userDocRef = doc(db, `users/${user.uid}`);
           const userDoc = await getDoc(userDocRef);
@@ -631,24 +632,35 @@
         } catch (error) {
           console.error("Failed to load user settings:", error.message);
           showToast(`Failed to load settings: ${error.message}`);
+        } finally {
+          hideSpinner(); // Hide spinner after fetch
         }
       }
 
       async function checkFirstInteraction(user) {
         if (!user) return false;
-        const userDocRef = doc(db, `users/${user.uid}`);
-        const userDoc = await getDoc(userDocRef);
-        if (!userDoc.exists() || !userDoc.data().firstInteraction) {
-          await setDoc(userDocRef, { firstInteraction: true }, { merge: true });
-          return true;
+        showSpinner(); // Show spinner during Firebase fetch
+        try {
+          const userDocRef = doc(db, `users/${user.uid}`);
+          const userDoc = await getDoc(userDocRef);
+          if (!userDoc.exists() || !userDoc.data().firstInteraction) {
+            await setDoc(userDocRef, { firstInteraction: true }, { merge: true });
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Failed to check first interaction:", error.message);
+          showToast(`Failed to check first interaction: ${error.message}`);
+          return false;
+        } finally {
+          hideSpinner(); // Hide spinner after fetch
         }
-        return false;
       }
 
       // TensorFlow.js Model Management
       async function initializeTensorFlowModel() {
         if (isModelLoaded) return;
-        showSpinner();
+        showSpinner(); // Show spinner during model loading
         try {
           // Load MobileBERT via @tensorflow-models/qna
           model = await qna.load();
@@ -659,13 +671,14 @@
           showToast("Failed to load AI model. Using fallback responses.");
           model = null; // Fallback to keyword-based responses
         } finally {
-          hideSpinner();
+          hideSpinner(); // Hide spinner after model loading
         }
       }
 
       async function saveTrainedModel() {
         // Note: @tensorflow-models/qna doesn't support direct saving
         // Store training data metadata instead
+        showSpinner(); // Show spinner during Firebase write
         try {
           await setDoc(doc(db, `global-models/trained-model`), {
             updatedAt: Timestamp.now(),
@@ -675,6 +688,8 @@
         } catch (error) {
           console.error("Failed to save model metadata:", error.message);
           showToast(`Failed to save model metadata: ${error.message}`);
+        } finally {
+          hideSpinner(); // Hide spinner after write
         }
       }
 
@@ -688,6 +703,7 @@
 
       async function retrainModel(newData = []) {
         if (!model || newData.length === 0) return;
+        showSpinner(); // Show spinner during retraining
         try {
           trainingData.push(...newData);
           // Note: Fine-tuning Q&A model requires custom logic
@@ -698,10 +714,13 @@
         } catch (error) {
           console.error("Failed to update training data:", error.message);
           showToast(`Failed to update training data: ${error.message}`);
+        } finally {
+          hideSpinner(); // Hide spinner after retraining
         }
       }
 
       async function loadTrainingData() {
+        showSpinner(); // Show spinner during Firebase fetch
         try {
           const querySnapshot = await getDocs(collection(db, `global-training-data`));
           trainingData = [];
@@ -712,6 +731,7 @@
             }
           });
 
+          // Set up real-time listener without spinner (runs in background)
           onSnapshot(collection(db, `global-training-data`), (snapshot) => {
             const newData = [];
             snapshot.docChanges().forEach((change) => {
@@ -730,10 +750,13 @@
         } catch (error) {
           console.error("Failed to load training data:", error.message);
           showToast(`Failed to load training data: ${error.message}`);
+        } finally {
+          hideSpinner(); // Hide spinner after fetch
         }
       }
 
       async function addTrainingData(input, output, text) {
+        showSpinner(); // Show spinner during Firebase write
         try {
           const user = auth.currentUser;
           if (!user || !input || !output || !text || typeof text !== 'string' || text.trim() === '') {
@@ -754,11 +777,14 @@
         } catch (error) {
           console.error("Failed to add training data:", error.message);
           showToast(`Failed to add training data: ${error.message}`);
+        } finally {
+          hideSpinner(); // Hide spinner after write
         }
       }
 
       // Conversation Management
       async function loadConversations() {
+        showSpinner(); // Show spinner during Firebase fetch
         try {
           const user = auth.currentUser;
           if (!user) return;
@@ -781,10 +807,13 @@
         } catch (error) {
           console.error("Failed to load conversations:", error.message);
           showToast(`Failed to load conversations: ${error.message}`);
+        } finally {
+          hideSpinner(); // Hide spinner after fetch
         }
       }
 
       async function loadConversation(conversationId) {
+        showSpinner(); // Show spinner during Firebase fetch
         try {
           const user = auth.currentUser;
           if (!user) return;
@@ -800,10 +829,13 @@
         } catch (error) {
           console.error("Failed to load conversation:", error.message);
           showToast(`Failed to load conversation: ${error.message}`);
+        } finally {
+          hideSpinner(); // Hide spinner after fetch
         }
       }
 
       async function saveMessageToConversation(text, sender) {
+        showSpinner(); // Show spinner during Firebase write
         try {
           const user = auth.currentUser;
           if (!user) throw new Error("User not authenticated");
@@ -837,6 +869,8 @@
         } catch (error) {
           console.error("Failed to save message:", error.message);
           showToast(`Failed to save message: ${error.message}`);
+        } finally {
+          hideSpinner(); // Hide spinner after write
         }
       }
 
@@ -1004,7 +1038,7 @@
       }
 
       async function signOutUser() {
-        showSpinner();
+        showSpinner(); // Show spinner during sign-out and Firebase write
         try {
           const user = auth.currentUser;
           if (user) {
@@ -1019,12 +1053,12 @@
           console.error("Sign out failed:", error.message);
           showToast(`Failed to sign out: ${error.message}`);
         } finally {
-          hideSpinner();
+          hideSpinner(); // Hide spinner after sign-out
         }
       }
 
       async function goToSettings() {
-        showSpinner();
+        showSpinner(); // Show spinner during redirect
         try {
           showToast("Redirecting to settings...");
           setTimeout(() => window.location.href = "settings.html", 500);
@@ -1032,7 +1066,7 @@
           console.error("Failed to redirect to settings:", error.message);
           showToast(`Failed to redirect: ${error.message}`);
         } finally {
-          hideSpinner();
+          hideSpinner(); // Hide spinner after redirect
         }
       }
 
@@ -1062,8 +1096,10 @@
       // Initialization
       async function init() {
         initializeEventListeners();
+        showSpinner(); // Show spinner during auth state check
         await new Promise((resolve, reject) => {
           onAuthStateChanged(auth, async (user) => {
+            hideSpinner(); // Hide spinner after auth check
             if (!user) {
               console.log("No user authenticated, redirecting to signup.html");
               window.location.href = "signup.html";
@@ -1076,6 +1112,7 @@
               resolve();
             }
           }, (error) => {
+            hideSpinner(); // Hide spinner on auth error
             console.error("Auth state check failed:", error);
             showToast("Authentication check failed.");
             reject(error);
