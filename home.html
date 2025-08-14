@@ -432,6 +432,7 @@
 
       async function init() {
         try {
+          console.log('Initializing model...');
           const modelKey = 'distilbert-model';
           model = await tf.io.browser.fromIndexedDB(modelKey);
           if (!model) {
@@ -439,12 +440,18 @@
             await model.save(\`indexeddb://\${modelKey}\`);
           }
           tokenizer = await transformers.loadTokenizer('distilbert', 'distilbert-base-uncased-finetuned-sst-2-english');
+          console.log('Model and tokenizer initialized');
         } catch (error) {
+          console.error('Model loading failed:', error);
           self.postMessage({ error: error.message });
         }
       }
 
       function generateHumanLikeResponse(output, inputText, isFirstInteraction, username) {
+        if (!output || !output.label || !output.score) {
+          console.warn('Invalid output object:', output);
+          return 'Error generating response.';
+        }
         const sentiment = output.label === 'POSITIVE' ? 'positive' : output.label === 'NEGATIVE' ? 'negative' : 'neutral';
         const confidence = output.score;
         const words = inputText.toLowerCase().split(' ').filter(w => w.length > 3);
@@ -464,17 +471,26 @@
       }
 
       self.onmessage = async (e) => {
-        const { input, isFirstInteraction, username } = e.data;
+        console.log('Worker received:', e.data);
+        const { input, isFirstInteraction, username } = e.data || {};
+        if (!input) {
+          self.postMessage({ error: 'No input provided' });
+          return;
+        }
         try {
           if (!model) await init();
+          console.log('Tokenizing:', input);
           const tokens = await tokenizer.encode(input);
           if (!tokens) throw new Error('Invalid input');
+          console.log('Predicting with tokens:', tokens);
           const tensor = tf.tensor([tokens]);
           const prediction = await model.predict(tensor);
+          if (!prediction || !prediction.dataSync) throw new Error('Prediction failed');
           const output = { label: prediction.label, score: prediction.score };
           const response = generateHumanLikeResponse(output, input, isFirstInteraction, username);
           self.postMessage({ response });
         } catch (error) {
+          console.error('Worker error:', error);
           self.postMessage({ error: error.message });
         }
       };
@@ -485,7 +501,8 @@
     const worker = new Worker(workerUrl);
 
     worker.onmessage = (e) => {
-      const { response, error } = e.data;
+      console.log('Worker received data:', e.data); // Debug
+      const { response, error } = e.data || {};
       const thinkingDiv = chatOutput.querySelector('.thinking-dots');
       if ('vibrate' in navigator) navigator.vibrate(0);
       if (thinkingDiv) chatOutput.removeChild(thinkingDiv);
@@ -495,8 +512,8 @@
         chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
         saveMessageToConversation(errorMessage, 'ai');
         showToast(`Error: ${error}`);
-      } else {
-        const messageId = `${currentConversationId}-${conversations.find(c => c.id === currentConversationId).messages.length}`;
+      } else if (response) {
+        const messageId = `${currentConversationId}-${conversations.find(c => c?.id === currentConversationId)?.messages?.length || 0}`;
         chatOutput.innerHTML += `
           <div class="message ai-message">
             ${response}
@@ -624,17 +641,19 @@
           chatHistory.appendChild(historyItem);
         } else {
           const conversation = conversations.find(c => c.id === currentConversationId);
-          conversation.messages.push(message);
-          await setDoc(doc(db, `users/${user.uid}/conversations/${currentConversationId}`), {
-            messages: conversation.messages,
-            createdAt: conversation.createdAt
-          }, { merge: true });
-          const historyItem = chatHistory.querySelector(`[data-conversation-id="${currentConversationId}"]`);
-          if (historyItem) {
-            historyItem.innerHTML = `
-              ${conversation.messages[0].text.substring(0, 20)}${conversation.messages[0].text.length > 20 ? "..." : ""}
-              <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>
-            `;
+          if (conversation) {
+            conversation.messages.push(message);
+            await setDoc(doc(db, `users/${user.uid}/conversations/${currentConversationId}`), {
+              messages: conversation.messages,
+              createdAt: conversation.createdAt
+            }, { merge: true });
+            const historyItem = chatHistory.querySelector(`[data-conversation-id="${currentConversationId}"]`);
+            if (historyItem) {
+              historyItem.innerHTML = `
+                ${conversation.messages[0].text.substring(0, 20)}${conversation.messages[0].text.length > 20 ? "..." : ""}
+                <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>
+              `;
+            }
           }
         }
       } catch (error) {
@@ -665,6 +684,17 @@
 
       if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
       worker.postMessage({ input: userInput, isFirstInteraction, username });
+      console.log('Sent to worker:', { input: userInput, isFirstInteraction, username }); // Debug
+      setTimeout(() => {
+        const thinkingDiv = chatOutput.querySelector('.thinking-dots');
+        if (thinkingDiv) {
+          chatOutput.removeChild(thinkingDiv);
+          const timestamp = formatTimestamp(Timestamp.now());
+          chatOutput.innerHTML += `<div class="message ai-message">Response timed out. Please try again.<span class="timestamp">${timestamp}</span></div>`;
+          saveMessageToConversation('Response timed out. Please try again.', 'ai');
+          showToast('Response timed out.');
+        }
+      }, 10000); // 10-second timeout
       document.getElementById("user-input").value = "";
       chatHistory.scrollTop = chatHistory.scrollHeight;
     };
