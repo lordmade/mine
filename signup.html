@@ -3,124 +3,212 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Sign Up / Sign In - ChatSphere</title>
+  <title>Sign Up / Sign In - MelodySphere</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --twitter-blue: #1DA1F2;
-      --text-dark: #0F1419;
-      --text-light: #536471;
-      --border: #D8D9DB;
-      --white: #FFFFFF;
-      --background: #FFFFFF;
-      --sa-green: #007A4D;
-      --sa-red: #C8102E;
-      --sa-yellow: #FFB81C;
-      --sa-blue: #003087;
-      --sa-orange: #F58A07;
-      --background-dark: #15202B;
-      --text-dark-dark: #FFFFFF;
-      --text-light-dark: #8899A6;
-      --border-dark: #2F3336;
-      --white-dark: #1C2526;
-      --gradient-bg: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+      --spotify-black: #121212;
+      --spotify-green: #1DB954;
+      --spotify-white: #FFFFFF;
+      --spotify-grey: #535353;
+      --text-dark: #FFFFFF;
+      --text-light: #B3B3B3;
+      --border: #282828;
+      --background: #121212;
+      --gradient-bg: linear-gradient(135deg, #181818 0%, #121212 100%);
+      --success-green: #1DB954;
+      --error-red: #E22134;
+      --background-light: #F9FAFB;
+      --text-dark-light: #111827;
+      --text-light-light: #6B7280;
+      --border-light: #D1D5DB;
+      --gradient-bg-light: linear-gradient(135deg, #E0E7FF 0%, #F9FAFB 100%);
     }
 
-    [data-theme="dark"] {
-      --background: var(--background-dark);
-      --text-dark: var(--text-dark-dark);
-      --text-light: var(--text-light-dark);
-      --border: var(--border-dark);
-      --white: var(--white-dark);
-      --gradient-bg: linear-gradient(135deg, #1c2526 0%, #15202b 100%);
+    [data-theme="light"] {
+      --background: var(--background-light);
+      --text-dark: var(--text-dark-light);
+      --text-light: var(--text-light-light);
+      --border: var(--border-light);
+      --gradient-bg: var(--gradient-bg-light);
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      font-family: 'Circular', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--background);
       min-height: 100vh;
       margin: 0;
       padding: 0;
       transition: opacity 0.5s ease, background 0.3s ease;
+      color: var(--text-dark);
+      user-select: none; /* Prevent text selection */
+      -webkit-text-size-adjust: none; /* Prevent zooming */
+      -webkit-touch-callout: none; /* Disable long press menu */
     }
 
     body.fade-out {
       opacity: 0;
     }
 
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      display: none;
+      width: 240px;
+      background: #000000;
+      padding: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 1024px) {
+      .sidebar {
+        display: block;
+      }
+    }
+
+    .sidebar .logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--spotify-white);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sidebar .logo svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--spotify-green);
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .sidebar-nav a {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 0.5rem;
+      border-radius: 6px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .sidebar-nav a:hover {
+      background: #282828;
+      color: var(--spotify-white);
+    }
+
     .container {
-      max-width: 450px;
+      flex: 1;
+      max-width: 400px;
       margin: 3rem auto;
       padding: 2rem;
       background: var(--gradient-bg);
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
       text-align: center;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
     }
 
     .container:hover {
       transform: translateY(-5px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
     }
 
     @media (max-width: 640px) {
       .container {
-        margin: 1.5rem;
+        margin: 1rem;
         padding: 1.5rem;
+        border-radius: 8px;
       }
     }
 
-    .logo {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--twitter-blue);
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-light);
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      color: var(--spotify-green);
+      transform: scale(1.2);
+    }
+
+    .theme-toggle svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .main-logo {
+      font-size: 1.75rem;
+      font-weight: 900;
+      color: var(--spotify-white);
       margin-bottom: 1.5rem;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
+      animation: fadeIn 0.5s ease-out;
     }
 
-    .logo svg {
+    .main-logo svg {
       width: 32px;
       height: 32px;
+      fill: var(--spotify-green);
+      transition: transform 0.3s ease;
+    }
+
+    .main-logo:hover svg {
+      transform: scale(1.1);
     }
 
     .tabs {
       display: flex;
       justify-content: center;
-      margin-bottom: 2rem;
-      background: var(--white);
-      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      background: #282828;
+      border-radius: 8px;
       overflow: hidden;
     }
 
     .tab-btn {
       flex: 1;
       padding: 0.75rem;
-      background: var(--white);
+      background: #282828;
       border: none;
-      color: var(--text-dark);
-      font-size: 1rem;
+      color: var(--text-light);
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
     .tab-btn.active {
-      background: var(--twitter-blue);
-      color: var(--white);
+      background: var(--spotify-green);
+      color: var(--spotify-white);
     }
 
     .tab-btn:hover {
-      background: var(--twitter-blue);
-      color: var(--white);
-      transform: scale(1.02);
+      background: #1ed760;
+      color: var(--spotify-white);
     }
 
     .tab-content {
       display: none;
+      animation: slideIn 0.3s ease-out;
     }
 
     .tab-content.active {
@@ -129,7 +217,7 @@
 
     h1 {
       font-size: 1.5rem;
-      font-weight: 800;
+      font-weight: 700;
       color: var(--text-dark);
       margin: 0 0 1.5rem;
     }
@@ -141,58 +229,96 @@
 
     .input-group label {
       display: block;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 500;
       color: var(--text-dark);
       margin-bottom: 0.5rem;
     }
 
-    .input-group input {
+    .input-group input[type="text"],
+    .input-group input[type="password"],
+    .input-group input[type="email"] {
       width: 100%;
       padding: 0.75rem;
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 8px;
       font-size: 0.95rem;
       outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-      background: var(--white);
+      background: #282828;
+      color: var(--spotify-white);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .input-group input:focus {
-      border-color: var(--twitter-blue);
-      box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1);
+      border-color: var(--spotify-green);
+      box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.2);
+    }
+
+    .input-group input::placeholder {
+      color: var(--text-light);
     }
 
     .profile-pic-preview {
-      width: 80px;
-      height: 80px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       object-fit: cover;
       margin: 0 auto 1rem;
       display: block;
       border: 2px solid var(--border);
+      transition: transform 0.3s ease;
+    }
+
+    .profile-pic-preview:hover {
+      transform: scale(1.1);
+    }
+
+    .file-upload-btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: #282828;
+      color: var(--text-light);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease;
+      text-align: center;
+    }
+
+    .file-upload-btn:hover {
+      background: var(--spotify-green);
+      color: var(--spotify-white);
+    }
+
+    .file-name {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-light);
     }
 
     .auth-btn {
       width: 100%;
-      padding: 0.75rem;
-      background: var(--twitter-blue);
-      color: var(--white);
+      padding: 0.85rem;
+      background: var(--spotify-green);
+      color: var(--spotify-white);
       border: none;
-      border-radius: 12px;
+      border-radius: 24px;
       font-size: 1rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
+      transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .auth-btn:hover {
-      background: #1a91da;
+      background: #1ed760;
       transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(29, 185, 84, 0.4);
     }
 
     .auth-btn.tap-active {
-      transform: scale(0.98);
+      transform: scale(0.95);
     }
 
     .custom-alert {
@@ -201,17 +327,17 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: var(--white);
-      padding: 1.5rem 2rem;
+      background: #282828;
+      padding: 1.5rem;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
       z-index: 1000;
       color: var(--text-dark);
       font-weight: 500;
       text-align: center;
       max-width: 90%;
       width: 320px;
-      animation: fadeIn 0.3s ease-out forwards;
+      animation: popIn 0.3s ease-out forwards;
       border: 1px solid var(--border);
     }
 
@@ -227,14 +353,14 @@
       height: 24px;
       background: none;
       border: none;
-      color: var(--twitter-blue);
+      color: var(--spotify-green);
       cursor: pointer;
       transition: transform 0.2s ease, color 0.2s ease;
     }
 
     .custom-alert .close-btn:hover {
-      transform: scale(1.2);
-      color: #1a91da;
+      color: #1ed760;
+      transform: rotate(90deg);
     }
 
     .custom-alert .close-btn svg {
@@ -249,7 +375,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.5);
       z-index: 999;
       justify-content: center;
       align-items: center;
@@ -262,10 +388,10 @@
     .spinner {
       width: 40px;
       height: 40px;
-      border: 4px solid var(--twitter-blue);
+      border: 4px solid var(--spotify-green);
       border-top: 4px solid transparent;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
+      animation: spin 0.8s ease-in-out infinite;
     }
 
     .toast {
@@ -273,11 +399,11 @@
       position: fixed;
       top: 20px;
       right: 20px;
-      background: var(--twitter-blue);
-      color: var(--white);
+      background: var(--success-green);
+      color: var(--spotify-white);
       padding: 0.75rem 1.5rem;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
       z-index: 1000;
       font-weight: 500;
       animation: slideIn 0.3s ease-out forwards;
@@ -287,14 +413,18 @@
       display: block;
     }
 
+    .toast.error {
+      background: var(--error-red);
+    }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
 
-    @keyframes fadeIn {
-      0% { opacity: 0; }
-      100% { opacity: 1; }
+    @keyframes popIn {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     }
 
     @keyframes slideIn {
@@ -302,19 +432,24 @@
       100% { transform: translateX(0); opacity: 1; }
     }
 
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
     @media (max-width: 640px) {
       .container {
-        margin: 1rem;
+        margin: 0.5rem;
         padding: 1rem;
       }
 
-      .logo {
+      .main-logo {
         font-size: 1.5rem;
       }
 
-      .logo svg {
-        width: 24px;
-        height: 24px;
+      .main-logo svg {
+        width: 28px;
+        height: 28px;
       }
 
       h1 {
@@ -322,12 +457,12 @@
       }
 
       .tab-btn {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         padding: 0.5rem;
       }
 
       .input-group label {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
       }
 
       .input-group input {
@@ -336,76 +471,99 @@
       }
 
       .auth-btn {
-        padding: 0.5rem;
+        padding: 0.75rem;
         font-size: 0.9rem;
       }
 
       .custom-alert {
-        width: 85%;
+        width: 80%;
         padding: 1rem;
       }
 
       .toast {
         right: 10px;
-        max-width: 80%;
+        max-width: 85%;
       }
 
       .profile-pic-preview {
-        width: 60px;
-        height: 60px;
+        width: 50px;
+        height: 50px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-      </svg>
-      ChatSphere
-    </div>
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="signup" aria-label="Switch to Sign Up tab">Sign Up</button>
-      <button class="tab-btn" data-tab="signin" aria-label="Switch to Sign In tab">Sign In</button>
-    </div>
-    <div class="tab-content active" id="signup-tab">
-      <h1>Create Your Account</h1>
-      <div class="input-group">
-        <label for="username-input">Username</label>
-        <input type="text" id="username-input" placeholder="Enter your username" maxlength="30" aria-label="Enter your username" />
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.5 15.5c-1.75 0-3.5-.75-4.5-2.25-.25-.5.25-1 .75-.75 1.5 1.25 3.75 1.25 5.25 0 .5-.25 1 .25.75.75-1 1.5-2.75 2.25-4.5 2.25zm1.5-4.5c-2.25 0-4.25-1-5.5-2.75-.25-.5.25-1 .75-.75 1.25 1.5 3.25 2 5 1.25.5-.25 1 .25.75.75-1.25 1.75-3.25 2.5-5.5 2.5zm1.5-4.5c-2.75 0-5-1.5-6.25-3.75-.25-.5.25-1 .75-.75 1.25 2 3.5 3 5.5 2.25.5-.25 1 .25.75.75-1.25 2.25-3.5 3.75-6.25 3.75z"/>
+        </svg>
+        MelodySphere
       </div>
-      <div class="input-group">
-        <label for="email-input">Email</label>
-        <input type="email" id="email-input" placeholder="Enter your email" aria-label="Enter your email" />
+      <nav class="sidebar-nav">
+        <a href="#home">Home</a>
+        <a href="#browse">Browse</a>
+        <a href="#playlists">Playlists</a>
+        <a href="#profile">Profile</a>
+      </nav>
+    </aside>
+    <div class="container">
+      <button class="theme-toggle" aria-label="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+      <div class="main-logo">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.5 15.5c-1.75 0-3.5-.75-4.5-2.25-.25-.5.25-1 .75-.75 1.5 1.25 3.75 1.25 5.25 0 .5-.25 1 .25.75.75-1 1.5-2.75 2.25-4.5 2.25zm1.5-4.5c-2.25 0-4.25-1-5.5-2.75-.25-.5.25-1 .75-.75 1.25 1.5 3.25 2 5 1.25.5-.25 1 .25.75.75-1.25 1.75-3.25 2.5-5.5 2.5zm1.5-4.5c-2.75 0-5-1.5-6.25-3.75-.25-.5.25-1 .75-.75 1.25 2 3.5 3 5.5 2.25.5-.25 1 .25.75.75-1.25 2.25-3.5 3.75-6.25 3.75z"/>
+        </svg>
+        MelodySphere
       </div>
-      <div class="input-group">
-        <label for="password-input">Password</label>
-        <input type="password" id="password-input" placeholder="Enter your password" aria-label="Enter your password" />
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="signup" aria-label="Switch to Sign Up tab">Sign Up</button>
+        <button class="tab-btn" data-tab="signin" aria-label="Switch to Sign In tab">Sign In</button>
       </div>
-      <div class="input-group">
-        <label for="profile-pic-input">Profile Picture</label>
-        <input type="file" id="profile-pic-input" accept="image/*" aria-label="Upload profile picture" />
-        <img id="profile-pic-preview" class="profile-pic-preview" src="https://via.placeholder.com/80" alt="Profile picture preview" style="display: none;" />
+      <div class="tab-content active" id="signup-tab">
+        <h1>Create Your Account</h1>
+        <div class="input-group">
+          <label for="username-input">Full Name</label>
+          <input type="text" id="username-input" placeholder="Enter your full name" maxlength="50" aria-label="Enter your full name" />
+        </div>
+        <div class="input-group">
+          <label for="email-input">Email or Phone</label>
+          <input type="text" id="email-input" placeholder="Email or phone number" aria-label="Enter your email or phone" />
+        </div>
+        <div class="input-group">
+          <label for="password-input">Password</label>
+          <input type="password" id="password-input" placeholder="Enter your password" aria-label="Enter your password" />
+        </div>
+        <div class="input-group">
+          <label for="profile-pic-input">Profile Picture (Optional)</label>
+          <button class="file-upload-btn" id="file-upload-btn">Choose File</button>
+          <input type="file" id="profile-pic-input" accept="image/*" aria-label="Upload profile picture" style="display: none;" />
+          <div class="file-name" id="file-name">No file chosen</div>
+          <img id="profile-pic-preview" class="profile-pic-preview" src="https://via.placeholder.com/60" alt="Profile picture preview" style="display: none;" />
+        </div>
+        <button class="auth-btn" id="signup-btn" aria-label="Sign up">Sign Up</button>
       </div>
-      <button class="auth-btn" id="signup-btn" aria-label="Sign up">Sign Up</button>
-    </div>
-    <div class="tab-content" id="signin-tab">
-      <h1>Sign In</h1>
-      <div class="input-group">
-        <label for="signin-email-input">Email</label>
-        <input type="email" id="signin-email-input" placeholder="Enter your email" aria-label="Enter your email" />
+      <div class="tab-content" id="signin-tab">
+        <h1>Sign In</h1>
+        <div class="input-group">
+          <label for="signin-email-input">Email or Phone</label>
+          <input type="text" id="signin-email-input" placeholder="Email or phone number" aria-label="Enter your email or phone" />
+        </div>
+        <div class="input-group">
+          <label for="signin-password-input">Password</label>
+          <input type="password" id="signin-password-input" placeholder="Enter your password" aria-label="Enter your password" />
+        </div>
+        <button class="auth-btn" id="signin-btn" aria-label="Sign in">Sign In</button>
       </div>
-      <div class="input-group">
-        <label for="signin-password-input">Password</label>
-        <input type="password" id="signin-password-input" placeholder="Enter your password" aria-label="Enter your password" />
-      </div>
-      <button class="auth-btn" id="signin-btn" aria-label="Sign in">Sign In</button>
     </div>
   </div>
 
   <div id="custom-alert" class="custom-alert">
-    <button class="close-btn">
+    <button class="close-btn" aria-label="Close alert">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -448,6 +606,8 @@
     const emailInput = document.getElementById("email-input");
     const passwordInput = document.getElementById("password-input");
     const profilePicInput = document.getElementById("profile-pic-input");
+    const fileUploadBtn = document.getElementById("file-upload-btn");
+    const fileNameDisplay = document.getElementById("file-name");
     const profilePicPreview = document.getElementById("profile-pic-preview");
     const signinEmailInput = document.getElementById("signin-email-input");
     const signinPasswordInput = document.getElementById("signin-password-input");
@@ -458,10 +618,12 @@
     const toastMessage = document.getElementById("toast-message");
     const tabButtons = document.querySelectorAll(".tab-btn");
     const tabContents = document.querySelectorAll(".tab-content");
+    const themeToggle = document.querySelector(".theme-toggle");
 
-    function showAlert(message, autoHide = true) {
+    function showAlert(message, autoHide = true, isError = true) {
       alertMessage.textContent = message;
       customAlert.classList.add("active");
+      customAlert.style.borderColor = isError ? "var(--error-red)" : "var(--success-green)";
       if (autoHide) {
         setTimeout(hideAlert, 5000);
       }
@@ -469,6 +631,7 @@
 
     function hideAlert() {
       customAlert.classList.remove("active");
+      customAlert.style.borderColor = "var(--border)";
     }
 
     function showSpinner() {
@@ -479,11 +642,16 @@
       spinner.classList.remove("active");
     }
 
-    function showToast(message) {
+    function showToast(message, isError = false) {
       toastMessage.textContent = message;
       toast.classList.add("active");
+      if (isError) {
+        toast.classList.add("error");
+      } else {
+        toast.classList.remove("error");
+      }
       setTimeout(() => {
-        toast.classList.remove("active?");
+        toast.classList.remove("active");
       }, 3000);
     }
 
@@ -513,8 +681,8 @@
     async function uploadProfilePicture(file) {
       if (!file) return null;
 
-      const cloudName = "dqkujefxj"; // Replace with your Cloudinary cloud name
-      const uploadPreset = "banter_box"; // Replace with your unsigned upload preset
+      const cloudName = "dqkujefxj";
+      const uploadPreset = "banter_box";
       const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
       const formData = new FormData();
@@ -538,10 +706,14 @@
       }
     }
 
-    // Preview profile picture when selected
+    fileUploadBtn.addEventListener("click", () => {
+      profilePicInput.click();
+    });
+
     profilePicInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (file) {
+        fileNameDisplay.textContent = file.name;
         const reader = new FileReader();
         reader.onload = (event) => {
           profilePicPreview.src = event.target.result;
@@ -549,8 +721,9 @@
         };
         reader.readAsDataURL(file);
       } else {
+        fileNameDisplay.textContent = "No file chosen";
         profilePicPreview.style.display = "none";
-        profilePicPreview.src = "https://via.placeholder.com/80";
+        profilePicPreview.src = "https://via.placeholder.com/60";
       }
     });
 
@@ -565,32 +738,28 @@
         return;
       }
 
-      if (username.length > 30) {
-        showAlert("Username must be 30 characters or less.", true);
+      if (username.length > 50) {
+        showAlert("Full name must be 50 characters or less.", true);
         return;
       }
 
-      if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-        showAlert("Username must contain only letters, numbers, and underscores.", true);
+      if (!/^[a-zA-Z\s]+$/.test(username)) {
+        showAlert("Full name must contain only letters and spaces.", true);
         return;
       }
 
       showSpinner();
       try {
-        // Upload profile picture to Cloudinary
         let profilePicUrl = null;
         if (profilePicFile) {
           profilePicUrl = await uploadProfilePicture(profilePicFile);
         }
 
-        // Create user in Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Update Firebase Auth profile
         await updateProfile(user, { displayName: username, photoURL: profilePicUrl });
 
-        // Store user data in Realtime Database
         const userRef = ref(db, `users/${user.uid}`);
         await set(userRef, {
           username: username,
@@ -598,12 +767,9 @@
           online: true
         });
 
-        // Set offline status on disconnect
         await onDisconnect(userRef).update({ online: false });
 
-        // Show toast
-        showToast(`${username} is now online`);
-
+        showToast(`Welcome to MelodySphere, ${username}!`, false);
         document.body.classList.add("fade-out");
         setTimeout(() => {
           window.location.href = "home.html";
@@ -612,9 +778,9 @@
         console.error("Sign up failed:", error);
         let errorMessage = "Failed to sign up. Please try again.";
         if (error.code === "auth/email-already-in-use") {
-          errorMessage = "Email is already in use.";
+          errorMessage = "Email or phone is already in use.";
         } else if (error.code === "auth/invalid-email") {
-          errorMessage = "Invalid email format.";
+          errorMessage = "Invalid email or phone format.";
         } else if (error.code === "auth/weak-password") {
           errorMessage = "Password is too weak. Use at least 6 characters.";
         } else if (error.message.includes("Failed to upload image")) {
@@ -639,23 +805,18 @@
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Fetch username from Realtime Database
         const userRef = ref(db, `users/${user.uid}`);
         const userSnapshot = await get(userRef);
         const username = userSnapshot.exists() ? userSnapshot.val().username : user.displayName || "User";
 
-        // Update online status
         await set(userRef, {
           ...userSnapshot.val(),
           online: true
         });
 
-        // Set offline status on disconnect
         await onDisconnect(userRef).update({ online: false });
 
-        // Show toast
-        showToast(`${username} is now online`);
-
+        showToast(`Welcome back, ${username}!`, false);
         document.body.classList.add("fade-out");
         setTimeout(() => {
           window.location.href = "home.html";
@@ -664,9 +825,9 @@
         console.error("Sign in failed:", error);
         let errorMessage = "Failed to sign in. Please try again.";
         if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
-          errorMessage = "Invalid email or password.";
+          errorMessage = "Invalid email/phone or password.";
         } else if (error.code === "auth/invalid-email") {
-          errorMessage = "Invalid email format.";
+          errorMessage = "Invalid email or phone format.";
         }
         hideSpinner();
         showAlert(errorMessage, true);
@@ -716,9 +877,13 @@
       }
     }
 
-    function applyTheme() {
-      const theme = localStorage.getItem("theme") || "light";
-      document.documentElement.setAttribute("data-theme", theme);
+    function setupThemeToggle() {
+      themeToggle.addEventListener("click", () => {
+        const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+      });
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
@@ -726,7 +891,13 @@
       await checkAuthState();
       setupTabListeners();
       setupAuthListeners();
+      setupThemeToggle();
     });
+
+    function applyTheme() {
+      const theme = localStorage.getItem("theme") || "dark";
+      document.documentElement.setAttribute("data-theme", theme);
+    }
   </script>
 </body>
 </html>
