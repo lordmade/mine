@@ -2,357 +2,450 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grok-like AI Chat</title>
-  <script src="https://cdn.tailwindcss.com/3.4.14"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/transformers@0.0.4/dist/transformers.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Home - MelodySphere</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --primary: #1d9bf0; /* Grok-like blue */
-      --background: #000000; /* Dark theme */
-      --text: #e7e9ea;
-      --text-light: #71767b;
-      --chat-bg: #15202b;
-      --message-bg: #1e2732;
-      --ai-message-bg: #22303c;
+      --spotify-black: #121212;
+      --spotify-green: #1DB954;
+      --spotify-white: #FFFFFF;
+      --spotify-grey: #535353;
+      --text-dark: #FFFFFF;
+      --text-light: #B3B3B3;
+      --border: #282828;
+      --background: #121212;
+      --gradient-bg: linear-gradient(135deg, #181818 0%, #121212 100%);
+      --success-green: #1DB954;
+      --error-red: #E22134;
+      --background-light: #F9FAFB;
+      --text-dark-light: #111827;
+      --text-light-light: #6B7280;
+      --border-light: #D1D5DB;
+      --gradient-bg-light: linear-gradient(135deg, #E0E7FF 0%, #F9FAFB 100%);
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    [data-theme="light"] {
+      --background: var(--background-light);
+      --text-dark: var(--text-dark-light);
+      --text-light: var(--text-light-light);
+      --border: var(--border-light);
+      --gradient-bg: var(--gradient-bg-light);
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: 'Circular', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--background);
-      color: var(--text);
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding-top: 10px;
+      margin: 0;
+      padding: 0;
+      transition: opacity 0.5s ease, background 0.3s ease;
+      color: var(--text-dark);
+      user-select: none;
+      -webkit-text-size-adjust: none;
+      -webkit-touch-callout: none;
     }
 
-    .main-container {
-      width: 100%;
-      max-width: 500px; /* Mobile-friendly width */
-      height: 90vh;
-      background: var(--chat-bg);
-      border-radius: 0.5rem;
-      overflow: hidden;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    body.fade-out {
+      opacity: 0;
+    }
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
     }
 
     .sidebar {
-      width: 250px;
-      background: #192734;
-      padding: 1rem;
-      position: fixed;
-      top: 0;
-      left: -250px;
-      height: 100%;
-      transition: left 0.3s ease;
-      z-index: 1000;
+      display: none;
+      width: 240px;
+      background: #000000;
+      padding: 1.5rem;
+      flex-shrink: 0;
     }
 
-    .sidebar.active {
-      left: 0;
+    @media (min-width: 1024px) {
+      .sidebar {
+        display: block;
+      }
     }
 
-    .sidebar .profile {
+    .sidebar .logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--spotify-white);
+      margin-bottom: 2rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
+    }
+
+    .sidebar .logo svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--spotify-green);
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .sidebar-nav a {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 0.5rem;
+      border-radius: 6px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .sidebar-nav a:hover,
+    .sidebar-nav a.active {
+      background: #282828;
+      color: var(--spotify-white);
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      background: var(--gradient-bg);
+    }
+
+    @media (max-width: 640px) {
+      .main-content {
+        padding: 1rem;
+      }
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-light);
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      color: var(--spotify-green);
+      transform: scale(1.2);
+    }
+
+    .theme-toggle svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .welcome-message {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .profile-pic {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+      transition: transform 0.3s ease;
+    }
+
+    .profile-pic:hover {
+      transform: scale(1.1);
+    }
+
+    .search-bar {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 0.75rem 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      font-size: 0.95rem;
+      background: #282828;
+      color: var(--spotify-white);
+      outline: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .search-bar input:focus {
+      border-color: var(--spotify-green);
+      box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.2);
+    }
+
+    .search-bar input::placeholder {
+      color: var(--text-light);
+    }
+
+    .search-bar svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      fill: var(--text-light);
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-dark);
       margin-bottom: 1rem;
     }
 
-    .sidebar .avatar {
-      width: 32px;
-      height: 32px;
-      background: var(--primary);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      font-weight: bold;
+    .playlist-grid,
+    .recently-played-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1.5rem;
     }
 
-    .sidebar button {
-      background: var(--primary);
-      color: white;
-      padding: 0.5rem;
-      border: none;
-      border-radius: 0.25rem;
+    @media (max-width: 640px) {
+      .playlist-grid,
+      .recently-played-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+      }
+    }
+
+    .card {
+      background: #282828;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .card img {
       width: 100%;
-      margin-bottom: 0.5rem;
-      cursor: pointer;
-      transition: background 0.3s ease;
+      height: 120px;
+      object-fit: cover;
     }
 
-    .sidebar button:hover {
-      background: #1a8cd8;
-    }
-
-    .sidebar h2 {
-      font-size: 1rem;
-      color: var(--text);
-      margin-bottom: 0.5rem;
-    }
-
-    .sidebar p {
-      padding: 0.5rem;
-      cursor: pointer;
-      color: var(--text-light);
-      transition: background 0.2s ease;
-    }
-
-    .sidebar p:hover {
-      background: #22303c;
-      border-radius: 0.25rem;
-    }
-
-    .sidebar p .timestamp {
-      font-size: 0.7rem;
-      color: var(--text-light);
-    }
-
-    .chat-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    .chat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .card-content {
       padding: 0.75rem;
-      background: #192734;
     }
 
-    .chat-header h1 {
-      font-size: 1.25rem;
-      color: var(--text);
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.25rem;
     }
 
-    .chat-header button {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      color: var(--text);
-      cursor: pointer;
-    }
-
-    .chat-output {
-      flex: 1;
-      padding: 0.75rem;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .message {
-      max-width: 85%;
-      padding: 0.5rem;
-      border-radius: 0.25rem;
-      position: relative;
-    }
-
-    .user-message {
-      background: var(--message-bg);
-      align-self: flex-end;
-      margin-left: auto;
-    }
-
-    .ai-message {
-      background: var(--ai-message-bg);
-      align-self: flex-start;
-    }
-
-    .message .timestamp {
-      font-size: 0.6rem;
+    .card-subtitle {
+      font-size: 0.85rem;
       color: var(--text-light);
-      margin-left: 0.5rem;
-    }
-
-    .feedback-btn {
-      background: none;
-      border: none;
-      color: var(--text-light);
-      font-size: 0.8rem;
-      margin-left: 0.25rem;
-      transition: color 0.2s ease;
-    }
-
-    .feedback-btn:hover {
-      color: var(--primary);
-    }
-
-    .input-group {
-      display: flex;
-      padding: 0.75rem;
-      background: #192734;
-    }
-
-    .input-group input {
-      flex: 1;
-      padding: 0.5rem;
-      border: none;
-      border-radius: 0.25rem 0 0 0.25rem;
-      background: var(--message-bg);
-      color: var(--text);
-      outline: none;
-      font-size: 0.9rem;
-    }
-
-    .input-group button {
-      padding: 0.5rem;
-      background: var(--primary);
-      border: none;
-      border-radius: 0 0.25rem 0.25rem 0;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .input-group button:hover {
-      background: #1a8cd8;
-    }
-
-    .input-group button svg {
-      width: 18px;
-      height: 18px;
-      fill: white;
-    }
-
-    .thinking-dots {
-      display: flex;
-      gap: 0.2rem;
-      align-self: flex-start;
-      padding: 0.5rem;
-    }
-
-    .thinking-dots::before,
-    .thinking-dots::after,
-    .thinking-dots div {
-      content: "";
-      width: 6px;
-      height: 6px;
-      background: var(--text-light);
-      border-radius: 50%;
-      animation: dot-flashing 1s infinite linear alternate;
-    }
-
-    .thinking-dots div {
-      animation-delay: 0.5s;
-    }
-
-    .thinking-dots::after {
-      animation-delay: 1s;
-    }
-
-    @keyframes dot-flashing {
-      0% { opacity: 0.2; }
-      50%, 100% { opacity: 1; }
     }
 
     .spinner-overlay {
+      display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.5);
-      display: flex;
+      z-index: 999;
       justify-content: center;
       align-items: center;
-      z-index: 9999;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
     }
 
     .spinner-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
+      display: flex;
     }
 
     .spinner {
-      width: 30px;
-      height: 30px;
-      border: 3px solid var(--primary);
-      border-top-color: transparent;
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--spotify-green);
+      border-top: 4px solid transparent;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+      animation: spin 0.8s ease-in-out infinite;
     }
 
     .toast {
+      display: none;
       position: fixed;
-      bottom: 1rem;
-      right: 1rem;
-      background: var(--primary);
-      color: white;
-      padding: 0.5rem;
-      border-radius: 0.25rem;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.3s ease, transform 0.3s ease;
+      top: 20px;
+      right: 20px;
+      background: var(--success-green);
+      color: var(--spotify-white);
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      font-weight: 500;
+      animation: slideIn 0.3s ease-out forwards;
     }
 
     .toast.active {
-      opacity: 1;
-      transform: translateY(0);
+      display: block;
+    }
+
+    .toast.error {
+      background: var(--error-red);
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes slideIn {
+      0% { transform: translateX(100%); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @media (max-width: 640px) {
+      .welcome-message {
+        font-size: 1.25rem;
+      }
+
+      .profile-pic {
+        width: 32px;
+        height: 32px;
+      }
+
+      .section-title {
+        font-size: 1.1rem;
+      }
+
+      .search-bar input {
+        padding: 0.5rem 2rem;
+        font-size: 0.9rem;
+      }
+
+      .search-bar svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .toast {
+        right: 10px;
+        max-width: 85%;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="main-container">
-    <div class="sidebar" id="sidebar">
-      <div class="profile">
-        <div class="avatar" id="user-avatar">U</div>
-        <span id="username">User</span>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.5 15.5c-1.75 0-3.5-.75-4.5-2.25-.25-.5.25-1 .75-.75 1.5 1.25 3.75 1.25 5.25 0 .5-.25 1 .25.75.75-1 1.5-2.75 2.25-4.5 2.25zm1.5-4.5c-2.25 0-4.25-1-5.5-2.75-.25-.5.25-1 .75-.75 1.25 1.5 3.25 2 5 1.25.5-.25 1 .25.75.75-1.25 1.75-3.25 2.5-5.5 2.5zm1.5-4.5c-2.75 0-5-1.5-6.25-3.75-.25-.5.25-1 .75-.75 1.25 2 3.5 3 5.5 2.25.5-.25 1 .25.75.75-1.25 2.25-3.5 3.75-6.25 3.75z"/>
+        </svg>
+        MelodySphere
       </div>
-      <button id="new-chat-btn">New Chat</button>
-      <button id="settings-btn">Settings</button>
-      <button id="signout-btn">Sign Out</button>
-      <h2>Chat History</h2>
-      <div id="chat-history"></div>
-    </div>
-    <div class="chat-container">
-      <div class="chat-header">
-        <h1>Grok-like AI</h1>
-        <button id="toggle-sidebar">☰</button>
+      <nav class="sidebar-nav">
+        <a href="home.html" class="active">Home</a>
+        <a href="#browse">Browse</a>
+        <a href="#playlists">Playlists</a>
+        <a href="#profile">Profile</a>
+      </nav>
+    </aside>
+    <main class="main-content">
+      <button class="theme-toggle" aria-label="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+      <header class="header">
+        <h1 class="welcome-message">Welcome, <span id="username">User</span>!</h1>
+        <img id="profile-pic" class="profile-pic" src="https://via.placeholder.com/40" alt="User profile picture" />
+      </header>
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+        <input type="text" id="search-input" placeholder="Search for songs, artists, or playlists" aria-label="Search for music" />
       </div>
-      <div class="chat-output" id="chat-output"></div>
-      <div class="input-group">
-        <input type="text" id="user-input" placeholder="Ask Grok anything..." aria-label="Chat input" />
-        <button onclick="sendMessage()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-          </svg>
-        </button>
-      </div>
-    </div>
+      <section>
+        <h2 class="section-title">Featured Playlists</h2>
+        <div class="playlist-grid">
+          <div class="card">
+            <img src="https://via.placeholder.com/180" alt="Playlist cover" />
+            <div class="card-content">
+              <h3 class="card-title">Chill Hits</h3>
+              <p class="card-subtitle">Relax with these soothing tracks</p>
+            </div>
+          </div>
+          <div class="card">
+            <img src="https://via.placeholder.com/180" alt="Playlist cover" />
+            <div class="card-content">
+              <h3 class="card-title">Pop Rising</h3>
+              <p class="card-subtitle">The latest pop anthems</p>
+            </div>
+          </div>
+          <div class="card">
+            <img src="https://via.placeholder.com/180" alt="Playlist cover" />
+            <div class="card-content">
+              <h3 class="card-title">Rock Classics</h3>
+              <p class="card-subtitle">Timeless rock hits</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2 class="section-title">Recently Played</h2>
+        <div class="recently-played-grid">
+          <div class="card">
+            <img src="https://via.placeholder.com/180" alt="Track cover" />
+            <div class="card-content">
+              <h3 class="card-title">Song Title</h3>
+              <p class="card-subtitle">Artist Name</p>
+            </div>
+          </div>
+          <div class="card">
+            <img src="https://via.placeholder.com/180" alt="Track cover" />
+            <div class="card-content">
+              <h3 class="card-title">Another Song</h3>
+              <p class="card-subtitle">Artist Name</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
+
   <div class="spinner-overlay" id="spinner">
     <div class="spinner"></div>
   </div>
+
   <div class="toast" id="toast">
     <p id="toast-message"></p>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, setDoc, addDoc, Timestamp, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -364,408 +457,86 @@
       appId: "1:658673187627:web:6e4c29af661785f0afa36e",
       measurementId: "G-V4W97VMSKL"
     };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db = getDatabase(app);
 
+    const usernameDisplay = document.getElementById("username");
+    const profilePic = document.getElementById("profile-pic");
     const spinner = document.getElementById("spinner");
     const toast = document.getElementById("toast");
     const toastMessage = document.getElementById("toast-message");
-    const signoutBtn = document.getElementById("signout-btn");
-    const settingsBtn = document.getElementById("settings-btn");
-    const toggleSidebar = document.getElementById("toggle-sidebar");
-    const sidebar = document.getElementById("sidebar");
-    const chatHistory = document.getElementById("chat-history");
-    const userAvatar = document.getElementById("user-avatar");
-    const usernameElement = document.getElementById("username");
-    const newChatBtn = document.getElementById("new-chat-btn");
-    const chatOutput = document.getElementById("chat-output");
+    const themeToggle = document.querySelector(".theme-toggle");
 
-    let currentConversationId = null;
-    let conversations = [];
+    function showSpinner() {
+      spinner.classList.add("active");
+    }
 
-    function showSpinner() { spinner.classList.add("active"); }
-    function hideSpinner() { spinner.classList.remove("active"); }
-    function showToast(message) {
+    function hideSpinner() {
+      spinner.classList.remove("active");
+    }
+
+    function showToast(message, isError = false) {
       toastMessage.textContent = message;
       toast.classList.add("active");
-      setTimeout(() => toast.classList.remove("active"), 3000);
-    }
-    function formatTimestamp(timestamp) {
-      if (timestamp instanceof Timestamp) return timestamp.toDate().toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-      return new Date().toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-    }
-    function setUserProfile(user) {
-      if (user) {
-        const displayName = user.displayName || "User";
-        usernameElement.textContent = displayName;
-        if (user.photoURL) {
-          userAvatar.style.background = "none";
-          userAvatar.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" style="width: 32px; height: 32px; border-radius: 50%;" />`;
-        } else userAvatar.textContent = displayName.charAt(0);
+      if (isError) {
+        toast.classList.add("error");
+      } else {
+        toast.classList.remove("error");
       }
-    }
-    async function loadUserSettings(user) {
-      if (!user) return;
-      try {
-        const userDocRef = doc(db, `users/${user.uid}`);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) document.documentElement.setAttribute("data-theme", userDoc.data().theme || "dark");
-      } catch (error) {
-        console.error("Failed to load user settings:", error.message);
-        showToast(`Failed to load settings: ${error.message}`);
-      }
-    }
-    async function checkFirstInteraction(user) {
-      if (!user) return false;
-      const userDocRef = doc(db, `users/${user.uid}`);
-      const userDoc = await getDoc(userDocRef);
-      if (!userDoc.exists() || !userDoc.data().firstInteraction) {
-        await setDoc(userDocRef, { firstInteraction: true }, { merge: true });
-        return true;
-      }
-      return false;
-    }
-
-    const workerCode = `
-      let model, tokenizer;
-
-      async function init() {
-        try {
-          console.log('Initializing model...');
-          const modelKey = 'distilbert-model';
-          model = await tf.io.browser.fromIndexedDB(modelKey);
-          if (!model) {
-            console.log('Loading model from CDN...');
-            model = await transformers.loadModel('distilbert', 'distilbert-base-uncased-finetuned-sst-2-english');
-            console.log('Model loaded, saving to IndexedDB...');
-            await model.save(\`indexeddb://\${modelKey}\`);
-          }
-          console.log('Loading tokenizer...');
-          tokenizer = await transformers.loadTokenizer('distilbert', 'distilbert-base-uncased-finetuned-sst-2-english');
-          console.log('Model and tokenizer initialized');
-        } catch (error) {
-          console.error('Model loading failed:', error);
-          self.postMessage({ error: `Model initialization error: ${error.message}` });
-        }
-      }
-
-      function generateHumanLikeResponse(output, inputText, isFirstInteraction, username) {
-        if (!output || !output.label || !output.score) {
-          console.warn('Invalid output object:', output);
-          return 'Error generating response.';
-        }
-        const sentiment = output.label === 'POSITIVE' ? 'positive' : output.label === 'NEGATIVE' ? 'negative' : 'neutral';
-        const confidence = output.score;
-        const words = inputText.toLowerCase().split(' ').filter(w => w.length > 3);
-        const keyword = words.find(w => ['happy', 'sad', 'great', 'bad', 'okay'].includes(w)) || sentiment;
-
-        const templates = {
-          positive: [\`Wow, you're full of \${confidence > 0.8 ? 'amazing' : 'great'} \${keyword} vibes! What's the story?\`, \`That’s super uplifting! What’s sparking this \${keyword} mood?\`, \`Loving this \${keyword} energy! Tell me more!\`, \`You're radiating \${keyword}! What's got you so pumped?\`],
-          neutral: [\`Sounds like you're keeping it \${keyword}. What's up?\`, \`Pretty chill \${keyword} vibe! What's on your mind?\`, \`Just cruising with \${keyword}? Got anything exciting to share?\`, \`Keeping it \${keyword}, huh? What's next?\`],
-          negative: [\`Sorry you're feeling \${keyword}. Want to talk about it?\`, \`That sounds tough with \${keyword}. I'm here if you need to vent!\`, \`Ouch, a \${keyword} moment? Let’s chat about it.\`, \`Feeling \${keyword}? I'm all ears if you want to share.\`]
-        };
-
-        const selectedTemplates = templates[sentiment];
-        let response = selectedTemplates[Math.floor(Math.random() * selectedTemplates.length)];
-        if (inputText.includes('?')) response += ' By the way, what’s the answer to your question? I’m curious!';
-        if (isFirstInteraction && username) response = \`Hey \${username}, welcome to Grok-like AI! \${response}\`;
-        return response;
-      }
-
-      self.onmessage = async (e) => {
-        console.log('Worker received:', e.data);
-        const { input, isFirstInteraction, username } = e.data || {};
-        if (!input) {
-          console.error('No input provided');
-          self.postMessage({ error: 'No input provided' });
-          return;
-        }
-        try {
-          if (!model) await init();
-          console.log('Tokenizing:', input);
-          const tokens = await tokenizer.encode(input);
-          if (!tokens || tokens.length === 0) throw new Error('Tokenization failed for input: ' + input);
-          console.log('Tokens generated:', tokens);
-          console.log('Predicting with tensor...');
-          const tensor = tf.tensor([tokens]);
-          const prediction = await model.predict(tensor);
-          if (!prediction || !prediction.dataSync) throw new Error('Prediction failed for tensor: ' + JSON.stringify(tokens));
-          console.log('Prediction result:', prediction);
-          const output = { label: prediction.label, score: prediction.score };
-          const response = generateHumanLikeResponse(output, input, isFirstInteraction, username);
-          self.postMessage({ response });
-        } catch (error) {
-          console.error('Worker error:', error);
-          self.postMessage({ error: `Error processing input: ${error.message}` });
-        }
-      };
-    `;
-
-    const workerBlob = new Blob([workerCode], { type: 'text/javascript' });
-    const workerUrl = URL.createObjectURL(workerBlob);
-    const worker = new Worker(workerUrl);
-
-    worker.onmessage = (e) => {
-      console.log('Worker received data:', e.data);
-      const { response, error } = e.data || {};
-      const thinkingDiv = chatOutput.querySelector('.thinking-dots');
-      if ('vibrate' in navigator) navigator.vibrate(0);
-      if (thinkingDiv) chatOutput.removeChild(thinkingDiv);
-      const timestamp = formatTimestamp(Timestamp.now());
-      if (error) {
-        const errorMessage = error || 'Error processing input. Please try again.';
-        chatOutput.innerHTML += `<div class="message ai-message">${errorMessage}<span class="timestamp">${timestamp}</span></div>`;
-        saveMessageToConversation(errorMessage, 'ai');
-        showToast(`Error: ${error}`);
-      } else if (response) {
-        const messageId = `${currentConversationId}-${conversations.find(c => c?.id === currentConversationId)?.messages?.length || 0}`;
-        chatOutput.innerHTML += `
-          <div class="message ai-message">
-            ${response}
-            <span class="timestamp">${timestamp}</span>
-            <button class="feedback-btn thumbs-up" data-message-id="${messageId}" aria-label="Thumbs up">👍</button>
-            <button class="feedback-btn thumbs-down" data-message-id="${messageId}" aria-label="Thumbs down">👎</button>
-          </div>`;
-        saveMessageToConversation(response, 'ai');
-        document.querySelectorAll('.feedback-btn').forEach(btn => {
-          btn.removeEventListener('click', handleFeedback);
-          btn.addEventListener('click', handleFeedback);
-        });
-      }
-      chatOutput.scrollTop = chatOutput.scrollHeight;
-    };
-
-    function handleFeedback(event) {
-      const btn = event.target;
-      const messageId = btn.dataset.messageId;
-      const isPositive = btn.classList.contains('thumbs-up');
-      submitFeedback(messageId, isPositive);
-    }
-
-    async function submitFeedback(messageId, isPositive) {
-      const user = auth.currentUser;
-      if (!user) {
-        showToast('Please sign in to submit feedback.');
-        return;
-      }
-      try {
-        await addDoc(collection(db, `users/${user.uid}/feedback`), {
-          messageId,
-          isPositive,
-          timestamp: Timestamp.now()
-        });
-        showToast(`Feedback ${isPositive ? '👍' : '👎'} submitted!`);
-      } catch (error) {
-        console.error('Failed to submit feedback:', error.message);
-        showToast(`Failed to submit feedback: ${error.message}`);
-      }
-    }
-
-    async function loadConversations() {
-      try {
-        const user = auth.currentUser;
-        if (!user) return;
-        const querySnapshot = await getDocs(collection(db, `users/${user.uid}/conversations`));
-        conversations = [];
-        chatHistory.innerHTML = "";
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          conversations.push({ id: doc.id, ...data });
-          const firstMessage = data.messages[0]?.text || "Conversation";
-          const timestamp = formatTimestamp(data.createdAt);
-          const historyItem = document.createElement("p");
-          historyItem.innerHTML = `
-            ${firstMessage.substring(0, 20)}${firstMessage.length > 20 ? "..." : ""}
-            <span class="timestamp">${timestamp}</span>
-          `;
-          historyItem.dataset.conversationId = doc.id;
-          historyItem.addEventListener("click", () => loadConversation(doc.id));
-          chatHistory.appendChild(historyItem);
-        });
-      } catch (error) {
-        console.error("Failed to load conversations:", error.message);
-        showToast(`Failed to load conversations: ${error.message}`);
-      }
-    }
-
-    async function loadConversation(conversationId) {
-      try {
-        const user = auth.currentUser;
-        if (!user) return;
-        const conversation = conversations.find(c => c.id === conversationId);
-        if (!conversation) return;
-        currentConversationId = conversationId;
-        chatOutput.innerHTML = "";
-        conversation.messages.forEach((msg, index) => {
-          const timestamp = formatTimestamp(msg.timestamp);
-          const messageId = `${conversationId}-${index}`;
-          const feedbackButtons = msg.sender === 'ai' ? `
-            <button class="feedback-btn thumbs-up" data-message-id="${messageId}" aria-label="Thumbs up">👍</button>
-            <button class="feedback-btn thumbs-down" data-message-id="${messageId}" aria-label="Thumbs down">👎</button>
-          ` : '';
-          chatOutput.innerHTML += `
-            <div class="message ${msg.sender === 'user' ? 'user-message' : 'ai-message'}">
-              ${msg.text}
-              <span class="timestamp">${timestamp}</span>
-              ${feedbackButtons}
-            </div>`;
-        });
-        chatOutput.scrollTop = chatOutput.scrollHeight;
-        document.querySelectorAll('.feedback-btn').forEach(btn => {
-          btn.removeEventListener('click', handleFeedback);
-          btn.addEventListener('click', handleFeedback);
-        });
-      } catch (error) {
-        console.error("Failed to load conversation:", error.message);
-        showToast(`Failed to load conversation: ${error.message}`);
-      }
-    }
-
-    async function saveMessageToConversation(text, sender) {
-      try {
-        const user = auth.currentUser;
-        if (!user) {
-          showToast("Error: User not authenticated. Please sign in again.");
-          throw new Error("User not authenticated");
-        }
-        const message = { text, sender, timestamp: Timestamp.now() };
-        if (!currentConversationId) {
-          const docRef = await addDoc(collection(db, `users/${user.uid}/conversations`), {
-            createdAt: Timestamp.now(),
-            messages: [message]
-          });
-          currentConversationId = docRef.id;
-          conversations.push({ id: docRef.id, createdAt: Timestamp.now(), messages: [message] });
-          const historyItem = document.createElement("p");
-          historyItem.innerHTML = `
-            ${text.substring(0, 20)}${text.length > 20 ? "..." : ""}
-            <span class="timestamp">${formatTimestamp(Timestamp.now())}</span>
-          `;
-          historyItem.dataset.conversationId = docRef.id;
-          historyItem.addEventListener("click", () => loadConversation(docRef.id));
-          chatHistory.appendChild(historyItem);
-        } else {
-          const conversation = conversations.find(c => c.id === currentConversationId);
-          if (conversation) {
-            conversation.messages.push(message);
-            await setDoc(doc(db, `users/${user.uid}/conversations/${currentConversationId}`), {
-              messages: conversation.messages,
-              createdAt: conversation.createdAt
-            }, { merge: true });
-            const historyItem = chatHistory.querySelector(`[data-conversation-id="${currentConversationId}"]`);
-            if (historyItem) {
-              historyItem.innerHTML = `
-                ${conversation.messages[0].text.substring(0, 20)}${conversation.messages[0].text.length > 20 ? "..." : ""}
-                <span class="timestamp">${formatTimestamp(conversation.createdAt)}</span>
-              `;
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Failed to save message:", error.message);
-        showToast(`Failed to save message: ${error.message}`);
-      }
-    }
-
-    window.sendMessage = async function () {
-      const userInput = document.getElementById("user-input").value.trim();
-      if (!userInput) {
-        showToast("Please enter a message.");
-        return;
-      }
-
-      const user = auth.currentUser;
-      const isFirstInteraction = user ? await checkFirstInteraction(user) : false;
-      const username = user ? (user.displayName || "User") : "User";
-      const timestamp = formatTimestamp(Timestamp.now());
-      chatOutput.innerHTML += `<div class="message user-message">${userInput}<span class="timestamp">${timestamp}</span></div>`;
-      await saveMessageToConversation(userInput, "user");
-      chatOutput.scrollTop = chatOutput.scrollHeight;
-
-      const thinkingDiv = document.createElement("div");
-      thinkingDiv.className = "thinking-dots";
-      chatOutput.appendChild(thinkingDiv);
-      chatOutput.scrollTop = chatOutput.scrollHeight;
-
-      if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
-      worker.postMessage({ input: userInput, isFirstInteraction, username });
-      console.log('Sent to worker:', { input: userInput, isFirstInteraction, username });
       setTimeout(() => {
-        const thinkingDiv = chatOutput.querySelector('.thinking-dots');
-        if (thinkingDiv) {
-          chatOutput.removeChild(thinkingDiv);
-          const timestamp = formatTimestamp(Timestamp.now());
-          chatOutput.innerHTML += `<div class="message ai-message">Response timed out. Please try again.<span class="timestamp">${timestamp}</span></div>`;
-          saveMessageToConversation('Response timed out. Please try again.', 'ai');
-          showToast('Response timed out.');
-        }
-      }, 10000); // 10-second timeout
-      document.getElementById("user-input").value = "";
-      chatHistory.scrollTop = chatHistory.scrollHeight;
-    };
+        toast.classList.remove("active");
+      }, 3000);
+    }
 
-    window.startNewConversation = function () {
-      currentConversationId = null;
-      chatOutput.innerHTML = "";
-      document.getElementById("user-input").value = "";
-      showToast("Started a new conversation.");
-    };
-
-    window.signOutUser = async function () {
-      showSpinner();
+    async function checkAuthState() {
       try {
-        const user = auth.currentUser;
-        if (user) {
-          await setDoc(doc(db, `users/${user.uid}`), { online: false }, { merge: true });
-          await signOut(auth);
-          showToast("Signed out successfully.");
-          setTimeout(() => window.location.href = "signup.html", 500);
-        } else showToast("No user is signed in.");
+        showSpinner();
+        await new Promise((resolve, reject) => {
+          onAuthStateChanged(auth, async (user) => {
+            if (user) {
+              const userRef = ref(db, `users/${user.uid}`);
+              const userSnapshot = await get(userRef);
+              const userData = userSnapshot.exists() ? userSnapshot.val() : {};
+              usernameDisplay.textContent = userData.username || user.displayName || "User";
+              profilePic.src = userData.profilePic || user.photoURL || "https://via.placeholder.com/40";
+              showToast(`Welcome back, ${usernameDisplay.textContent}!`, false);
+              hideSpinner();
+              resolve();
+            } else {
+              document.body.classList.add("fade-out");
+              setTimeout(() => {
+                window.location.href = "index.html";
+              }, 500);
+            }
+          }, reject);
+        });
       } catch (error) {
-        console.error("Sign out failed:", error.message);
-        showToast(`Failed to sign out: ${error.message}`);
-      } finally { hideSpinner(); }
-    };
+        console.error("Auth check failed:", error);
+        showToast("Failed to load user data. Please try again.", true);
+        hideSpinner();
+      }
+    }
 
-    window.goToSettings = function () {
-      showSpinner();
-      try {
-        showToast("Redirecting to settings...");
-        setTimeout(() => window.location.href = "settings.html", 500);
-      } catch (error) {
-        console.error("Failed to redirect to settings:", error.message);
-        showToast(`Failed to redirect: ${error.message}`);
-      } finally { hideSpinner(); }
-    };
+    function setupThemeToggle() {
+      themeToggle.addEventListener("click", () => {
+        const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+      });
+    }
 
-    toggleSidebar.addEventListener("click", () => sidebar.classList.toggle("active"));
-    newChatBtn.addEventListener("click", startNewConversation);
-    settingsBtn.addEventListener("click", goToSettings);
-    signoutBtn.addEventListener("click", signOutUser);
-    document.getElementById("user-input").addEventListener("keypress", (e) => e.key === "Enter" && sendMessage());
+    function applyTheme() {
+      const theme = localStorage.getItem("theme") || "dark";
+      document.documentElement.setAttribute("data-theme", theme);
+    }
 
     document.addEventListener("DOMContentLoaded", async () => {
-      showSpinner();
-      await new Promise((resolve, reject) => {
-        onAuthStateChanged(auth, async (user) => {
-          if (!user) {
-            console.log("No user authenticated, redirecting to signup.html");
-            window.location.href = "signup.html";
-          } else {
-            console.log("User authenticated:", user.uid);
-            setUserProfile(user);
-            await loadUserSettings(user);
-            await loadConversations();
-            resolve();
-          }
-        }, (error) => {
-          console.error("Auth state check failed:", error);
-          showToast("Authentication check failed.");
-          reject(error);
-        });
-      });
-      hideSpinner();
+      applyTheme();
+      await checkAuthState();
+      setupThemeToggle();
     });
   </script>
 </body>
