@@ -173,7 +173,6 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 120px;
     }
 
     .incident-table th {
@@ -186,19 +185,32 @@
       font-size: 0.875rem;
     }
 
+    .incident-table th.actions,
+    .incident-table td.actions {
+      min-width: 150px;
+      max-width: 150px;
+    }
+
     .incident-table tr:hover {
       background: var(--highlight);
     }
 
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
     .action-button {
-      padding: 0.5rem 0.75rem;
+      padding: 0.4rem 0.6rem;
       border: none;
       border-radius: 9999px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 500;
       transition: all 0.3s ease;
-      margin-right: 0.5rem;
+      width: 100%;
+      text-align: center;
     }
 
     .action-button.resolve {
@@ -415,12 +427,16 @@
       .incident-table td {
         padding: 0.5rem;
         font-size: 0.8rem;
-        max-width: 100px;
+        max-width: 90px;
+      }
+      .incident-table th.actions,
+      .incident-table td.actions {
+        min-width: 120px;
+        max-width: 120px;
       }
       .action-button {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.75rem;
-        margin-right: 0.3rem;
+        padding: 0.3rem 0.5rem;
+        font-size: 0.7rem;
       }
     }
 
@@ -463,20 +479,21 @@
       }
       .incident-table th,
       .incident-table td {
-        min-width: 80px;
-        max-width: 80px;
-        font-size: 0.7rem;
+        min-width: 70px;
+        max-width: 70px;
+        font-size: 0.65rem;
         padding: 0.3rem;
       }
-      .incident-table th {
-        position: sticky;
-        top: 0;
-        z-index: 5;
+      .incident-table th.actions,
+      .incident-table td.actions {
+        min-width: 100px;
+        max-width: 100px;
+        overflow-y: auto;
+        max-height: 120px;
       }
       .action-button {
         padding: 0.2rem 0.4rem;
-        font-size: 0.65rem;
-        margin-right: 0.2rem;
+        font-size: 0.6rem;
       }
       .modal-content {
         padding: 1rem;
@@ -533,7 +550,7 @@
           <th scope="col">Location</th>
           <th scope="col">Timestamp</th>
           <th scope="col">Status</th>
-          <th scope="col">Actions</th>
+          <th scope="col" class="actions">Actions</th>
         </tr>
       </thead>
       <tbody id="incident-list"></tbody>
@@ -779,12 +796,14 @@
                 <td title="${incident.location.encryptedLng}, ${incident.location.encryptedLat}">${incident.location.encryptedLng}, ${incident.location.encryptedLat}</td>
                 <td title="${new Date(incident.timestamp).toLocaleString()}">${new Date(incident.timestamp).toLocaleString()}</td>
                 <td title="${incident.status}">${incident.status}</td>
-                <td>
-                  <button class="action-button resolve" data-id="${incidentId}" aria-label="Resolve incident ${incidentId}">Resolve</button>
-                  <button class="action-button escalate" data-id="${incidentId}" aria-label="Escalate incident ${incidentId}">Escalate</button>
-                  <button class="action-button chat" data-id="${incidentId}" aria-label="Open incident chat for ${incidentId}">Chat</button>
-                  <button class="action-button user-chat" data-user-id="${incident.userId}" aria-label="Chat with user ${userData.displayName || userData.email}">Chat User</button>
-                  <button class="action-button call" data-user-id="${incident.userId}" aria-label="Call user ${userData.displayName || userData.email}">Call</button>
+                <td class="actions">
+                  <div class="action-buttons">
+                    <button class="action-button resolve" data-id="${incidentId}" aria-label="Resolve incident ${incidentId}">Resolve</button>
+                    <button class="action-button escalate" data-id="${incidentId}" aria-label="Escalate incident ${incidentId}">Escalate</button>
+                    <button class="action-button chat" data-id="${incidentId}" aria-label="Open incident chat for ${incidentId}">Chat</button>
+                    <button class="action-button user-chat" data-user-id="${incident.userId}" aria-label="Chat with user ${userData.displayName || userData.email}">Chat User</button>
+                    <button class="action-button call" data-user-id="${incident.userId}" aria-label="Call user ${userData.displayName || userData.email}">Call</button>
+                  </div>
                 </td>
               `;
               incidentList.appendChild(row);
