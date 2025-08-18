@@ -194,22 +194,25 @@
     }
 
     .action-buttons {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, auto);
       gap: 0.25rem;
-      align-items: flex-start;
+      align-items: center;
+      justify-items: center;
     }
 
     .action-button {
-      padding: 0.5rem 0.75rem;
+      padding: 0.4rem 0.6rem;
       border: none;
       border-radius: 9999px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 500;
       transition: all 0.3s ease;
       width: 100%;
       text-align: center;
+      min-width: 70px;
     }
 
     .action-button.resolve {
@@ -441,8 +444,8 @@
         max-width: 90px;
       }
       .action-button {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.75rem;
+        padding: 0.3rem 0.5rem;
+        font-size: 0.7rem;
       }
       #map {
         height: 300px;
@@ -497,6 +500,10 @@
         position: sticky;
         top: 0;
         z-index: 5;
+      }
+      .action-buttons {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, auto);
       }
       .action-button {
         padding: 0.2rem 0.4rem;
