@@ -236,11 +236,6 @@
       <input type="password" id="password" placeholder="Enter your password" aria-label="Password">
       <div class="error-message" id="password-error">Password must be at least 6 characters.</div>
     </div>
-    <div class="input-group">
-      <label for="admin-code">Admin Code</label>
-      <input type="text" id="admin-code" placeholder="Enter admin code" aria-label="Admin code">
-      <div class="error-message" id="admin-code-error">Invalid admin code.</div>
-    </div>
     <button class="signup-button" id="signup-button" aria-label="Sign up as admin">Sign Up</button>
     <div class="link">
       Already have an account? <a href="signin.html">Sign In</a>
@@ -250,15 +245,27 @@
     <div class="spinner"></div>
   </div>
   <script type="module">
+    // Check if Firebase scripts are loaded
+    if (typeof firebase === 'undefined') {
+      console.error("Firebase scripts failed to load.");
+      window.alert("Failed to load Firebase. Please check your network or try again later.");
+    }
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     document.addEventListener("DOMContentLoaded", async () => {
-      // Initialize theme from localStorage
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      console.log("Initial theme set to:", savedTheme);
+      // Initialize theme with fallback
+      let savedTheme = 'light';
+      try {
+        savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        console.log("Initial theme set to:", savedTheme);
+      } catch (error) {
+        console.error("Failed to initialize theme from localStorage:", error.message);
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
 
       const firebaseConfig = {
         apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -286,25 +293,14 @@
       const signupButton = document.getElementById("signup-button");
       const emailInput = document.getElementById("email");
       const passwordInput = document.getElementById("password");
-      const adminCodeInput = document.getElementById("admin-code");
       const emailError = document.getElementById("email-error");
       const passwordError = document.getElementById("password-error");
-      const adminCodeError = document.getElementById("admin-code-error");
       const spinnerOverlay = document.getElementById("spinner-overlay");
 
-      async function validateAdminCode(code) {
-        try {
-          const adminCodeRef = ref(db, 'adminCodes');
-          const snapshot = await get(adminCodeRef);
-          if (snapshot.exists()) {
-            const validCodes = snapshot.val();
-            return validCodes && validCodes[code] === true;
-          }
-          return false;
-        } catch (error) {
-          console.error("Error validating admin code:", error.code, error.message);
-          return false;
-        }
+      if (!signupButton || !emailInput || !passwordInput || !emailError || !passwordError || !spinnerOverlay) {
+        console.error("DOM elements missing:", { signupButton, emailInput, passwordInput, emailError, passwordError, spinnerOverlay });
+        showError(null, "Page initialization failed. Please refresh the page.");
+        return;
       }
 
       function showSpinner() {
@@ -322,21 +318,19 @@
           element.textContent = message;
           element.classList.add("active");
         } else {
-          alert(message); // Fallback to alert for general errors
+          window.alert(message);
         }
       }
 
       function clearErrors() {
         emailError.classList.remove("active");
         passwordError.classList.remove("active");
-        adminCodeError.classList.remove("active");
       }
 
       async function handleSignup() {
         clearErrors();
         const email = emailInput.value.trim();
         const password = passwordInput.value.trim();
-        const adminCode = adminCodeInput.value.trim();
 
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           showError(emailError, "Please enter a valid email.");
@@ -348,19 +342,8 @@
           return;
         }
 
-        if (!adminCode) {
-          showError(adminCodeError, "Please enter an admin code.");
-          return;
-        }
-
         showSpinner();
         try {
-          const isValidAdminCode = await validateAdminCode(adminCode);
-          if (!isValidAdminCode) {
-            showError(adminCodeError, "Invalid admin code.");
-            return;
-          }
-
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
           console.log("Admin user created:", user.uid, user.email);
@@ -377,14 +360,18 @@
           setTimeout(() => window.location.href = "index.html", 500);
         } catch (error) {
           console.error("Signup error:", error.code, error.message);
-          if (error.code === "auth/email-already-in-use") {
-            showError(emailError, "This email is already registered.");
-          } else if (error.code === "auth/invalid-email") {
-            showError(emailError, "Invalid email format.");
-          } else if (error.code === "auth/weak-password") {
-            showError(passwordError, "Password is too weak.");
-          } else {
-            showError(null, `Signup failed: ${error.message}`);
+          switch (error.code) {
+            case "auth/email-already-in-use":
+              showError(emailError, "This email is already registered.");
+              break;
+            case "auth/invalid-email":
+              showError(emailError, "Invalid email format.");
+              break;
+            case "auth/weak-password":
+              showError(passwordError, "Password is too weak.");
+              break;
+            default:
+              showError(null, `Signup failed: ${error.message}`);
           }
         } finally {
           hideSpinner();
@@ -396,9 +383,6 @@
         if (e.key === "Enter") handleSignup();
       });
       passwordInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") handleSignup();
-      });
-      adminCodeInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") handleSignup();
       });
     });
