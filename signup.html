@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin Signup - Emergency Map</title>
+  <title>Admin Signup/Login - Emergency Map</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
@@ -43,9 +43,6 @@
       min-height: 100vh;
       margin: 0;
       padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       transition: background 0.3s ease, opacity 0.5s ease;
       user-select: none;
       -webkit-user-select: none;
@@ -57,109 +54,85 @@
       opacity: 0;
     }
 
-    .container {
-      max-width: 400px;
-      width: 100%;
-      padding: 1.5rem;
-      background: var(--card-background);
-      border-radius: 12px;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-      border: 1px solid var(--border);
+    .transition-base {
+      transition: all 0.3s ease;
     }
 
-    .title {
+    .auth-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    .auth-card {
+      background: var(--card-background);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .auth-card h1 {
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--text-dark);
-      text-align: center;
       margin-bottom: 1.5rem;
     }
 
-    .input-group {
+    .auth-input {
+      width: 100%;
+      padding: 0.75rem;
       margin-bottom: 1rem;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--text-dark);
-      margin-bottom: 0.5rem;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 0.75rem;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.9rem;
-      color: var(--text-dark);
+      border-radius: 9999px;
       background: var(--white);
+      color: var(--text-dark);
       outline: none;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      transition: border-color 0.3s ease;
     }
 
-    .input-group input:focus {
+    .auth-input:focus {
       border-color: var(--primary-purple);
-      box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+      box-shadow: 0 0 0 2px var(--focus-ring);
     }
 
-    .input-group input::placeholder {
-      color: var(--text-light);
-    }
-
-    .error-message {
-      color: var(--danger-red);
-      font-size: 0.8rem;
-      margin-top: 0.25rem;
-      display: none;
-    }
-
-    .error-message.active {
-      display: block;
-    }
-
-    .signup-button {
+    .auth-button {
       width: 100%;
       padding: 0.75rem;
-      background: linear-gradient(90deg, var(--primary-purple), var(--secondary-teal));
-      color: var(--white);
       border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
+      border-radius: 9999px;
+      background: var(--primary-purple);
+      color: var(--white);
+      font-weight: 500;
       cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: all 0.3s ease;
     }
 
-    .signup-button:hover,
-    .signup-button:focus {
+    .auth-button:hover,
+    .auth-button:focus {
+      background: #5B21B6;
       transform: scale(1.05);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       outline: 2px solid var(--focus-ring);
     }
 
-    .signup-button:active {
-      transform: scale(0.95);
-    }
-
-    .link {
-      text-align: center;
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: var(--text-light);
-    }
-
-    .link a {
+    .toggle-auth {
       color: var(--primary-purple);
-      text-decoration: none;
-      font-weight: 500;
+      font-size: 0.875rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      display: inline-block;
+      transition: all 0.3s ease;
     }
 
-    .link a:hover,
-    .link a:focus {
+    .toggle-auth:hover,
+    .toggle-auth:focus {
       text-decoration: underline;
-      outline: none;
+      outline: 2px solid var(--focus-ring);
     }
 
     .spinner-overlay {
@@ -195,197 +168,151 @@
     }
 
     @media (max-width: 767px) {
-      .container {
-        padding: 1rem;
-      }
-      .title {
-        font-size: 1.25rem;
-      }
-      .input-group label {
-        font-size: 0.85rem;
-      }
-      .input-group input {
-        font-size: 0.85rem;
-        padding: 0.5rem;
-      }
-      .signup-button {
-        font-size: 0.9rem;
-        padding: 0.5rem;
-      }
-      .link {
-        font-size: 0.85rem;
-      }
-      .spinner {
-        width: 40px;
-        height: 40px;
-        border-width: 4px;
-      }
+      .auth-card { padding: 1.5rem; }
+      .auth-card h1 { font-size: 1.25rem; }
+      .auth-input { padding: 0.6rem; }
+      .auth-button { padding: 0.6rem; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1 class="title">Admin Signup</h1>
-    <div class="input-group">
-      <label for="email">Email</label>
-      <input type="email" id="email" placeholder="Enter your email" aria-label="Email address">
-      <div class="error-message" id="email-error">Please enter a valid email.</div>
-    </div>
-    <div class="input-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Enter your password" aria-label="Password">
-      <div class="error-message" id="password-error">Password must be at least 6 characters.</div>
-    </div>
-    <button class="signup-button" id="signup-button" aria-label="Sign up as admin">Sign Up</button>
-    <div class="link">
-      Already have an account? <a href="signin.html">Sign In</a>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1 id="auth-title">Admin Signup</h1>
+      <div>
+        <input type="text" id="display-name" class="auth-input" placeholder="Display Name" aria-label="Display Name">
+        <input type="email" id="email" class="auth-input" placeholder="Email" aria-label="Email">
+        <input type="password" id="password" class="auth-input" placeholder="Password" aria-label="Password">
+        <button id="auth-button" class="auth-button" aria-label="Sign up as admin">Sign Up</button>
+        <div class="toggle-auth" id="toggle-auth" role="button" aria-label="Switch to login">Already have an account? Login</div>
+      </div>
+      <div id="error-message" style="color: var(--danger-red); margin-top: 1rem; font-size: 0.875rem;" aria-live="assertive"></div>
     </div>
   </div>
+
   <div class="spinner-overlay" id="spinner-overlay">
     <div class="spinner"></div>
   </div>
-  <script type="module">
-    // Check if Firebase scripts are loaded
-    if (typeof firebase === 'undefined') {
-      console.error("Firebase scripts failed to load.");
-      window.alert("Failed to load Firebase. Please check your network or try again later.");
-    }
 
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      // Initialize theme with fallback
-      let savedTheme = 'light';
+    const firebaseConfig = {
+      apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+      authDomain: "fire-b-a8878.firebaseapp.com",
+      databaseURL: "https://fire-b-a8878.firebaseio.com",
+      projectId: "fire-b-a8878",
+      storageBucket: "fire-b-a8878.firebasestorage.app",
+      messagingSenderId: "658673187627",
+      appId: "1:658673187627:web:6e4c29af661785f0afa36e",
+      measurementId: "G-V4W97VMSKL"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const authTitle = document.getElementById("auth-title");
+    const displayNameInput = document.getElementById("display-name");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const authButton = document.getElementById("auth-button");
+    const toggleAuth = document.getElementById("toggle-auth");
+    const errorMessage = document.getElementById("error-message");
+    const spinnerOverlay = document.getElementById("spinner-overlay");
+
+    let isSignup = true;
+
+    function showSpinner() {
+      spinnerOverlay.classList.add("active");
+    }
+
+    function hideSpinner() {
+      spinnerOverlay.classList.remove("active");
+    }
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      console.log("Error displayed:", message);
+    }
+
+    async function setAdminRole(user) {
       try {
-        savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        console.log("Initial theme set to:", savedTheme);
+        const adminRef = ref(db, `admins/${user.uid}`);
+        await set(adminRef, {
+          isAdmin: true,
+          email: user.email,
+          displayName: user.displayName || user.email.split("@")[0],
+          createdAt: Date.now()
+        });
+        console.log(`Admin role set for user ${user.uid}`);
       } catch (error) {
-        console.error("Failed to initialize theme from localStorage:", error.message);
-        document.documentElement.setAttribute('data-theme', 'light');
+        console.error("Error setting admin role:", error);
+        showError(`Failed to set admin role: ${error.message}`);
       }
+    }
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
-        authDomain: "fire-b-a8878.firebaseapp.com",
-        databaseURL: "https://fire-b-a8878.firebaseio.com",
-        projectId: "fire-b-a8878",
-        storageBucket: "fire-b-a8878.firebasestorage.app",
-        messagingSenderId: "658673187627",
-        appId: "1:658673187627:web:6e4c29af661785f0afa36e",
-        measurementId: "G-V4W97VMSKL"
-      };
+    async function handleAuth() {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      const displayName = displayNameInput.value.trim();
 
-      let app, auth, db;
-      try {
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getDatabase(app);
-        console.log("Firebase initialized successfully at", new Date().toLocaleString());
-      } catch (error) {
-        console.error("Firebase initialization failed:", error.code, error.message);
-        showError(null, "Failed to connect to Firebase. Please check your network.");
+      if (!email || !password || (isSignup && !displayName)) {
+        showError("Please fill in all fields.");
         return;
       }
 
-      const signupButton = document.getElementById("signup-button");
-      const emailInput = document.getElementById("email");
-      const passwordInput = document.getElementById("password");
-      const emailError = document.getElementById("email-error");
-      const passwordError = document.getElementById("password-error");
-      const spinnerOverlay = document.getElementById("spinner-overlay");
-
-      if (!signupButton || !emailInput || !passwordInput || !emailError || !passwordError || !spinnerOverlay) {
-        console.error("DOM elements missing:", { signupButton, emailInput, passwordInput, emailError, passwordError, spinnerOverlay });
-        showError(null, "Page initialization failed. Please refresh the page.");
-        return;
-      }
-
-      function showSpinner() {
-        spinnerOverlay.classList.add("active");
-        console.log("Spinner shown at", new Date().toLocaleString());
-      }
-
-      function hideSpinner() {
-        spinnerOverlay.classList.remove("active");
-        console.log("Spinner hidden at", new Date().toLocaleString());
-      }
-
-      function showError(element, message) {
-        if (element) {
-          element.textContent = message;
-          element.classList.add("active");
-        } else {
-          window.alert(message);
-        }
-      }
-
-      function clearErrors() {
-        emailError.classList.remove("active");
-        passwordError.classList.remove("active");
-      }
-
-      async function handleSignup() {
-        clearErrors();
-        const email = emailInput.value.trim();
-        const password = passwordInput.value.trim();
-
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          showError(emailError, "Please enter a valid email.");
-          return;
-        }
-
-        if (password.length < 6) {
-          showError(passwordError, "Password must be at least 6 characters.");
-          return;
-        }
-
-        showSpinner();
-        try {
+      showSpinner();
+      try {
+        if (isSignup) {
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
-          console.log("Admin user created:", user.uid, user.email);
-
-          await set(ref(db, `users/${user.uid}`), {
-            email: user.email,
-            displayName: email.split("@")[0],
-            isAdmin: true,
-            createdAt: Date.now()
-          });
-          console.log("Admin user data saved to database");
-
+          await updateProfile(user, { displayName });
+          await setAdminRole(user);
+          console.log("Admin signed up and role set:", user.uid);
           document.body.classList.add("fade-out");
           setTimeout(() => window.location.href = "index.html", 500);
-        } catch (error) {
-          console.error("Signup error:", error.code, error.message);
-          switch (error.code) {
-            case "auth/email-already-in-use":
-              showError(emailError, "This email is already registered.");
-              break;
-            case "auth/invalid-email":
-              showError(emailError, "Invalid email format.");
-              break;
-            case "auth/weak-password":
-              showError(passwordError, "Password is too weak.");
-              break;
-            default:
-              showError(null, `Signup failed: ${error.message}`);
-          }
-        } finally {
-          hideSpinner();
+        } else {
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+          console.log("Admin logged in:", user.uid);
+          document.body.classList.add("fade-out");
+          setTimeout(() => window.location.href = "index.html", 500);
         }
+      } catch (error) {
+        console.error("Authentication error:", error);
+        showError(`Authentication failed: ${error.message}`);
+      } finally {
+        hideSpinner();
       }
+    }
 
-      signupButton.addEventListener("click", handleSignup);
-      emailInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") handleSignup();
-      });
-      passwordInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") handleSignup();
-      });
+    function toggleAuthMode() {
+      isSignup = !isSignup;
+      authTitle.textContent = isSignup ? "Admin Signup" : "Admin Login";
+      authButton.textContent = isSignup ? "Sign Up" : "Login";
+      authButton.setAttribute("aria-label", isSignup ? "Sign up as admin" : "Login as admin");
+      toggleAuth.textContent = isSignup ? "Already have an account? Login" : "Need an account? Sign Up";
+      toggleAuth.setAttribute("aria-label", isSignup ? "Switch to login" : "Switch to signup");
+      displayNameInput.style.display = isSignup ? "block" : "none";
+      errorMessage.textContent = "";
+      console.log("Toggled to:", isSignup ? "Signup" : "Login");
+    }
+
+    authButton.addEventListener("click", handleAuth);
+    toggleAuth.addEventListener("click", toggleAuthMode);
+    passwordInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        handleAuth();
+      }
     });
+
+    // Initialize theme
+    const savedTheme = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    console.log("Initial theme set to:", savedTheme);
   </script>
 </body>
 </html>
