@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin Dashboard - Emergency Map</title>
+  <title>Dashboard - Emergency Map</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
@@ -277,18 +277,15 @@
       border-radius: 8px;
       max-width: 80%;
       word-wrap: break-word;
+      background: var(--highlight);
+      color: var(--text-dark);
+      margin-right: auto;
     }
 
     .chat-message.user {
       background: var(--primary-purple);
       color: var(--white);
       margin-left: auto;
-    }
-
-    .chat-message.admin {
-      background: var(--highlight);
-      color: var(--text-dark);
-      margin-right: auto;
     }
 
     .chat-message-timestamp {
@@ -346,7 +343,7 @@
 </head>
 <body>
   <div class="top-bar" role="banner">
-    <h1 class="title">Admin Dashboard</h1>
+    <h1 class="title">Dashboard</h1>
     <div class="flex items-center gap-2">
       <button class="theme-toggle transition-base" id="theme-toggle" aria-label="Toggle dark mode">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -469,18 +466,6 @@
       }
     }
 
-    async function checkAdminAccess(user) {
-      try {
-        const adminRef = ref(db, `admins/${user.uid}`);
-        const adminSnap = await get(adminRef);
-        console.log("Admin data for", user.uid, ":", adminSnap.val());
-        return adminSnap.exists() && adminSnap.val().isAdmin === true;
-      } catch (error) {
-        console.error("Error checking admin access:", error);
-        return false;
-      }
-    }
-
     async function checkAuthState() {
       showSpinner();
       try {
@@ -491,32 +476,21 @@
             document.body.classList.add("fade-out");
             setTimeout(() => window.location.href = "signup.html", 500);
             reject(new Error("Authentication timed out"));
-          }, 15000); // Increased timeout to 15s
+          }, 30000); // Increased timeout to 30s
 
           onAuthStateChanged(auth, async (user) => {
             clearTimeout(timeout);
             if (!user) {
               console.log("No user detected, redirecting to signup.");
-              showAlert("Please sign in to access the admin dashboard.");
+              showAlert("Please sign in to access the dashboard.");
               document.body.classList.add("fade-out");
               setTimeout(() => window.location.href = "signup.html", 500);
               hideSpinner();
               resolve(null);
             } else {
-              console.log("User detected:", user.uid, user.email);
-              const isAdmin = await checkAdminAccess(user);
-              if (!isAdmin) {
-                console.log("User is not admin, redirecting to home.");
-                showAlert("Access denied. Admin privileges required.");
-                document.body.classList.add("fade-out");
-                setTimeout(() => window.location.href = "home.html", 500);
-                hideSpinner();
-                resolve(null);
-              } else {
-                console.log("Admin authenticated:", user.uid);
-                hideSpinner();
-                resolve(user);
-              }
+              console.log("User authenticated:", user.uid, user.email);
+              hideSpinner();
+              resolve(user);
             }
           }, (error) => {
             clearTimeout(timeout);
@@ -693,12 +667,12 @@
         const userData = await fetchUserData(auth.currentUser.uid);
         await set(messageRef, {
           senderId: auth.currentUser.uid,
-          senderName: userData.displayName || "Admin",
+          senderName: userData.displayName || userData.email,
           message: messageText,
           timestamp: Date.now(),
-          isAdmin: true
+          isAdmin: false
         });
-        console.log(`Admin message sent for incident ${incidentId}: ${messageText}`);
+        console.log(`Message sent for incident ${incidentId}: ${messageText}`);
         chatInput.value = "";
         const incidentRef = ref(db, `incidents/${incidentId}`);
         const incidentSnap = await get(incidentRef);
@@ -710,7 +684,7 @@
             type: incident.type,
             timestamp: Date.now(),
             read: false,
-            message: "New message from admin regarding your incident.",
+            message: "New message regarding your incident.",
             createdAt: Date.now()
           });
         }
@@ -732,7 +706,7 @@
             .sort((a, b) => a.timestamp - b.timestamp)
             .forEach(msg => {
               const messageEl = document.createElement("div");
-              messageEl.className = `chat-message ${msg.isAdmin ? "admin" : "user"}`;
+              messageEl.className = `chat-message ${msg.senderId === auth.currentUser.uid ? "user" : ""}`;
               messageEl.innerHTML = `
                 <div><strong>${msg.senderName}:</strong> ${msg.message}</div>
                 <div class="chat-message-timestamp">${new Date(msg.timestamp).toLocaleTimeString()}</div>
@@ -779,7 +753,7 @@
 
     init().catch(error => {
       console.error("Initialization error:", error);
-      showAlert("Failed to initialize admin dashboard: " + error.message);
+      showAlert("Failed to initialize dashboard: " + error.message);
     });
   </script>
 </body>
