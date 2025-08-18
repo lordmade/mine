@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin Signup/Login - Emergency Map</title>
+  <title>Signup/Login - Emergency Map</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
@@ -213,7 +213,7 @@
 <body>
   <div class="auth-container">
     <div class="auth-card">
-      <h1>Admin Access</h1>
+      <h1>Access Emergency Map</h1>
       <div class="tab-nav">
         <button class="tab-button active" data-tab="signup" aria-label="Switch to signup tab">Sign Up</button>
         <button class="tab-button" data-tab="login" aria-label="Switch to login tab">Login</button>
@@ -222,12 +222,12 @@
         <input type="text" id="signup-display-name" class="auth-input" placeholder="Display Name" aria-label="Display Name">
         <input type="email" id="signup-email" class="auth-input" placeholder="Email" aria-label="Email">
         <input type="password" id="signup-password" class="auth-input" placeholder="Password" aria-label="Password">
-        <button id="signup-button" class="auth-button" aria-label="Sign up as admin">Sign Up</button>
+        <button id="signup-button" class="auth-button" aria-label="Sign up">Sign Up</button>
       </div>
       <div id="login-tab" class="tab-content">
         <input type="email" id="login-email" class="auth-input" placeholder="Email" aria-label="Email">
         <input type="password" id="login-password" class="auth-input" placeholder="Password" aria-label="Password">
-        <button id="login-button" class="auth-button" aria-label="Login as admin">Login</button>
+        <button id="login-button" class="auth-button" aria-label="Login">Login</button>
       </div>
       <div id="error-message" style="color: var(--danger-red); margin-top: 1rem; font-size: 0.875rem;" aria-live="assertive"></div>
     </div>
@@ -239,7 +239,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const firebaseConfig = {
@@ -293,22 +293,6 @@
       console.log(`Switched to ${tabName} tab`);
     }
 
-    async function setAdminRole(user) {
-      try {
-        const adminRef = ref(db, `admins/${user.uid}`);
-        await set(adminRef, {
-          isAdmin: true,
-          email: user.email,
-          displayName: user.displayName || user.email.split("@")[0],
-          createdAt: Date.now()
-        });
-        console.log(`Admin role set for user ${user.uid}`);
-      } catch (error) {
-        console.error("Error setting admin role:", error);
-        showError(`Failed to set admin role: ${error.message}`);
-      }
-    }
-
     async function handleSignup() {
       const displayName = signupDisplayName.value.trim();
       const email = signupEmail.value.trim();
@@ -321,15 +305,22 @@
 
       showSpinner();
       try {
+        await setPersistence(auth, browserLocalPersistence);
+        console.log("Persistence set for signup");
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         await updateProfile(user, { displayName });
-        await setAdminRole(user);
-        console.log("Admin signed up and role set:", user.uid);
+        await set(ref(db, `users/${user.uid}`), {
+          displayName,
+          email,
+          online: true,
+          createdAt: Date.now()
+        });
+        console.log("User signed up:", user.uid, user.email);
         document.body.classList.add("fade-out");
-        setTimeout(() => window.location.href = "home.html", 500);
+        setTimeout(() => window.location.href = "index.html", 500);
       } catch (error) {
-        console.error("Signup error:", error);
+        console.error("Signup error:", error, "Code:", error.code);
         showError(`Signup failed: ${error.message}`);
       } finally {
         hideSpinner();
@@ -347,12 +338,14 @@
 
       showSpinner();
       try {
+        await setPersistence(auth, browserLocalPersistence);
+        console.log("Persistence set for login");
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log("Admin logged in:", userCredential.user.uid);
+        console.log("User logged in:", userCredential.user.uid, userCredential.user.email);
         document.body.classList.add("fade-out");
-        setTimeout(() => window.location.href = "home.html", 500);
+        setTimeout(() => window.location.href = "index.html", 500);
       } catch (error) {
-        console.error("Login error:", error);
+        console.error("Login error:", error, "Code:", error.code);
         showError(`Login failed: ${error.message}`);
       } finally {
         hideSpinner();
