@@ -145,10 +145,12 @@
 
     .dashboard-container {
       margin-top: 5rem;
-      margin-left: 270px;
+      margin-left: 260px;
       padding: 1rem;
+      width: calc(100% - 280px);
       max-width: 1200px;
-      margin-right: auto;
+      margin-right: 1rem;
+      overflow-x: auto;
     }
 
     .incident-table {
@@ -158,14 +160,19 @@
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      table-layout: auto;
     }
 
     .incident-table th,
     .incident-table td {
-      padding: 1rem;
+      padding: 0.75rem;
       text-align: left;
       border-bottom: 1px solid var(--border);
       color: var(--text-dark);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
     }
 
     .incident-table th {
@@ -183,13 +190,14 @@
     }
 
     .action-button {
-      padding: 0.5rem 1rem;
+      padding: 0.5rem 0.75rem;
       border: none;
       border-radius: 9999px;
       cursor: pointer;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       font-weight: 500;
       transition: all 0.3s ease;
+      margin-right: 0.5rem;
     }
 
     .action-button.resolve {
@@ -233,7 +241,7 @@
 
     .modal-content {
       background: var(--card-background);
-      padding: 2rem;
+      padding: 1.5rem;
       border-radius: 20px 20px 0 0;
       width: 100%;
       max-width: 500px;
@@ -321,23 +329,161 @@
       animation: spin 1s linear infinite;
     }
 
+    .alert-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1500;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .alert-modal.active {
+      display: flex;
+    }
+
+    .alert-modal-content {
+      background: var(--card-background);
+      padding: 1.5rem;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      transform: scale(0.7);
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .alert-modal.active .alert-modal-content {
+      transform: scale(1);
+    }
+
+    .alert-modal-content p {
+      color: var(--text-dark);
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .alert-modal-content .alert-close-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 9999px;
+      background: var(--primary-purple);
+      color: var(--white);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .alert-modal-content .alert-close-btn:hover,
+    .alert-modal-content .alert-close-btn:focus {
+      background: #5B21B6;
+      transform: scale(1.05);
+      outline: 2px solid var(--focus-ring);
+    }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
 
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 200px;
+      }
+      .dashboard-container {
+        margin-left: 210px;
+        width: calc(100% - 220px);
+        padding: 0.5rem;
+      }
+      .incident-table th,
+      .incident-table td {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+        max-width: 120px;
+      }
+      .action-button {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+        margin-right: 0.3rem;
+      }
+    }
+
     @media (max-width: 767px) {
-      .top-bar { padding: 0.75rem; }
-      .title { font-size: 1.25rem; }
-      .theme-toggle svg, .logout-button svg { width: 20px; height: 20px; }
-      .sidebar { width: 200px; }
-      .dashboard-container { margin-left: 220px; padding: 0.5rem; margin-top: 4rem; }
-      .incident-table th, .incident-table td { padding: 0.5rem; font-size: 0.8rem; }
-      .action-button { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
-      .modal-content { padding: 1.5rem; }
-      .modal-content h2 { font-size: 1.1rem; }
-      .chat-message { font-size: 0.8rem; }
-      .chat-message-timestamp { font-size: 0.65rem; }
+      .top-bar {
+        padding: 0.75rem;
+      }
+      .title {
+        font-size: 1.25rem;
+      }
+      .theme-toggle svg,
+      .logout-button svg {
+        width: 20px;
+        height: 20px;
+      }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        top: 4rem;
+        padding: 0.5rem;
+        position: sticky;
+        box-shadow: none;
+      }
+      .dashboard-container {
+        margin-left: 0;
+        margin-top: 8rem;
+        width: 100%;
+        padding: 0.5rem;
+        margin-right: 0;
+      }
+      .incident-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      .incident-table thead,
+      .incident-table tbody,
+      .incident-table tr {
+        display: block;
+      }
+      .incident-table th,
+      .incident-table td {
+        min-width: 100px;
+        max-width: 100px;
+        font-size: 0.75rem;
+        padding: 0.4rem;
+      }
+      .incident-table th {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+      .action-button {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.7rem;
+      }
+      .modal-content {
+        padding: 1rem;
+      }
+      .modal-content h2 {
+        font-size: 1.1rem;
+      }
+      .chat-message {
+        font-size: 0.8rem;
+      }
+      .chat-message-timestamp {
+        font-size: 0.65rem;
+      }
+      .alert-modal-content {
+        padding: 1rem;
+      }
+      .alert-modal-content p {
+        font-size: 0.9rem;
+      }
     }
   </style>
 </head>
@@ -399,6 +545,13 @@
     </div>
   </div>
 
+  <div class="alert-modal" id="alert-modal" role="dialog" aria-modal="true" aria-labelledby="alert-modal-title">
+    <div class="alert-modal-content">
+      <p id="alert-message" aria-live="assertive"></p>
+      <button class="alert-close-btn transition-base" id="alert-close-btn" aria-label="Close alert">OK</button>
+    </div>
+  </div>
+
   <div class="spinner-overlay" id="spinner-overlay">
     <div class="spinner"></div>
   </div>
@@ -433,6 +586,9 @@
     const themeToggle = document.getElementById("theme-toggle");
     const logoutButton = document.getElementById("logout-button");
     const unreadCount = document.getElementById("unread-count");
+    const alertModal = document.getElementById("alert-modal");
+    const alertMessage = document.getElementById("alert-message");
+    const alertCloseBtn = document.getElementById("alert-close-btn");
     let activeIncidentId = null;
 
     function showSpinner() {
@@ -443,9 +599,37 @@
       spinnerOverlay.classList.remove("active");
     }
 
-    function showAlert(message) {
-      alert(message); // Replace with custom modal for production
+    function showAlert(message, redirect = false) {
+      alertMessage.textContent = message;
+      alertModal.classList.add("active");
+      alertModal.setAttribute("aria-hidden", "false");
+      alertCloseBtn.focus();
       console.log("Alert shown:", message);
+      if (redirect) {
+        alertCloseBtn.onclick = () => {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+          document.body.classList.add("fade-out");
+          setTimeout(() => window.location.href = "signup.html", 500);
+        };
+      } else {
+        alertCloseBtn.onclick = () => {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+        };
+      }
+      alertModal.addEventListener("click", (e) => {
+        if (e.target === alertModal) {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+        }
+      }, { once: true });
+      alertCloseBtn.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+        }
+      }, { once: true });
     }
 
     async function fetchUserData(userId) {
@@ -458,7 +642,7 @@
         }
         return { displayName: "Unknown User", email: "Unknown" };
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching user data:", error, "Code:", error.code);
         showAlert(`Failed to fetch user data: ${error.message}`);
         return { displayName: "Unknown User", email: "Unknown" };
       } finally {
@@ -468,45 +652,49 @@
 
     async function checkAuthState() {
       showSpinner();
-      try {
-        await setPersistence(auth, browserLocalPersistence);
-        return await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            showAlert("Authentication timed out. Please sign in.");
-            document.body.classList.add("fade-out");
-            setTimeout(() => window.location.href = "signup.html", 500);
-            reject(new Error("Authentication timed out"));
-          }, 30000); // Increased timeout to 30s
+      let attempts = 0;
+      const maxAttempts = 3;
+      while (attempts < maxAttempts) {
+        try {
+          console.log(`Auth attempt ${attempts + 1}: Setting persistence...`);
+          await setPersistence(auth, browserLocalPersistence);
+          console.log("Persistence set, checking local storage...");
+          const authUser = localStorage.getItem(`firebase:authUser:${firebaseConfig.apiKey}:${firebaseConfig.appId}`);
+          console.log("Local storage authUser:", authUser ? "Found" : "Not found");
+          return await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              console.error(`Auth attempt ${attempts + 1}: Timeout after 30s`);
+              reject(new Error("Authentication timed out"));
+            }, 30000);
 
-          onAuthStateChanged(auth, async (user) => {
-            clearTimeout(timeout);
-            if (!user) {
-              console.log("No user detected, redirecting to signup.");
-              showAlert("Please sign in to access the dashboard.");
-              document.body.classList.add("fade-out");
-              setTimeout(() => window.location.href = "signup.html", 500);
-              hideSpinner();
-              resolve(null);
-            } else {
-              console.log("User authenticated:", user.uid, user.email);
-              hideSpinner();
-              resolve(user);
-            }
-          }, (error) => {
-            clearTimeout(timeout);
-            console.error("Auth state error:", error);
-            showAlert(`Authentication failed: ${error.message}`);
-            document.body.classList.add("fade-out");
-            setTimeout(() => window.location.href = "signup.html", 500);
-            hideSpinner();
-            reject(error);
+            onAuthStateChanged(auth, async (user) => {
+              clearTimeout(timeout);
+              if (!user) {
+                console.log(`Auth attempt ${attempts + 1}: No user detected`);
+                showAlert("Please sign in to access the dashboard.", true);
+                hideSpinner();
+                resolve(null);
+              } else {
+                console.log(`Auth attempt ${attempts + 1}: User authenticated:`, user.uid, user.email, "Token:", user.accessToken);
+                hideSpinner();
+                resolve(user);
+              }
+            }, (error) => {
+              clearTimeout(timeout);
+              console.error(`Auth attempt ${attempts + 1}: Auth state error:`, error, "Code:", error.code);
+              reject(error);
+            });
           });
-        });
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        showAlert(`Failed to verify authentication: ${error.message}`);
-        hideSpinner();
-        return null;
+        } catch (error) {
+          attempts++;
+          console.error(`Auth attempt ${attempts} failed:`, error, "Code:", error.code);
+          if (attempts === maxAttempts) {
+            showAlert(`Authentication failed after ${maxAttempts} attempts: ${error.message}`, true);
+            hideSpinner();
+            return null;
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
     }
 
@@ -523,10 +711,9 @@
       try {
         await signOut(auth);
         console.log("User logged out");
-        document.body.classList.add("fade-out");
-        setTimeout(() => window.location.href = "signup.html", 500);
+        showAlert("Logged out successfully", true);
       } catch (error) {
-        console.error("Logout error:", error);
+        console.error("Logout error:", error, "Code:", error.code);
         showAlert(`Failed to log out: ${error.message}`);
       } finally {
         hideSpinner();
@@ -551,12 +738,12 @@
               if (isUnread) unread++;
               const row = document.createElement("tr");
               row.innerHTML = `
-                <td>${incidentId}${isUnread ? ' <span class="unread-count">New</span>' : ''}</td>
-                <td>${incident.type}</td>
-                <td>${userData.displayName || userData.email}</td>
-                <td>${incident.location.encryptedLng}, ${incident.location.encryptedLat}</td>
-                <td>${new Date(incident.timestamp).toLocaleString()}</td>
-                <td>${incident.status}</td>
+                <td title="${incidentId}">${incidentId}${isUnread ? ' <span class="unread-count">New</span>' : ''}</td>
+                <td title="${incident.type}">${incident.type}</td>
+                <td title="${userData.displayName || userData.email}">${userData.displayName || userData.email}</td>
+                <td title="${incident.location.encryptedLng}, ${incident.location.encryptedLat}">${incident.location.encryptedLng}, ${incident.location.encryptedLat}</td>
+                <td title="${new Date(incident.timestamp).toLocaleString()}">${new Date(incident.timestamp).toLocaleString()}</td>
+                <td title="${incident.status}">${incident.status}</td>
                 <td>
                   <button class="action-button resolve" data-id="${incidentId}" aria-label="Resolve incident ${incidentId}">Resolve</button>
                   <button class="action-button escalate" data-id="${incidentId}" aria-label="Escalate incident ${incidentId}">Escalate</button>
@@ -566,10 +753,8 @@
               incidentList.appendChild(row);
             }
 
-            // Update unread count in sidebar
             unreadCount.textContent = unread;
 
-            // Add event listeners for action buttons
             document.querySelectorAll(".action-button.resolve").forEach(button => {
               button.addEventListener("click", async () => {
                 const incidentId = button.dataset.id;
@@ -596,12 +781,12 @@
           }
           hideSpinner();
         }, (error) => {
-          console.error("Error loading incidents:", error);
+          console.error("Error loading incidents:", error, "Code:", error.code);
           showAlert(`Failed to load incidents: ${error.message}`);
           hideSpinner();
         });
       } catch (error) {
-        console.error("Error setting up incidents listener:", error);
+        console.error("Error setting up incidents listener:", error, "Code:", error.code);
         showAlert(`Failed to initialize incidents: ${error.message}`);
         hideSpinner();
       }
@@ -630,7 +815,7 @@
           }
         }
       } catch (error) {
-        console.error(`Error updating incident ${incidentId}:`, error);
+        console.error(`Error updating incident ${incidentId}:`, error, "Code:", error.code);
         showAlert(`Failed to update incident: ${error.message}`);
       } finally {
         hideSpinner();
@@ -689,7 +874,7 @@
           });
         }
       } catch (error) {
-        console.error("Error sending chat message:", error);
+        console.error("Error sending chat message:", error, "Code:", error.code);
         showAlert(`Failed to send message: ${error.message}`);
       } finally {
         hideSpinner();
@@ -716,7 +901,7 @@
             });
         }
       }, (error) => {
-        console.error("Error loading chat messages:", error);
+        console.error("Error loading chat messages:", error, "Code:", error.code);
         showAlert(`Failed to load chat messages: ${error.message}`);
       });
     }
@@ -752,8 +937,8 @@
     }
 
     init().catch(error => {
-      console.error("Initialization error:", error);
-      showAlert("Failed to initialize dashboard: " + error.message);
+      console.error("Initialization error:", error, "Code:", error.code);
+      showAlert(`Failed to initialize dashboard: ${error.message}`);
     });
   </script>
 </body>
