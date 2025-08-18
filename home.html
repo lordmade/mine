@@ -81,7 +81,7 @@
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
 
-    .theme-toggle {
+    .theme-toggle, .logout-button {
       background: none;
       border: none;
       color: var(--white);
@@ -90,16 +90,64 @@
       align-items: center;
     }
 
-    .theme-toggle svg {
+    .theme-toggle svg, .logout-button svg {
       width: 24px;
       height: 24px;
     }
 
+    .sidebar {
+      position: fixed;
+      top: 5rem;
+      left: 0;
+      width: 250px;
+      height: calc(100vh - 5rem);
+      background: var(--card-background);
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-nav {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-nav li {
+      margin-bottom: 0.5rem;
+    }
+
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem;
+      color: var(--text-dark);
+      font-weight: 500;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-nav a:hover, .sidebar-nav a.active {
+      background: var(--highlight);
+      color: var(--primary-purple);
+    }
+
+    .unread-count {
+      background: var(--danger-red);
+      color: var(--white);
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 9999px;
+      margin-left: auto;
+    }
+
     .dashboard-container {
       margin-top: 5rem;
+      margin-left: 270px;
       padding: 1rem;
       max-width: 1200px;
-      margin-left: auto;
       margin-right: auto;
     }
 
@@ -284,8 +332,9 @@
     @media (max-width: 767px) {
       .top-bar { padding: 0.75rem; }
       .title { font-size: 1.25rem; }
-      .theme-toggle svg { width: 20px; height: 20px; }
-      .dashboard-container { padding: 0.5rem; margin-top: 4rem; }
+      .theme-toggle svg, .logout-button svg { width: 20px; height: 20px; }
+      .sidebar { width: 200px; }
+      .dashboard-container { margin-left: 220px; padding: 0.5rem; margin-top: 4rem; }
       .incident-table th, .incident-table td { padding: 0.5rem; font-size: 0.8rem; }
       .action-button { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
       .modal-content { padding: 1.5rem; }
@@ -298,11 +347,25 @@
 <body>
   <div class="top-bar" role="banner">
     <h1 class="title">Admin Dashboard</h1>
-    <button class="theme-toggle transition-base" id="theme-toggle" aria-label="Toggle dark mode">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-      </svg>
-    </button>
+    <div class="flex items-center gap-2">
+      <button class="theme-toggle transition-base" id="theme-toggle" aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+      <button class="logout-button transition-base" id="logout-button" aria-label="Log out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <ul class="sidebar-nav">
+      <li><a href="#" class="active" data-view="incidents" aria-label="View incidents">Incidents <span id="unread-count" class="unread-count">0</span></a></li>
+      <li><a href="settings.html" aria-label="View settings">Settings</a></li>
+    </ul>
   </div>
 
   <div class="dashboard-container">
@@ -345,7 +408,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getDatabase, ref, get, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const firebaseConfig = {
@@ -371,6 +434,8 @@
     const chatInput = document.getElementById("chat-input");
     const sendChatMessage = document.getElementById("send-chat-message");
     const themeToggle = document.getElementById("theme-toggle");
+    const logoutButton = document.getElementById("logout-button");
+    const unreadCount = document.getElementById("unread-count");
     let activeIncidentId = null;
 
     function showSpinner() {
@@ -382,7 +447,7 @@
     }
 
     function showAlert(message) {
-      alert(message); // Simple alert for admin dashboard; can be replaced with custom modal
+      alert(message); // Replace with custom modal for production
       console.log("Alert shown:", message);
     }
 
@@ -408,6 +473,7 @@
       try {
         const adminRef = ref(db, `admins/${user.uid}`);
         const adminSnap = await get(adminRef);
+        console.log("Admin data for", user.uid, ":", adminSnap.val());
         return adminSnap.exists() && adminSnap.val().isAdmin === true;
       } catch (error) {
         console.error("Error checking admin access:", error);
@@ -425,22 +491,25 @@
             document.body.classList.add("fade-out");
             setTimeout(() => window.location.href = "signup.html", 500);
             reject(new Error("Authentication timed out"));
-          }, 10000);
+          }, 15000); // Increased timeout to 15s
 
           onAuthStateChanged(auth, async (user) => {
             clearTimeout(timeout);
             if (!user) {
+              console.log("No user detected, redirecting to signup.");
               showAlert("Please sign in to access the admin dashboard.");
               document.body.classList.add("fade-out");
               setTimeout(() => window.location.href = "signup.html", 500);
               hideSpinner();
               resolve(null);
             } else {
+              console.log("User detected:", user.uid, user.email);
               const isAdmin = await checkAdminAccess(user);
               if (!isAdmin) {
+                console.log("User is not admin, redirecting to home.");
                 showAlert("Access denied. Admin privileges required.");
                 document.body.classList.add("fade-out");
-                setTimeout(() => window.location.href = "index.html", 500);
+                setTimeout(() => window.location.href = "home.html", 500);
                 hideSpinner();
                 resolve(null);
               } else {
@@ -475,7 +544,20 @@
       console.log("Theme toggled to:", newTheme);
     }
 
-    themeToggle.addEventListener("click", toggleTheme);
+    async function logout() {
+      showSpinner();
+      try {
+        await signOut(auth);
+        console.log("User logged out");
+        document.body.classList.add("fade-out");
+        setTimeout(() => window.location.href = "signup.html", 500);
+      } catch (error) {
+        console.error("Logout error:", error);
+        showAlert(`Failed to log out: ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
+    }
 
     async function loadIncidents() {
       showSpinner();
@@ -483,14 +565,19 @@
         const incidentsRef = ref(db, "incidents");
         onValue(incidentsRef, async (snapshot) => {
           incidentList.innerHTML = "";
+          let unread = 0;
           if (snapshot.exists()) {
             const incidents = snapshot.val();
             for (let incidentId in incidents) {
               const incident = incidents[incidentId];
               const userData = await fetchUserData(incident.userId);
+              const notificationRef = ref(db, `emergencyNotifications/${incident.userId}/${incidentId}`);
+              const notificationSnap = await get(notificationRef);
+              const isUnread = notificationSnap.exists() && !notificationSnap.val().read;
+              if (isUnread) unread++;
               const row = document.createElement("tr");
               row.innerHTML = `
-                <td>${incidentId}</td>
+                <td>${incidentId}${isUnread ? ' <span class="unread-count">New</span>' : ''}</td>
                 <td>${incident.type}</td>
                 <td>${userData.displayName || userData.email}</td>
                 <td>${incident.location.encryptedLng}, ${incident.location.encryptedLat}</td>
@@ -504,6 +591,9 @@
               `;
               incidentList.appendChild(row);
             }
+
+            // Update unread count in sidebar
+            unreadCount.textContent = unread;
 
             // Add event listeners for action buttons
             document.querySelectorAll(".action-button.resolve").forEach(button => {
@@ -528,6 +618,7 @@
             });
           } else {
             incidentList.innerHTML = '<tr><td colspan="7" class="text-center">No active incidents</td></tr>';
+            unreadCount.textContent = "0";
           }
           hideSpinner();
         }, (error) => {
@@ -550,7 +641,6 @@
         console.log(`Incident ${incidentId} updated to status: ${status}`);
         showAlert(`Incident ${status} successfully`);
         if (status === "resolved") {
-          // Notify user
           const incidentSnap = await get(incidentRef);
           if (incidentSnap.exists()) {
             const incident = incidentSnap.val();
@@ -610,7 +700,6 @@
         });
         console.log(`Admin message sent for incident ${incidentId}: ${messageText}`);
         chatInput.value = "";
-        // Notify user of new admin message
         const incidentRef = ref(db, `incidents/${incidentId}`);
         const incidentSnap = await get(incidentRef);
         if (incidentSnap.exists()) {
@@ -674,6 +763,8 @@
         sendMessage(activeIncidentId, chatInput.value.trim());
       }
     });
+    themeToggle.addEventListener("click", toggleTheme);
+    logoutButton.addEventListener("click", logout);
 
     async function init() {
       const savedTheme = localStorage.getItem("theme") || "light";
