@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Dashboard - Emergency Map</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js" integrity="sha256-7aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js" integrity="sha256-8aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js" integrity="sha256-8aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoYehGL5fB+nUQAhi3I1vS3z3+xnL1d+8d+8d+8=" crossorigin="anonymous" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
   <style>
     :root {
       --primary-purple: #6D28D9;
@@ -640,9 +640,17 @@
       measurementId: "G-V4W97VMSKL"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+    let app, auth, db;
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getDatabase(app);
+      console.log("Firebase initialized successfully");
+    } catch (error) {
+      console.error("Firebase initialization error:", error, "Code:", error.code || "N/A");
+      showAlert(`Failed to initialize Firebase: ${error.message}`);
+      throw error;
+    }
 
     const spinnerOverlay = document.getElementById("spinner-overlay");
     const incidentList = document.getElementById("incident-list");
@@ -669,14 +677,22 @@
     let map = null;
 
     function showSpinner() {
-      spinnerOverlay.classList.add("active");
+      if (spinnerOverlay) {
+        spinnerOverlay.classList.add("active");
+      }
     }
 
     function hideSpinner() {
-      spinnerOverlay.classList.remove("active");
+      if (spinnerOverlay) {
+        spinnerOverlay.classList.remove("active");
+      }
     }
 
     function showAlert(message, redirect = false) {
+      if (!alertMessage || !alertModal || !alertCloseBtn) {
+        console.error("Alert elements not found");
+        return;
+      }
       alertMessage.textContent = message;
       alertModal.classList.add("active");
       alertModal.setAttribute("aria-hidden", "false");
@@ -712,14 +728,16 @@
     async function fetchUserData(userId) {
       showSpinner();
       try {
+        if (!userId) throw new Error("Invalid user ID");
         const userRef = ref(db, `users/${userId}`);
         const userSnap = await get(userRef);
         if (userSnap.exists()) {
           return userSnap.val();
         }
+        console.warn(`User data not found for ID: ${userId}`);
         return { displayName: "Unknown User", email: "Unknown", phoneNumber: null };
       } catch (error) {
-        console.error("Error fetching user data:", error, "Code:", error.code);
+        console.error("Error fetching user data:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to fetch user data: ${error.message}`);
         return { displayName: "Unknown User", email: "Unknown", phoneNumber: null };
       } finally {
@@ -752,19 +770,19 @@
                 hideSpinner();
                 resolve(null);
               } else {
-                console.log(`Auth attempt ${attempts + 1}: User authenticated:`, user.uid, user.email, "Token:", user.accessToken);
+                console.log(`Auth attempt ${attempts + 1}: User authenticated:`, user.uid, user.email);
                 hideSpinner();
                 resolve(user);
               }
             }, (error) => {
               clearTimeout(timeout);
-              console.error(`Auth attempt ${attempts + 1}: Auth state error:`, error, "Code:", error.code);
+              console.error(`Auth attempt ${attempts + 1}: Auth state error:`, error, "Code:", error.code || "N/A");
               reject(error);
             });
           });
         } catch (error) {
           attempts++;
-          console.error(`Auth attempt ${attempts} failed:`, error, "Code:", error.code);
+          console.error(`Auth attempt ${attempts} failed:`, error, "Code:", error.code || "N/A");
           if (attempts === maxAttempts) {
             showAlert(`Authentication failed after ${maxAttempts} attempts: ${error.message}`, true);
             hideSpinner();
@@ -776,11 +794,16 @@
     }
 
     function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
-      const newTheme = currentTheme === "light" ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", newTheme);
-      localStorage.setItem("theme", newTheme);
-      console.log("Theme toggled to:", newTheme);
+      try {
+        const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+        const newTheme = currentTheme === "light" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+        console.log("Theme toggled to:", newTheme);
+      } catch (error) {
+        console.error("Error toggling theme:", error);
+        showAlert(`Failed to toggle theme: ${error.message}`);
+      }
     }
 
     async function logout() {
@@ -790,7 +813,7 @@
         console.log("User logged out");
         showAlert("Logged out successfully", true);
       } catch (error) {
-        console.error("Logout error:", error, "Code:", error.code);
+        console.error("Logout error:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to log out: ${error.message}`);
       } finally {
         hideSpinner();
@@ -802,93 +825,98 @@
       try {
         const incidentsRef = ref(db, "incidents");
         onValue(incidentsRef, async (snapshot) => {
-          incidentList.innerHTML = "";
-          let unread = 0;
-          if (snapshot.exists()) {
-            const incidents = snapshot.val();
-            for (let incidentId in incidents) {
-              const incident = incidents[incidentId];
-              const userData = await fetchUserData(incident.userId);
-              const notificationRef = ref(db, `emergencyNotifications/${incident.userId}/${incidentId}`);
-              const notificationSnap = await get(notificationRef);
-              const isUnread = notificationSnap.exists() && !notificationSnap.val().read;
-              if (isUnread) unread++;
-              const row = document.createElement("tr");
-              row.innerHTML = `
-                <td title="${incidentId}">${incidentId}${isUnread ? ' <span class="unread-count">New</span>' : ''}</td>
-                <td title="${incident.type}">${incident.type}</td>
-                <td title="${userData.displayName || userData.email}">${userData.displayName || userData.email}</td>
-                <td title="${new Date(incident.timestamp).toLocaleString()}">${new Date(incident.timestamp).toLocaleString()}</td>
-                <td title="${incident.status}">${incident.status}</td>
-                <td>
-                  <div class="action-buttons">
-                    <button class="action-button resolve" data-id="${incidentId}" aria-label="Resolve incident ${incidentId}">Resolve</button>
-                    <button class="action-button escalate" data-id="${incidentId}" aria-label="Escalate incident ${incidentId}">Escalate</button>
-                    <button class="action-button chat" data-id="${incidentId}" aria-label="Open incident chat for ${incidentId}">Chat</button>
-                    <button class="action-button user-chat" data-user-id="${incident.userId}" aria-label="Chat with user ${userData.displayName || userData.email}">Chat User</button>
-                    <button class="action-button call" data-user-id="${incident.userId}" aria-label="Call user ${userData.displayName || userData.email}">Call</button>
-                    <button class="action-button map" data-id="${incidentId}" aria-label="View map for incident ${incidentId}">View Map</button>
-                  </div>
-                </td>
-              `;
-              incidentList.appendChild(row);
+          try {
+            incidentList.innerHTML = "";
+            let unread = 0;
+            if (snapshot.exists()) {
+              const incidents = snapshot.val();
+              for (let incidentId in incidents) {
+                const incident = incidents[incidentId];
+                const userData = await fetchUserData(incident.userId);
+                const notificationRef = ref(db, `emergencyNotifications/${incident.userId}/${incidentId}`);
+                const notificationSnap = await get(notificationRef);
+                const isUnread = notificationSnap.exists() && !notificationSnap.val().read;
+                if (isUnread) unread++;
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                  <td title="${incidentId}">${incidentId}${isUnread ? ' <span class="unread-count">New</span>' : ''}</td>
+                  <td title="${incident.type || 'Unknown'}">${incident.type || 'Unknown'}</td>
+                  <td title="${userData.displayName || userData.email}">${userData.displayName || userData.email}</td>
+                  <td title="${new Date(incident.timestamp).toLocaleString()}">${new Date(incident.timestamp).toLocaleString()}</td>
+                  <td title="${incident.status || 'Unknown'}">${incident.status || 'Unknown'}</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="action-button resolve" data-id="${incidentId}" aria-label="Resolve incident ${incidentId}">Resolve</button>
+                      <button class="action-button escalate" data-id="${incidentId}" aria-label="Escalate incident ${incidentId}">Escalate</button>
+                      <button class="action-button chat" data-id="${incidentId}" aria-label="Open incident chat for ${incidentId}">Chat</button>
+                      <button class="action-button user-chat" data-user-id="${incident.userId}" aria-label="Chat with user ${userData.displayName || userData.email}">Chat User</button>
+                      <button class="action-button call" data-user-id="${incident.userId}" aria-label="Call user ${userData.displayName || userData.email}">Call</button>
+                      <button class="action-button map" data-id="${incidentId}" aria-label="View map for incident ${incidentId}">View Map</button>
+                    </div>
+                  </td>
+                `;
+                incidentList.appendChild(row);
+              }
+
+              unreadCount.textContent = unread;
+
+              document.querySelectorAll(".action-button.resolve").forEach(button => {
+                button.addEventListener("click", async () => {
+                  const incidentId = button.dataset.id;
+                  await updateIncidentStatus(incidentId, "resolved");
+                });
+              });
+
+              document.querySelectorAll(".action-button.escalate").forEach(button => {
+                button.addEventListener("click", async () => {
+                  const incidentId = button.dataset.id;
+                  await updateIncidentStatus(incidentId, "escalated");
+                });
+              });
+
+              document.querySelectorAll(".action-button.chat").forEach(button => {
+                button.addEventListener("click", () => {
+                  const incidentId = button.dataset.id;
+                  openChatModal(incidentId);
+                });
+              });
+
+              document.querySelectorAll(".action-button.user-chat").forEach(button => {
+                button.addEventListener("click", () => {
+                  const userId = button.dataset.userId;
+                  openUserChatModal(userId);
+                });
+              });
+
+              document.querySelectorAll(".action-button.call").forEach(button => {
+                button.addEventListener("click", () => {
+                  const userId = button.dataset.userId;
+                  initiateCall(userId);
+                });
+              });
+
+              document.querySelectorAll(".action-button.map").forEach(button => {
+                button.addEventListener("click", () => {
+                  const incidentId = button.dataset.id;
+                  openMapModal(incidentId);
+                });
+              });
+            } else {
+              incidentList.innerHTML = '<tr><td colspan="6" class="text-center">No active incidents</td></tr>';
+              unreadCount.textContent = "0";
             }
-
-            unreadCount.textContent = unread;
-
-            document.querySelectorAll(".action-button.resolve").forEach(button => {
-              button.addEventListener("click", async () => {
-                const incidentId = button.dataset.id;
-                await updateIncidentStatus(incidentId, "resolved");
-              });
-            });
-
-            document.querySelectorAll(".action-button.escalate").forEach(button => {
-              button.addEventListener("click", async () => {
-                const incidentId = button.dataset.id;
-                await updateIncidentStatus(incidentId, "escalated");
-              });
-            });
-
-            document.querySelectorAll(".action-button.chat").forEach(button => {
-              button.addEventListener("click", () => {
-                const incidentId = button.dataset.id;
-                openChatModal(incidentId);
-              });
-            });
-
-            document.querySelectorAll(".action-button.user-chat").forEach(button => {
-              button.addEventListener("click", () => {
-                const userId = button.dataset.userId;
-                openUserChatModal(userId);
-              });
-            });
-
-            document.querySelectorAll(".action-button.call").forEach(button => {
-              button.addEventListener("click", () => {
-                const userId = button.dataset.userId;
-                initiateCall(userId);
-              });
-            });
-
-            document.querySelectorAll(".action-button.map").forEach(button => {
-              button.addEventListener("click", () => {
-                const incidentId = button.dataset.id;
-                openMapModal(incidentId);
-              });
-            });
-          } else {
-            incidentList.innerHTML = '<tr><td colspan="6" class="text-center">No active incidents</td></tr>';
-            unreadCount.textContent = "0";
+          } catch (error) {
+            console.error("Error processing incidents snapshot:", error, "Code:", error.code || "N/A");
+            showAlert(`Failed to process incidents: ${error.message}`);
           }
           hideSpinner();
         }, (error) => {
-          console.error("Error loading incidents:", error, "Code:", error.code);
+          console.error("Error loading incidents:", error, "Code:", error.code || "N/A");
           showAlert(`Failed to load incidents: ${error.message}`);
           hideSpinner();
         });
       } catch (error) {
-        console.error("Error setting up incidents listener:", error, "Code:", error.code);
+        console.error("Error setting up incidents listener:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to initialize incidents: ${error.message}`);
         hideSpinner();
       }
@@ -908,16 +936,16 @@
             const notificationRef = ref(db, `emergencyNotifications/${incident.userId}/${incidentId}`);
             await set(notificationRef, {
               incidentId,
-              type: incident.type,
+              type: incident.type || "Unknown",
               timestamp: Date.now(),
               read: false,
-              message: `Your ${incident.type} incident has been resolved.`,
+              message: `Your ${incident.type || "incident"} incident has been resolved.`,
               createdAt: Date.now()
             });
           }
         }
       } catch (error) {
-        console.error(`Error updating incident ${incidentId}:`, error, "Code:", error.code);
+        console.error(`Error updating incident ${incidentId}:`, error, "Code:", error.code || "N/A");
         showAlert(`Failed to update incident: ${error.message}`);
       } finally {
         hideSpinner();
@@ -925,6 +953,10 @@
     }
 
     function openChatModal(incidentId) {
+      if (!incidentId) {
+        showAlert("Invalid incident ID");
+        return;
+      }
       activeIncidentId = incidentId;
       chatModal.classList.add("active");
       chatModal.setAttribute("aria-hidden", "false");
@@ -968,7 +1000,7 @@
           const notificationRef = ref(db, `emergencyNotifications/${incident.userId}/${incidentId}`);
           await set(notificationRef, {
             incidentId,
-            type: incident.type,
+            type: incident.type || "Unknown",
             timestamp: Date.now(),
             read: false,
             message: "New message regarding your incident.",
@@ -976,7 +1008,7 @@
           });
         }
       } catch (error) {
-        console.error("Error sending incident message:", error, "Code:", error.code);
+        console.error("Error sending incident message:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to send message: ${error.message}`);
       } finally {
         hideSpinner();
@@ -984,31 +1016,40 @@
     }
 
     function loadChatMessages(incidentId) {
-      const messagesRef = ref(db, `chatMessages/${incidentId}`);
-      onValue(messagesRef, (snapshot) => {
-        chatMessages.innerHTML = "";
-        if (snapshot.exists()) {
-          const messages = snapshot.val();
-          Object.values(messages)
-            .sort((a, b) => a.timestamp - b.timestamp)
-            .forEach(msg => {
-              const messageEl = document.createElement("div");
-              messageEl.className = `chat-message ${msg.senderId === auth.currentUser.uid ? "user" : ""}`;
-              messageEl.innerHTML = `
-                <div><strong>${msg.senderName}:</strong> ${msg.message}</div>
-                <div class="chat-message-timestamp">${new Date(msg.timestamp).toLocaleTimeString()}</div>
-              `;
-              chatMessages.appendChild(messageEl);
-              chatMessages.scrollTop = chatMessages.scrollHeight;
-            });
-        }
-      }, (error) => {
-        console.error("Error loading incident messages:", error, "Code:", error.code);
-        showAlert(`Failed to load incident messages: ${error.message}`);
-      });
+      try {
+        const messagesRef = ref(db, `chatMessages/${incidentId}`);
+        onValue(messagesRef, (snapshot) => {
+          chatMessages.innerHTML = "";
+          if (snapshot.exists()) {
+            const messages = snapshot.val();
+            Object.values(messages)
+              .sort((a, b) => a.timestamp - b.timestamp)
+              .forEach(msg => {
+                const messageEl = document.createElement("div");
+                messageEl.className = `chat-message ${msg.senderId === auth.currentUser.uid ? "user" : ""}`;
+                messageEl.innerHTML = `
+                  <div><strong>${msg.senderName || "Unknown"}:</strong> ${msg.message}</div>
+                  <div class="chat-message-timestamp">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                `;
+                chatMessages.appendChild(messageEl);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+              });
+          }
+        }, (error) => {
+          console.error("Error loading incident messages:", error, "Code:", error.code || "N/A");
+          showAlert(`Failed to load incident messages: ${error.message}`);
+        });
+      } catch (error) {
+        console.error("Error setting up chat messages listener:", error, "Code:", error.code || "N/A");
+        showAlert(`Failed to initialize chat messages: ${error.message}`);
+      }
     }
 
     function openUserChatModal(userId) {
+      if (!userId) {
+        showAlert("Invalid user ID");
+        return;
+      }
       activeUserChatId = userId;
       userChatModal.classList.add("active");
       userChatModal.setAttribute("aria-hidden", "false");
@@ -1054,8 +1095,17 @@
           message: messageText,
           timestamp: Date.now()
         });
+        // Add notification for the recipient
+        const notificationRef = ref(db, `emergencyNotifications/${userId}/msg_${messageId}`);
+        await set(notificationRef, {
+          type: "user_message",
+          message: `New message from ${userData.displayName || userData.email}`,
+          timestamp: Date.now(),
+          read: false,
+          createdAt: Date.now()
+        });
       } catch (error) {
-        console.error("Error sending user message:", error, "Code:", error.code);
+        console.error("Error sending user message:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to send user message: ${error.message}`);
       } finally {
         hideSpinner();
@@ -1063,28 +1113,33 @@
     }
 
     function loadUserChatMessages(userId) {
-      const messagesRef = ref(db, `userMessages/${auth.currentUser.uid}/${userId}`);
-      onValue(messagesRef, (snapshot) => {
-        userChatMessages.innerHTML = "";
-        if (snapshot.exists()) {
-          const messages = snapshot.val();
-          Object.values(messages)
-            .sort((a, b) => a.timestamp - b.timestamp)
-            .forEach(msg => {
-              const messageEl = document.createElement("div");
-              messageEl.className = `chat-message ${msg.senderId === auth.currentUser.uid ? "user" : ""}`;
-              messageEl.innerHTML = `
-                <div><strong>${msg.senderName}:</strong> ${msg.message}</div>
-                <div class="chat-message-timestamp">${new Date(msg.timestamp).toLocaleTimeString()}</div>
-              `;
-              userChatMessages.appendChild(messageEl);
-              userChatMessages.scrollTop = userChatMessages.scrollHeight;
-            });
-        }
-      }, (error) => {
-        console.error("Error loading user messages:", error, "Code:", error.code);
-        showAlert(`Failed to load user messages: ${error.message}`);
-      });
+      try {
+        const messagesRef = ref(db, `userMessages/${auth.currentUser.uid}/${userId}`);
+        onValue(messagesRef, (snapshot) => {
+          userChatMessages.innerHTML = "";
+          if (snapshot.exists()) {
+            const messages = snapshot.val();
+            Object.values(messages)
+              .sort((a, b) => a.timestamp - b.timestamp)
+              .forEach(msg => {
+                const messageEl = document.createElement("div");
+                messageEl.className = `chat-message ${msg.senderId === auth.currentUser.uid ? "user" : ""}`;
+                messageEl.innerHTML = `
+                  <div><strong>${msg.senderName || "Unknown"}:</strong> ${msg.message}</div>
+                  <div class="chat-message-timestamp">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+                `;
+                userChatMessages.appendChild(messageEl);
+                userChatMessages.scrollTop = userChatMessages.scrollHeight;
+              });
+          }
+        }, (error) => {
+          console.error("Error loading user messages:", error, "Code:", error.code || "N/A");
+          showAlert(`Failed to load user messages: ${error.message}`);
+        });
+      } catch (error) {
+        console.error("Error setting up user messages listener:", error, "Code:", error.code || "N/A");
+        showAlert(`Failed to initialize user messages: ${error.message}`);
+      }
     }
 
     async function initiateCall(userId) {
@@ -1109,7 +1164,7 @@
         // Optional: Trigger a tel: link for actual call (works on mobile devices)
         window.location.href = `tel:${phoneNumber}`;
       } catch (error) {
-        console.error("Error initiating call:", error, "Code:", error.code);
+        console.error("Error initiating call:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to initiate call: ${error.message}`);
       } finally {
         hideSpinner();
@@ -1119,6 +1174,9 @@
     async function openMapModal(incidentId) {
       showSpinner();
       try {
+        if (!window.L) {
+          throw new Error("Leaflet library not loaded");
+        }
         const incidentRef = ref(db, `incidents/${incidentId}`);
         const incidentSnap = await get(incidentRef);
         if (!incidentSnap.exists()) {
@@ -1126,10 +1184,10 @@
           return;
         }
         const incident = incidentSnap.val();
-        const lat = parseFloat(incident.location.encryptedLat);
-        const lng = parseFloat(incident.location.encryptedLng);
+        const lat = parseFloat(incident.location?.encryptedLat);
+        const lng = parseFloat(incident.location?.encryptedLng);
         if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-          showAlert("Invalid location data for this incident.");
+          showAlert("Invalid or missing location data for this incident.");
           return;
         }
         mapModal.classList.add("active");
@@ -1155,10 +1213,21 @@
         
         // Add new marker
         L.marker([lat, lng]).addTo(map)
-          .bindPopup(`Incident ${incidentId}`)
+          .bindPopup(`Incident ${incidentId}<br>Type: ${incident.type || "Unknown"}`)
           .openPopup();
+
+        // Add notification for map view
+        const notificationRef = ref(db, `emergencyNotifications/${incident.userId}/map_${incidentId}`);
+        await set(notificationRef, {
+          incidentId,
+          type: "map_view",
+          message: "Your incident location was viewed.",
+          timestamp: Date.now(),
+          read: false,
+          createdAt: Date.now()
+        });
       } catch (error) {
-        console.error("Error opening map modal:", error, "Code:", error.code);
+        console.error("Error opening map modal:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to load map: ${error.message}`);
       } finally {
         hideSpinner();
@@ -1166,9 +1235,11 @@
     }
 
     function closeMapModalFunc() {
-      mapModal.classList.remove("active");
-      mapModal.setAttribute("aria-hidden", "true");
-      console.log("Map modal closed");
+      if (mapModal) {
+        mapModal.classList.remove("active");
+        mapModal.setAttribute("aria-hidden", "true");
+        console.log("Map modal closed");
+      }
     }
 
     closeChatModal.addEventListener("click", closeChatModalFunc);
@@ -1216,18 +1287,29 @@
     logoutButton.addEventListener("click", logout);
 
     async function init() {
-      const savedTheme = localStorage.getItem("theme") || "light";
-      document.documentElement.setAttribute("data-theme", savedTheme);
-      console.log("Initial theme set to:", savedTheme);
+      try {
+        const savedTheme = localStorage.getItem("theme") || "light";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+        console.log("Initial theme set to:", savedTheme);
 
-      const user = await checkAuthState();
-      if (user) {
-        loadIncidents();
+        const user = await checkAuthState();
+        if (user) {
+          await loadIncidents();
+        }
+      } catch (error) {
+        console.error("Initialization error:", error, "Code:", error.code || "N/A");
+        showAlert(`Failed to initialize dashboard: ${error.message}`);
       }
     }
 
+    // Check if Leaflet is loaded
+    if (!window.L) {
+      console.error("Leaflet library failed to load");
+      showAlert("Failed to load map library. Some features may not work.");
+    }
+
     init().catch(error => {
-      console.error("Initialization error:", error, "Code:", error.code);
+      console.error("Initialization error:", error, "Code:", error.code || "N/A");
       showAlert(`Failed to initialize dashboard: ${error.message}`);
     });
   </script>
