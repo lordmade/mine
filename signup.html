@@ -1,230 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Sign Up / Sign In - MelodySphere</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Admin Signup - Emergency Map</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
   <style>
     :root {
-      --spotify-black: #121212;
-      --spotify-green: #1DB954;
-      --spotify-white: #FFFFFF;
-      --spotify-grey: #535353;
-      --text-dark: #FFFFFF;
-      --text-light: #B3B3B3;
-      --border: #282828;
-      --background: #121212;
-      --gradient-bg: linear-gradient(135deg, #181818 0%, #121212 100%);
-      --success-green: #1DB954;
-      --error-red: #E22134;
-      --background-light: #F9FAFB;
-      --text-dark-light: #111827;
-      --text-light-light: #6B7280;
-      --border-light: #D1D5DB;
-      --gradient-bg-light: linear-gradient(135deg, #E0E7FF 0%, #F9FAFB 100%);
+      --primary-purple: #6D28D9;
+      --secondary-teal: #06B6D4;
+      --danger-red: #DC2626;
+      --text-dark: #111827;
+      --text-light: #6B7280;
+      --border: #D1D5DB;
+      --white: #fff;
+      --background: #F9FAFB;
+      --card-background: #fff;
+      --text-dark-dark: #E5E7EB;
+      --text-light-dark: #9CA3AF;
+      --border-dark: #374151;
+      --white-dark: #1F2937;
+      --highlight: #F3F4F6;
+      --focus-ring: #8B5CF6;
     }
 
-    [data-theme="light"] {
-      --background: var(--background-light);
-      --text-dark: var(--text-dark-light);
-      --text-light: var(--text-light-light);
-      --border: var(--border-light);
-      --gradient-bg: var(--gradient-bg-light);
+    [data-theme="dark"] {
+      --background: #111827;
+      --text-dark: var(--text-dark-dark);
+      --text-light: var(--text-light-dark);
+      --border: var(--border-dark);
+      --white: var(--white-dark);
+      --card-background: #1F2937;
+      --highlight: #374151;
     }
 
     body {
-      font-family: 'Circular', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--background);
       min-height: 100vh;
       margin: 0;
       padding: 0;
-      transition: opacity 0.5s ease, background 0.3s ease;
-      color: var(--text-dark);
-      user-select: none; /* Prevent text selection */
-      -webkit-text-size-adjust: none; /* Prevent zooming */
-      -webkit-touch-callout: none; /* Disable long press menu */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease, opacity 0.5s ease;
+      user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      -webkit-touch-callout: none;
     }
 
     body.fade-out {
       opacity: 0;
     }
 
-    .app-container {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    .sidebar {
-      display: none;
-      width: 240px;
-      background: #000000;
-      padding: 1.5rem;
-      flex-shrink: 0;
-    }
-
-    @media (min-width: 1024px) {
-      .sidebar {
-        display: block;
-      }
-    }
-
-    .sidebar .logo {
-      font-size: 1.5rem;
-      font-weight: 900;
-      color: var(--spotify-white);
-      margin-bottom: 2rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .sidebar .logo svg {
-      width: 32px;
-      height: 32px;
-      fill: var(--spotify-green);
-    }
-
-    .sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .sidebar-nav a {
-      color: var(--text-light);
-      font-size: 0.95rem;
-      font-weight: 500;
-      text-decoration: none;
-      padding: 0.5rem;
-      border-radius: 6px;
-      transition: background 0.3s ease, color 0.3s ease;
-    }
-
-    .sidebar-nav a:hover {
-      background: #282828;
-      color: var(--spotify-white);
-    }
-
     .container {
-      flex: 1;
       max-width: 400px;
-      margin: 3rem auto;
-      padding: 2rem;
-      background: var(--gradient-bg);
+      width: 100%;
+      padding: 1.5rem;
+      background: var(--card-background);
       border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      text-align: center;
-      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--border);
     }
 
-    .container:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
-    }
-
-    @media (max-width: 640px) {
-      .container {
-        margin: 1rem;
-        padding: 1.5rem;
-        border-radius: 8px;
-      }
-    }
-
-    .theme-toggle {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text-light);
-      transition: transform 0.2s ease, color 0.2s ease;
-    }
-
-    .theme-toggle:hover {
-      color: var(--spotify-green);
-      transform: scale(1.2);
-    }
-
-    .theme-toggle svg {
-      width: 24px;
-      height: 24px;
-    }
-
-    .main-logo {
-      font-size: 1.75rem;
-      font-weight: 900;
-      color: var(--spotify-white);
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      animation: fadeIn 0.5s ease-out;
-    }
-
-    .main-logo svg {
-      width: 32px;
-      height: 32px;
-      fill: var(--spotify-green);
-      transition: transform 0.3s ease;
-    }
-
-    .main-logo:hover svg {
-      transform: scale(1.1);
-    }
-
-    .tabs {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 1.5rem;
-      background: #282828;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 0.75rem;
-      background: #282828;
-      border: none;
-      color: var(--text-light);
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s ease, color 0.3s ease;
-    }
-
-    .tab-btn.active {
-      background: var(--spotify-green);
-      color: var(--spotify-white);
-    }
-
-    .tab-btn:hover {
-      background: #1ed760;
-      color: var(--spotify-white);
-    }
-
-    .tab-content {
-      display: none;
-      animation: slideIn 0.3s ease-out;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    h1 {
+    .title {
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--text-dark);
-      margin: 0 0 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
     }
 
     .input-group {
-      margin-bottom: 1.25rem;
-      text-align: left;
+      margin-bottom: 1rem;
     }
 
     .input-group label {
@@ -235,137 +87,79 @@
       margin-bottom: 0.5rem;
     }
 
-    .input-group input[type="text"],
-    .input-group input[type="password"],
-    .input-group input[type="email"] {
+    .input-group input {
       width: 100%;
       padding: 0.75rem;
       border: 1px solid var(--border);
       border-radius: 8px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      color: var(--text-dark);
+      background: var(--white);
       outline: none;
-      background: #282828;
-      color: var(--spotify-white);
       transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .input-group input:focus {
-      border-color: var(--spotify-green);
-      box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.2);
+      border-color: var(--primary-purple);
+      box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
     }
 
     .input-group input::placeholder {
       color: var(--text-light);
     }
 
-    .profile-pic-preview {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin: 0 auto 1rem;
+    .error-message {
+      color: var(--danger-red);
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+
+    .error-message.active {
       display: block;
-      border: 2px solid var(--border);
-      transition: transform 0.3s ease;
     }
 
-    .profile-pic-preview:hover {
-      transform: scale(1.1);
-    }
-
-    .file-upload-btn {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      background: #282828;
-      color: var(--text-light);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.3s ease, color 0.3s ease;
-      text-align: center;
-    }
-
-    .file-upload-btn:hover {
-      background: var(--spotify-green);
-      color: var(--spotify-white);
-    }
-
-    .file-name {
-      margin-top: 0.5rem;
-      font-size: 0.85rem;
-      color: var(--text-light);
-    }
-
-    .auth-btn {
+    .signup-button {
       width: 100%;
-      padding: 0.85rem;
-      background: var(--spotify-green);
-      color: var(--spotify-white);
+      padding: 0.75rem;
+      background: linear-gradient(90deg, var(--primary-purple), var(--secondary-teal));
+      color: var(--white);
       border: none;
-      border-radius: 24px;
+      border-radius: 8px;
       font-size: 1rem;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .auth-btn:hover {
-      background: #1ed760;
+    .signup-button:hover,
+    .signup-button:focus {
       transform: scale(1.05);
-      box-shadow: 0 5px 15px rgba(29, 185, 84, 0.4);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      outline: 2px solid var(--focus-ring);
     }
 
-    .auth-btn.tap-active {
+    .signup-button:active {
       transform: scale(0.95);
     }
 
-    .custom-alert {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #282828;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      color: var(--text-dark);
-      font-weight: 500;
+    .link {
       text-align: center;
-      max-width: 90%;
-      width: 320px;
-      animation: popIn 0.3s ease-out forwards;
-      border: 1px solid var(--border);
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-light);
     }
 
-    .custom-alert.active {
-      display: block;
+    .link a {
+      color: var(--primary-purple);
+      text-decoration: none;
+      font-weight: 500;
     }
 
-    .custom-alert .close-btn {
-      position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
-      width: 24px;
-      height: 24px;
-      background: none;
-      border: none;
-      color: var(--spotify-green);
-      cursor: pointer;
-      transition: transform 0.2s ease, color 0.2s ease;
-    }
-
-    .custom-alert .close-btn:hover {
-      color: #1ed760;
-      transform: rotate(90deg);
-    }
-
-    .custom-alert .close-btn svg {
-      width: 100%;
-      height: 100%;
+    .link a:hover,
+    .link a:focus {
+      text-decoration: underline;
+      outline: none;
     }
 
     .spinner-overlay {
@@ -375,10 +169,10 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 999;
-      justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 2000;
       align-items: center;
+      justify-content: center;
     }
 
     .spinner-overlay.active {
@@ -386,35 +180,13 @@
     }
 
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid var(--spotify-green);
-      border-top: 4px solid transparent;
+      width: 50px;
+      height: 50px;
+      border: 5px solid transparent;
+      border-top: 5px solid var(--primary-purple);
+      border-right: 5px solid var(--secondary-teal);
       border-radius: 50%;
-      animation: spin 0.8s ease-in-out infinite;
-    }
-
-    .toast {
-      display: none;
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: var(--success-green);
-      color: var(--spotify-white);
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      font-weight: 500;
-      animation: slideIn 0.3s ease-out forwards;
-    }
-
-    .toast.active {
-      display: block;
-    }
-
-    .toast.error {
-      background: var(--error-red);
+      animation: spin 1s linear infinite;
     }
 
     @keyframes spin {
@@ -422,482 +194,214 @@
       100% { transform: rotate(360deg); }
     }
 
-    @keyframes popIn {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    }
-
-    @keyframes slideIn {
-      0% { transform: translateX(100%); opacity: 0; }
-      100% { transform: translateX(0); opacity: 1; }
-    }
-
-    @keyframes fadeIn {
-      0% { opacity: 0; }
-      100% { opacity: 1; }
-    }
-
-    @media (max-width: 640px) {
+    @media (max-width: 767px) {
       .container {
-        margin: 0.5rem;
         padding: 1rem;
       }
-
-      .main-logo {
-        font-size: 1.5rem;
-      }
-
-      .main-logo svg {
-        width: 28px;
-        height: 28px;
-      }
-
-      h1 {
+      .title {
         font-size: 1.25rem;
       }
-
-      .tab-btn {
-        font-size: 0.85rem;
-        padding: 0.5rem;
-      }
-
       .input-group label {
         font-size: 0.85rem;
       }
-
       .input-group input {
+        font-size: 0.85rem;
         padding: 0.5rem;
+      }
+      .signup-button {
         font-size: 0.9rem;
+        padding: 0.5rem;
       }
-
-      .auth-btn {
-        padding: 0.75rem;
-        font-size: 0.9rem;
+      .link {
+        font-size: 0.85rem;
       }
-
-      .custom-alert {
-        width: 80%;
-        padding: 1rem;
-      }
-
-      .toast {
-        right: 10px;
-        max-width: 85%;
-      }
-
-      .profile-pic-preview {
-        width: 50px;
-        height: 50px;
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border-width: 4px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="app-container">
-    <aside class="sidebar">
-      <div class="logo">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.5 15.5c-1.75 0-3.5-.75-4.5-2.25-.25-.5.25-1 .75-.75 1.5 1.25 3.75 1.25 5.25 0 .5-.25 1 .25.75.75-1 1.5-2.75 2.25-4.5 2.25zm1.5-4.5c-2.25 0-4.25-1-5.5-2.75-.25-.5.25-1 .75-.75 1.25 1.5 3.25 2 5 1.25.5-.25 1 .25.75.75-1.25 1.75-3.25 2.5-5.5 2.5zm1.5-4.5c-2.75 0-5-1.5-6.25-3.75-.25-.5.25-1 .75-.75 1.25 2 3.5 3 5.5 2.25.5-.25 1 .25.75.75-1.25 2.25-3.5 3.75-6.25 3.75z"/>
-        </svg>
-        MelodySphere
-      </div>
-      <nav class="sidebar-nav">
-        <a href="#home">Home</a>
-        <a href="#browse">Browse</a>
-        <a href="#playlists">Playlists</a>
-        <a href="#profile">Profile</a>
-      </nav>
-    </aside>
-    <div class="container">
-      <button class="theme-toggle" aria-label="Toggle theme">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
-      </button>
-      <div class="main-logo">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.5 15.5c-1.75 0-3.5-.75-4.5-2.25-.25-.5.25-1 .75-.75 1.5 1.25 3.75 1.25 5.25 0 .5-.25 1 .25.75.75-1 1.5-2.75 2.25-4.5 2.25zm1.5-4.5c-2.25 0-4.25-1-5.5-2.75-.25-.5.25-1 .75-.75 1.25 1.5 3.25 2 5 1.25.5-.25 1 .25.75.75-1.25 1.75-3.25 2.5-5.5 2.5zm1.5-4.5c-2.75 0-5-1.5-6.25-3.75-.25-.5.25-1 .75-.75 1.25 2 3.5 3 5.5 2.25.5-.25 1 .25.75.75-1.25 2.25-3.5 3.75-6.25 3.75z"/>
-        </svg>
-        MelodySphere
-      </div>
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="signup" aria-label="Switch to Sign Up tab">Sign Up</button>
-        <button class="tab-btn" data-tab="signin" aria-label="Switch to Sign In tab">Sign In</button>
-      </div>
-      <div class="tab-content active" id="signup-tab">
-        <h1>Create Your Account</h1>
-        <div class="input-group">
-          <label for="username-input">Full Name</label>
-          <input type="text" id="username-input" placeholder="Enter your full name" maxlength="50" aria-label="Enter your full name" />
-        </div>
-        <div class="input-group">
-          <label for="email-input">Email or Phone</label>
-          <input type="text" id="email-input" placeholder="Email or phone number" aria-label="Enter your email or phone" />
-        </div>
-        <div class="input-group">
-          <label for="password-input">Password</label>
-          <input type="password" id="password-input" placeholder="Enter your password" aria-label="Enter your password" />
-        </div>
-        <div class="input-group">
-          <label for="profile-pic-input">Profile Picture (Optional)</label>
-          <button class="file-upload-btn" id="file-upload-btn">Choose File</button>
-          <input type="file" id="profile-pic-input" accept="image/*" aria-label="Upload profile picture" style="display: none;" />
-          <div class="file-name" id="file-name">No file chosen</div>
-          <img id="profile-pic-preview" class="profile-pic-preview" src="https://via.placeholder.com/60" alt="Profile picture preview" style="display: none;" />
-        </div>
-        <button class="auth-btn" id="signup-btn" aria-label="Sign up">Sign Up</button>
-      </div>
-      <div class="tab-content" id="signin-tab">
-        <h1>Sign In</h1>
-        <div class="input-group">
-          <label for="signin-email-input">Email or Phone</label>
-          <input type="text" id="signin-email-input" placeholder="Email or phone number" aria-label="Enter your email or phone" />
-        </div>
-        <div class="input-group">
-          <label for="signin-password-input">Password</label>
-          <input type="password" id="signin-password-input" placeholder="Enter your password" aria-label="Enter your password" />
-        </div>
-        <button class="auth-btn" id="signin-btn" aria-label="Sign in">Sign In</button>
-      </div>
+  <div class="container">
+    <h1 class="title">Admin Signup</h1>
+    <div class="input-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="Enter your email" aria-label="Email address">
+      <div class="error-message" id="email-error">Please enter a valid email.</div>
+    </div>
+    <div class="input-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter your password" aria-label="Password">
+      <div class="error-message" id="password-error">Password must be at least 6 characters.</div>
+    </div>
+    <div class="input-group">
+      <label for="admin-code">Admin Code</label>
+      <input type="text" id="admin-code" placeholder="Enter admin code" aria-label="Admin code">
+      <div class="error-message" id="admin-code-error">Invalid admin code.</div>
+    </div>
+    <button class="signup-button" id="signup-button" aria-label="Sign up as admin">Sign Up</button>
+    <div class="link">
+      Already have an account? <a href="signin.html">Sign In</a>
     </div>
   </div>
-
-  <div id="custom-alert" class="custom-alert">
-    <button class="close-btn" aria-label="Close alert">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    </button>
-    <p id="alert-message">An error occurred. Please try again.</p>
-  </div>
-
-  <div class="spinner-overlay" id="spinner">
+  <div class="spinner-overlay" id="spinner-overlay">
     <div class="spinner"></div>
   </div>
-
-  <div class="toast" id="toast">
-    <p id="toast-message"></p>
-  </div>
-
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-    import { getDatabase, ref, set, onDisconnect, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
-      authDomain: "fire-b-a8878.firebaseapp.com",
-      databaseURL: "https://fire-b-a8878.firebaseio.com",
-      projectId: "fire-b-a8878",
-      storageBucket: "fire-b-a8878.firebasestorage.app",
-      messagingSenderId: "658673187627",
-      appId: "1:658673187627:web:6e4c29af661785f0afa36e",
-      measurementId: "G-V4W97VMSKL"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-
-    const signupBtn = document.getElementById("signup-btn");
-    const signinBtn = document.getElementById("signin-btn");
-    const usernameInput = document.getElementById("username-input");
-    const emailInput = document.getElementById("email-input");
-    const passwordInput = document.getElementById("password-input");
-    const profilePicInput = document.getElementById("profile-pic-input");
-    const fileUploadBtn = document.getElementById("file-upload-btn");
-    const fileNameDisplay = document.getElementById("file-name");
-    const profilePicPreview = document.getElementById("profile-pic-preview");
-    const signinEmailInput = document.getElementById("signin-email-input");
-    const signinPasswordInput = document.getElementById("signin-password-input");
-    const customAlert = document.getElementById("custom-alert");
-    const alertMessage = document.getElementById("alert-message");
-    const spinner = document.getElementById("spinner");
-    const toast = document.getElementById("toast");
-    const toastMessage = document.getElementById("toast-message");
-    const tabButtons = document.querySelectorAll(".tab-btn");
-    const tabContents = document.querySelectorAll(".tab-content");
-    const themeToggle = document.querySelector(".theme-toggle");
-
-    function showAlert(message, autoHide = true, isError = true) {
-      alertMessage.textContent = message;
-      customAlert.classList.add("active");
-      customAlert.style.borderColor = isError ? "var(--error-red)" : "var(--success-green)";
-      if (autoHide) {
-        setTimeout(hideAlert, 5000);
-      }
-    }
-
-    function hideAlert() {
-      customAlert.classList.remove("active");
-      customAlert.style.borderColor = "var(--border)";
-    }
-
-    function showSpinner() {
-      spinner.classList.add("active");
-    }
-
-    function hideSpinner() {
-      spinner.classList.remove("active");
-    }
-
-    function showToast(message, isError = false) {
-      toastMessage.textContent = message;
-      toast.classList.add("active");
-      if (isError) {
-        toast.classList.add("error");
-      } else {
-        toast.classList.remove("error");
-      }
-      setTimeout(() => {
-        toast.classList.remove("active");
-      }, 3000);
-    }
-
-    document.querySelector(".custom-alert .close-btn").addEventListener("click", hideAlert);
-
-    async function checkAuthState() {
-      try {
-        await setPersistence(auth, browserLocalPersistence);
-        await new Promise((resolve, reject) => {
-          onAuthStateChanged(auth, (user) => {
-            if (user) {
-              document.body.classList.add("fade-out");
-              setTimeout(() => {
-                window.location.href = "home.html";
-              }, 500);
-            } else {
-              resolve();
-            }
-          }, reject);
-        });
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        showAlert("Failed to verify authentication. Please try again.", false);
-      }
-    }
-
-    async function uploadProfilePicture(file) {
-      if (!file) return null;
-
-      const cloudName = "dqkujefxj";
-      const uploadPreset = "banter_box";
-      const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", uploadPreset);
-
-      try {
-        const response = await fetch(url, {
-          method: "POST",
-          body: formData
-        });
-        const data = await response.json();
-        if (data.secure_url) {
-          return data.secure_url;
-        } else {
-          throw new Error("Failed to upload image");
-        }
-      } catch (error) {
-        console.error("Image upload failed:", error);
-        throw error;
-      }
-    }
-
-    fileUploadBtn.addEventListener("click", () => {
-      profilePicInput.click();
-    });
-
-    profilePicInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        fileNameDisplay.textContent = file.name;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          profilePicPreview.src = event.target.result;
-          profilePicPreview.style.display = "block";
-        };
-        reader.readAsDataURL(file);
-      } else {
-        fileNameDisplay.textContent = "No file chosen";
-        profilePicPreview.style.display = "none";
-        profilePicPreview.src = "https://via.placeholder.com/60";
-      }
-    });
-
-    async function handleSignUp() {
-      const username = usernameInput.value.trim();
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-      const profilePicFile = profilePicInput.files[0];
-
-      if (!username || !email || !password) {
-        showAlert("Please fill in all required fields.", true);
-        return;
-      }
-
-      if (username.length > 50) {
-        showAlert("Full name must be 50 characters or less.", true);
-        return;
-      }
-
-      if (!/^[a-zA-Z\s]+$/.test(username)) {
-        showAlert("Full name must contain only letters and spaces.", true);
-        return;
-      }
-
-      showSpinner();
-      try {
-        let profilePicUrl = null;
-        if (profilePicFile) {
-          profilePicUrl = await uploadProfilePicture(profilePicFile);
-        }
-
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        await updateProfile(user, { displayName: username, photoURL: profilePicUrl });
-
-        const userRef = ref(db, `users/${user.uid}`);
-        await set(userRef, {
-          username: username,
-          profilePic: profilePicUrl || null,
-          online: true
-        });
-
-        await onDisconnect(userRef).update({ online: false });
-
-        showToast(`Welcome to MelodySphere, ${username}!`, false);
-        document.body.classList.add("fade-out");
-        setTimeout(() => {
-          window.location.href = "home.html";
-        }, 500);
-      } catch (error) {
-        console.error("Sign up failed:", error);
-        let errorMessage = "Failed to sign up. Please try again.";
-        if (error.code === "auth/email-already-in-use") {
-          errorMessage = "Email or phone is already in use.";
-        } else if (error.code === "auth/invalid-email") {
-          errorMessage = "Invalid email or phone format.";
-        } else if (error.code === "auth/weak-password") {
-          errorMessage = "Password is too weak. Use at least 6 characters.";
-        } else if (error.message.includes("Failed to upload image")) {
-          errorMessage = "Failed to upload profile picture. Please try again.";
-        }
-        hideSpinner();
-        showAlert(errorMessage, true);
-      }
-    }
-
-    async function handleSignIn() {
-      const email = signinEmailInput.value.trim();
-      const password = signinPasswordInput.value.trim();
-
-      if (!email || !password) {
-        showAlert("Please fill in all fields.", true);
-        return;
-      }
-
-      showSpinner();
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        const userRef = ref(db, `users/${user.uid}`);
-        const userSnapshot = await get(userRef);
-        const username = userSnapshot.exists() ? userSnapshot.val().username : user.displayName || "User";
-
-        await set(userRef, {
-          ...userSnapshot.val(),
-          online: true
-        });
-
-        await onDisconnect(userRef).update({ online: false });
-
-        showToast(`Welcome back, ${username}!`, false);
-        document.body.classList.add("fade-out");
-        setTimeout(() => {
-          window.location.href = "home.html";
-        }, 500);
-      } catch (error) {
-        console.error("Sign in failed:", error);
-        let errorMessage = "Failed to sign in. Please try again.";
-        if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
-          errorMessage = "Invalid email/phone or password.";
-        } else if (error.code === "auth/invalid-email") {
-          errorMessage = "Invalid email or phone format.";
-        }
-        hideSpinner();
-        showAlert(errorMessage, true);
-      }
-    }
-
-    function setupTabListeners() {
-      tabButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-          tabButtons.forEach(b => b.classList.remove("active"));
-          tabContents.forEach(c => c.classList.remove("active"));
-          btn.classList.add("active");
-          document.getElementById(`${btn.dataset.tab}-tab`).classList.add("active");
-        });
-      });
-    }
-
-    function setupAuthListeners() {
-      if (signupBtn) {
-        signupBtn.addEventListener("click", () => {
-          handleSignUp();
-          signupBtn.classList.add("tap-active");
-          setTimeout(() => signupBtn.classList.remove("tap-active"), 100);
-        });
-        usernameInput.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") handleSignUp();
-        });
-        emailInput.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") handleSignUp();
-        });
-        passwordInput.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") handleSignUp();
-        });
-      }
-      if (signinBtn) {
-        signinBtn.addEventListener("click", () => {
-          handleSignIn();
-          signinBtn.classList.add("tap-active");
-          setTimeout(() => signinBtn.classList.remove("tap-active"), 100);
-        });
-        signinEmailInput.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") handleSignIn();
-        });
-        signinPasswordInput.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") handleSignIn();
-        });
-      }
-    }
-
-    function setupThemeToggle() {
-      themeToggle.addEventListener("click", () => {
-        const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
-        const newTheme = currentTheme === "dark" ? "light" : "dark";
-        document.documentElement.setAttribute("data-theme", newTheme);
-        localStorage.setItem("theme", newTheme);
-      });
-    }
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     document.addEventListener("DOMContentLoaded", async () => {
-      applyTheme();
-      await checkAuthState();
-      setupTabListeners();
-      setupAuthListeners();
-      setupThemeToggle();
-    });
+      // Initialize theme from localStorage
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      console.log("Initial theme set to:", savedTheme);
 
-    function applyTheme() {
-      const theme = localStorage.getItem("theme") || "dark";
-      document.documentElement.setAttribute("data-theme", theme);
-    }
+      const firebaseConfig = {
+        apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+        authDomain: "fire-b-a8878.firebaseapp.com",
+        databaseURL: "https://fire-b-a8878.firebaseio.com",
+        projectId: "fire-b-a8878",
+        storageBucket: "fire-b-a8878.firebasestorage.app",
+        messagingSenderId: "658673187627",
+        appId: "1:658673187627:web:6e4c29af661785f0afa36e",
+        measurementId: "G-V4W97VMSKL"
+      };
+
+      let app, auth, db;
+      try {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getDatabase(app);
+        console.log("Firebase initialized successfully at", new Date().toLocaleString());
+      } catch (error) {
+        console.error("Firebase initialization failed:", error.code, error.message);
+        showError(null, "Failed to connect to Firebase. Please check your network.");
+        return;
+      }
+
+      const signupButton = document.getElementById("signup-button");
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
+      const adminCodeInput = document.getElementById("admin-code");
+      const emailError = document.getElementById("email-error");
+      const passwordError = document.getElementById("password-error");
+      const adminCodeError = document.getElementById("admin-code-error");
+      const spinnerOverlay = document.getElementById("spinner-overlay");
+
+      async function validateAdminCode(code) {
+        try {
+          const adminCodeRef = ref(db, 'adminCodes');
+          const snapshot = await get(adminCodeRef);
+          if (snapshot.exists()) {
+            const validCodes = snapshot.val();
+            return validCodes && validCodes[code] === true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Error validating admin code:", error.code, error.message);
+          return false;
+        }
+      }
+
+      function showSpinner() {
+        spinnerOverlay.classList.add("active");
+        console.log("Spinner shown at", new Date().toLocaleString());
+      }
+
+      function hideSpinner() {
+        spinnerOverlay.classList.remove("active");
+        console.log("Spinner hidden at", new Date().toLocaleString());
+      }
+
+      function showError(element, message) {
+        if (element) {
+          element.textContent = message;
+          element.classList.add("active");
+        } else {
+          alert(message); // Fallback to alert for general errors
+        }
+      }
+
+      function clearErrors() {
+        emailError.classList.remove("active");
+        passwordError.classList.remove("active");
+        adminCodeError.classList.remove("active");
+      }
+
+      async function handleSignup() {
+        clearErrors();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        const adminCode = adminCodeInput.value.trim();
+
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showError(emailError, "Please enter a valid email.");
+          return;
+        }
+
+        if (password.length < 6) {
+          showError(passwordError, "Password must be at least 6 characters.");
+          return;
+        }
+
+        if (!adminCode) {
+          showError(adminCodeError, "Please enter an admin code.");
+          return;
+        }
+
+        showSpinner();
+        try {
+          const isValidAdminCode = await validateAdminCode(adminCode);
+          if (!isValidAdminCode) {
+            showError(adminCodeError, "Invalid admin code.");
+            return;
+          }
+
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+          console.log("Admin user created:", user.uid, user.email);
+
+          await set(ref(db, `users/${user.uid}`), {
+            email: user.email,
+            displayName: email.split("@")[0],
+            isAdmin: true,
+            createdAt: Date.now()
+          });
+          console.log("Admin user data saved to database");
+
+          document.body.classList.add("fade-out");
+          setTimeout(() => window.location.href = "index.html", 500);
+        } catch (error) {
+          console.error("Signup error:", error.code, error.message);
+          if (error.code === "auth/email-already-in-use") {
+            showError(emailError, "This email is already registered.");
+          } else if (error.code === "auth/invalid-email") {
+            showError(emailError, "Invalid email format.");
+          } else if (error.code === "auth/weak-password") {
+            showError(passwordError, "Password is too weak.");
+          } else {
+            showError(null, `Signup failed: ${error.message}`);
+          }
+        } finally {
+          hideSpinner();
+        }
+      }
+
+      signupButton.addEventListener("click", handleSignup);
+      emailInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleSignup();
+      });
+      passwordInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleSignup();
+      });
+      adminCodeInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleSignup();
+      });
+    });
   </script>
 </body>
 </html>
