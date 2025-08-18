@@ -25,6 +25,7 @@
       --white-dark: #1F2937;
       --highlight: #F3F4F6;
       --focus-ring: #8B5CF6;
+      --call-green: #10B981;
     }
 
     [data-theme="dark"] {
@@ -172,7 +173,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 150px;
+      max-width: 120px;
     }
 
     .incident-table th {
@@ -212,6 +213,16 @@
 
     .action-button.chat {
       background: var(--secondary-teal);
+      color: var(--white);
+    }
+
+    .action-button.user-chat {
+      background: #3B82F6;
+      color: var(--white);
+    }
+
+    .action-button.call {
+      background: var(--call-green);
       color: var(--white);
     }
 
@@ -404,7 +415,7 @@
       .incident-table td {
         padding: 0.5rem;
         font-size: 0.8rem;
-        max-width: 120px;
+        max-width: 100px;
       }
       .action-button {
         padding: 0.4rem 0.6rem;
@@ -452,10 +463,10 @@
       }
       .incident-table th,
       .incident-table td {
-        min-width: 100px;
-        max-width: 100px;
-        font-size: 0.75rem;
-        padding: 0.4rem;
+        min-width: 80px;
+        max-width: 80px;
+        font-size: 0.7rem;
+        padding: 0.3rem;
       }
       .incident-table th {
         position: sticky;
@@ -463,8 +474,9 @@
         z-index: 5;
       }
       .action-button {
-        padding: 0.3rem 0.5rem;
-        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+        font-size: 0.65rem;
+        margin-right: 0.2rem;
       }
       .modal-content {
         padding: 1rem;
@@ -545,6 +557,23 @@
     </div>
   </div>
 
+  <div id="user-chat-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="user-chat-modal-title">
+    <div class="modal-content">
+      <h2 id="user-chat-modal-title">User Chat</h2>
+      <button class="close-btn transition-base" id="close-user-chat-modal" aria-label="Close user chat modal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div id="user-chat-messages" style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--white);" aria-live="polite"></div>
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="text" id="user-chat-input" class="transition-base" style="flex: 1; padding: 0.75rem; border: 1px solid var(--border); border-radius: 9999px; outline: none;" placeholder="Type your message..." aria-label="User chat message input">
+        <button id="send-user-chat-message" class="action-button user-chat" aria-label="Send user message">Send</button>
+      </div>
+    </div>
+  </div>
+
   <div class="alert-modal" id="alert-modal" role="dialog" aria-modal="true" aria-labelledby="alert-modal-title">
     <div class="alert-modal-content">
       <p id="alert-message" aria-live="assertive"></p>
@@ -559,7 +588,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getDatabase, ref, get, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { getDatabase, ref, get, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -583,6 +612,11 @@
     const chatMessages = document.getElementById("chat-messages");
     const chatInput = document.getElementById("chat-input");
     const sendChatMessage = document.getElementById("send-chat-message");
+    const userChatModal = document.getElementById("user-chat-modal");
+    const closeUserChatModal = document.getElementById("close-user-chat-modal");
+    const userChatMessages = document.getElementById("user-chat-messages");
+    const userChatInput = document.getElementById("user-chat-input");
+    const sendUserChatMessage = document.getElementById("send-user-chat-message");
     const themeToggle = document.getElementById("theme-toggle");
     const logoutButton = document.getElementById("logout-button");
     const unreadCount = document.getElementById("unread-count");
@@ -590,6 +624,7 @@
     const alertMessage = document.getElementById("alert-message");
     const alertCloseBtn = document.getElementById("alert-close-btn");
     let activeIncidentId = null;
+    let activeUserChatId = null;
 
     function showSpinner() {
       spinnerOverlay.classList.add("active");
@@ -640,11 +675,11 @@
         if (userSnap.exists()) {
           return userSnap.val();
         }
-        return { displayName: "Unknown User", email: "Unknown" };
+        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null };
       } catch (error) {
         console.error("Error fetching user data:", error, "Code:", error.code);
         showAlert(`Failed to fetch user data: ${error.message}`);
-        return { displayName: "Unknown User", email: "Unknown" };
+        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null };
       } finally {
         hideSpinner();
       }
@@ -747,7 +782,9 @@
                 <td>
                   <button class="action-button resolve" data-id="${incidentId}" aria-label="Resolve incident ${incidentId}">Resolve</button>
                   <button class="action-button escalate" data-id="${incidentId}" aria-label="Escalate incident ${incidentId}">Escalate</button>
-                  <button class="action-button chat" data-id="${incidentId}" aria-label="Open chat for incident ${incidentId}">Chat</button>
+                  <button class="action-button chat" data-id="${incidentId}" aria-label="Open incident chat for ${incidentId}">Chat</button>
+                  <button class="action-button user-chat" data-user-id="${incident.userId}" aria-label="Chat with user ${userData.displayName || userData.email}">Chat User</button>
+                  <button class="action-button call" data-user-id="${incident.userId}" aria-label="Call user ${userData.displayName || userData.email}">Call</button>
                 </td>
               `;
               incidentList.appendChild(row);
@@ -773,6 +810,20 @@
               button.addEventListener("click", () => {
                 const incidentId = button.dataset.id;
                 openChatModal(incidentId);
+              });
+            });
+
+            document.querySelectorAll(".action-button.user-chat").forEach(button => {
+              button.addEventListener("click", () => {
+                const userId = button.dataset.userId;
+                openUserChatModal(userId);
+              });
+            });
+
+            document.querySelectorAll(".action-button.call").forEach(button => {
+              button.addEventListener("click", () => {
+                const userId = button.dataset.userId;
+                initiateCall(userId);
               });
             });
           } else {
@@ -829,7 +880,7 @@
       chatMessages.innerHTML = "";
       chatInput.value = "";
       chatInput.focus();
-      console.log(`Chat modal opened for incident ${incidentId}`);
+      console.log(`Incident chat modal opened for incident ${incidentId}`);
       loadChatMessages(incidentId);
     }
 
@@ -837,7 +888,7 @@
       chatModal.classList.remove("active");
       chatModal.setAttribute("aria-hidden", "true");
       activeIncidentId = null;
-      console.log("Chat modal closed");
+      console.log("Incident chat modal closed");
     }
 
     async function sendMessage(incidentId, messageText) {
@@ -857,7 +908,7 @@
           timestamp: Date.now(),
           isAdmin: false
         });
-        console.log(`Message sent for incident ${incidentId}: ${messageText}`);
+        console.log(`Incident message sent for incident ${incidentId}: ${messageText}`);
         chatInput.value = "";
         const incidentRef = ref(db, `incidents/${incidentId}`);
         const incidentSnap = await get(incidentRef);
@@ -874,7 +925,7 @@
           });
         }
       } catch (error) {
-        console.error("Error sending chat message:", error, "Code:", error.code);
+        console.error("Error sending incident message:", error, "Code:", error.code);
         showAlert(`Failed to send message: ${error.message}`);
       } finally {
         hideSpinner();
@@ -901,9 +952,117 @@
             });
         }
       }, (error) => {
-        console.error("Error loading chat messages:", error, "Code:", error.code);
-        showAlert(`Failed to load chat messages: ${error.message}`);
+        console.error("Error loading incident messages:", error, "Code:", error.code);
+        showAlert(`Failed to load incident messages: ${error.message}`);
       });
+    }
+
+    function openUserChatModal(userId) {
+      activeUserChatId = userId;
+      userChatModal.classList.add("active");
+      userChatModal.setAttribute("aria-hidden", "false");
+      userChatMessages.innerHTML = "";
+      userChatInput.value = "";
+      userChatInput.focus();
+      console.log(`User chat modal opened for user ${userId}`);
+      loadUserChatMessages(userId);
+    }
+
+    function closeUserChatModalFunc() {
+      userChatModal.classList.remove("active");
+      userChatModal.setAttribute("aria-hidden", "true");
+      activeUserChatId = null;
+      console.log("User chat modal closed");
+    }
+
+    async function sendUserMessage(userId, messageText) {
+      if (!auth.currentUser || !messageText.trim()) {
+        showAlert("Please enter a message to send.");
+        return;
+      }
+      showSpinner();
+      try {
+        const messageId = `message_${Date.now()}_${auth.currentUser.uid}`;
+        const messageRef = ref(db, `userMessages/${auth.currentUser.uid}/${userId}/${messageId}`);
+        const userData = await fetchUserData(auth.currentUser.uid);
+        await set(messageRef, {
+          senderId: auth.currentUser.uid,
+          senderName: userData.displayName || userData.email,
+          recipientId: userId,
+          message: messageText,
+          timestamp: Date.now()
+        });
+        console.log(`User message sent to user ${userId}: ${messageText}`);
+        userChatInput.value = "";
+        // Mirror the message for the recipient
+        const mirrorMessageRef = ref(db, `userMessages/${userId}/${auth.currentUser.uid}/${messageId}`);
+        await set(mirrorMessageRef, {
+          senderId: auth.currentUser.uid,
+          senderName: userData.displayName || userData.email,
+          recipientId: userId,
+          message: messageText,
+          timestamp: Date.now()
+        });
+      } catch (error) {
+        console.error("Error sending user message:", error, "Code:", error.code);
+        showAlert(`Failed to send user message: ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    function loadUserChatMessages(userId) {
+      const messagesRef = ref(db, `userMessages/${auth.currentUser.uid}/${userId}`);
+      onValue(messagesRef, (snapshot) => {
+        userChatMessages.innerHTML = "";
+        if (snapshot.exists()) {
+          const messages = snapshot.val();
+          Object.values(messages)
+            .sort((a, b) => a.timestamp - b.timestamp)
+            .forEach(msg => {
+              const messageEl = document.createElement("div");
+              messageEl.className = `chat-message ${msg.senderId === auth.currentUser.uid ? "user" : ""}`;
+              messageEl.innerHTML = `
+                <div><strong>${msg.senderName}:</strong> ${msg.message}</div>
+                <div class="chat-message-timestamp">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+              `;
+              userChatMessages.appendChild(messageEl);
+              userChatMessages.scrollTop = userChatMessages.scrollHeight;
+            });
+        }
+      }, (error) => {
+        console.error("Error loading user messages:", error, "Code:", error.code);
+        showAlert(`Failed to load user messages: ${error.message}`);
+      });
+    }
+
+    async function initiateCall(userId) {
+      showSpinner();
+      try {
+        const userData = await fetchUserData(userId);
+        const phoneNumber = userData.phoneNumber;
+        if (!phoneNumber) {
+          showAlert("No phone number available for this user.");
+          return;
+        }
+        const callId = `call_${Date.now()}_${auth.currentUser.uid}`;
+        const callLogRef = ref(db, `callLogs/${auth.currentUser.uid}/${callId}`);
+        await set(callLogRef, {
+          callerId: auth.currentUser.uid,
+          recipientId: userId,
+          timestamp: Date.now(),
+          status: "initiated"
+        });
+        console.log(`Call initiated to user ${userId} with phone number ${phoneNumber}`);
+        showAlert(`Initiating call to ${userData.displayName || userData.email}. Phone: ${phoneNumber}`);
+        // Optional: Trigger a tel: link for actual call (works on mobile devices)
+        window.location.href = `tel:${phoneNumber}`;
+      } catch (error) {
+        console.error("Error initiating call:", error, "Code:", error.code);
+        showAlert(`Failed to initiate call: ${error.message}`);
+      } finally {
+        hideSpinner();
+      }
     }
 
     closeChatModal.addEventListener("click", closeChatModalFunc);
@@ -922,6 +1081,24 @@
         sendMessage(activeIncidentId, chatInput.value.trim());
       }
     });
+
+    closeUserChatModal.addEventListener("click", closeUserChatModalFunc);
+    userChatModal.addEventListener("click", (e) => {
+      if (e.target === userChatModal) {
+        closeUserChatModalFunc();
+      }
+    });
+    sendUserChatMessage.addEventListener("click", () => {
+      if (activeUserChatId) {
+        sendUserMessage(activeUserChatId, userChatInput.value.trim());
+      }
+    });
+    userChatInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && activeUserChatId) {
+        sendUserMessage(activeUserChatId, userChatInput.value.trim());
+      }
+    });
+
     themeToggle.addEventListener("click", toggleTheme);
     logoutButton.addEventListener("click", logout);
 
