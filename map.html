@@ -231,37 +231,6 @@
       border: 1px solid var(--border);
     }
 
-    .action-buttons {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .action-button {
-      background: var(--primary-purple);
-      color: var(--white);
-      border: none;
-      border-radius: 9999px;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
-    .action-button.escalate {
-      background: var(--secondary-teal);
-    }
-
-    .action-button.call {
-      background: var(--danger-red);
-    }
-
-    .action-button:hover,
-    .action-button:focus {
-      transform: scale(1.05);
-      outline: 2px solid var(--focus-ring);
-    }
-
     #map {
       position: fixed;
       top: 0;
@@ -589,7 +558,6 @@
       #chat-input { font-size: 0.875rem; padding: 0.5rem 0.75rem; }
       #send-chat-message { padding: 0.5rem; font-size: 0.875rem; }
       .statistics-panel { max-width: 250px; left: 0.5rem; top: 4rem; }
-      .action-button { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
     }
   </style>
 </head>
@@ -634,7 +602,7 @@
       <span>Notifications</span>
       <span class="badge" id="notification-badge">0</span>
     </div>
-    <div class="sidebar-item transition-base" id="heatmap-tab" tabindex="0" title="Heat Map">
+    <div class="sidebar-item transition-base active" id="heatmap-tab" tabindex="0" title="Heat Map">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M3 3v18h18"/>
         <rect x="3" y="15" width="3" height="6" rx="1"/>
@@ -688,11 +656,6 @@
     <p id="incident-timestamp">Timestamp: Loading...</p>
     <p id="incident-status">Status: Loading...</p>
     <button class="transition-base" id="chat-button" style="background: var(--primary-purple); color: var(--white); padding: 0.5rem 1rem; border-radius: 9999px; margin-top: 0.5rem;" aria-label="Open chat">Open Chat</button>
-    <div class="action-buttons">
-      <button class="action-button resolve" id="resolve-button">Resolve</button>
-      <button class="action-button escalate" id="escalate-button">Escalate</button>
-      <button class="action-button call" id="call-button">Call</button>
-    </div>
   </div>
   <button class="fab weather-fab transition-base" id="weather-button" aria-label="View weather information" title="View weather information">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
@@ -787,18 +750,14 @@
     const sidebar = document.querySelector(".sidebar");
     const heatmapTab = document.getElementById("heatmap-tab");
     const statisticsTab = document.getElementById("statistics-tab");
-    const resolveButton = document.getElementById("resolve-button");
-    const escalateButton = document.getElementById("escalate-button");
-    const callButton = document.getElementById("call-button");
     const statisticsPanel = document.getElementById("statistics-panel");
     let map;
     let incidentMarker = null;
     let incidentLocation = null;
     let activeIncidentId = null;
     let currentMapStyle = 'mapbox://styles/mapbox/light-v11';
-    let heatmapLayerVisible = false;
+    let heatmapLayerVisible = true;
     let allIncidents = [];
-    let heatmapSource = null;
     let typeChart = null;
     let statusChart = null;
 
@@ -1156,6 +1115,7 @@
           }
 
           await loadAllIncidents();
+          toggleHeatmap(); // Show heatmap by default
 
           hideSpinner();
         });
@@ -1243,13 +1203,6 @@
         document.getElementById("incident-user").textContent = `User: ${userData.displayName || userData.email}`;
         document.getElementById("incident-timestamp").textContent = `Timestamp: ${new Date(incident.timestamp).toLocaleString()}`;
         document.getElementById("incident-status").textContent = `Status: ${incident.status || 'Unknown'}`;
-
-        if (userData.phoneNumber) {
-          callButton.onclick = () => window.location.href = `tel:${userData.phoneNumber}`;
-        } else {
-          callButton.disabled = true;
-          callButton.textContent = "No Phone";
-        }
 
         return { incident, userData, lng, lat };
       } catch (error) {
@@ -1449,39 +1402,6 @@
       console.log("Statistics rendered");
     }
 
-    async function resolveIncident() {
-      showSpinner();
-      try {
-        await update(ref(db, `incidents/${activeIncidentId}`), { status: 'resolved' });
-        document.getElementById("incident-status").textContent = `Status: resolved`;
-        if (incidentMarker) {
-          incidentMarker.remove();
-          incidentMarker = null;
-          console.log("Incident marker removed");
-        }
-        showAlert("Incident resolved successfully.", false);
-      } catch (error) {
-        console.error("Error resolving incident:", error);
-        showAlert("Failed to resolve incident.", false);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    async function escalateIncident() {
-      showSpinner();
-      try {
-        await update(ref(db, `incidents/${activeIncidentId}`), { status: 'escalated' });
-        document.getElementById("incident-status").textContent = `Status: escalated`;
-        showAlert("Incident escalated successfully.", false);
-      } catch (error) {
-        console.error("Error escalating incident:", error);
-        showAlert("Failed to escalate incident.", false);
-      } finally {
-        hideSpinner();
-      }
-    }
-
     function openChatModal(incidentId) {
       activeIncidentId = incidentId;
       chatModal.classList.add("active");
@@ -1611,8 +1531,6 @@
       });
       heatmapTab.addEventListener('click', toggleHeatmap);
       statisticsTab.addEventListener('click', toggleStatistics);
-      resolveButton.addEventListener('click', resolveIncident);
-      escalateButton.addEventListener('click', escalateIncident);
     }
 
     init().catch(error => {
