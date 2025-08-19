@@ -239,7 +239,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const firebaseConfig = {
@@ -332,6 +332,23 @@
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         await updateProfile(user, { displayName });
+
+        // Wait for auth state to propagate
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error("Authentication state timeout")), 5000);
+          onAuthStateChanged(auth, (currentUser) => {
+            clearTimeout(timeout);
+            if (currentUser && currentUser.uid === user.uid) {
+              console.log("Auth state confirmed for user:", user.uid);
+              resolve();
+            } else {
+              reject(new Error("Authentication state not confirmed"));
+            }
+          }, reject);
+        });
+
+        // Write user data
+        console.log("Attempting to write user data for:", user.uid, user.email);
         await set(ref(db, `users/${user.uid}`), {
           displayName,
           email,
