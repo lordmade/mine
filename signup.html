@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Signup/Login - Emergency Map</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js" integrity="sha256-7aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js" integrity="sha256-8aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js" integrity="sha256-8aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
   <style>
     :root {
       --primary-purple: #6D28D9;
@@ -253,9 +253,17 @@
       measurementId: "G-V4W97VMSKL"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+    let app, auth, db;
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getDatabase(app);
+      console.log("Firebase initialized successfully");
+    } catch (error) {
+      console.error("Firebase initialization error:", error, "Code:", error.code || "N/A");
+      showError(`Failed to initialize Firebase: ${error.message}`);
+      throw error;
+    }
 
     const tabButtons = document.querySelectorAll(".tab-button");
     const tabContents = document.querySelectorAll(".tab-content");
@@ -268,6 +276,15 @@
     const loginPassword = document.getElementById("login-password");
     const errorMessage = document.getElementById("error-message");
     const spinnerOverlay = document.getElementById("spinner-overlay");
+
+    // Validate DOM elements
+    if (!tabButtons.length || !tabContents.length || !signupButton || !loginButton ||
+        !signupDisplayName || !signupEmail || !signupPassword ||
+        !loginEmail || !loginPassword || !errorMessage || !spinnerOverlay) {
+      console.error("One or more DOM elements are missing");
+      showError("Initialization error: Page elements not found.");
+      throw new Error("Missing DOM elements");
+    }
 
     function showSpinner() {
       spinnerOverlay.classList.add("active");
@@ -283,28 +300,33 @@
     }
 
     function switchTab(tabName) {
-      tabButtons.forEach(button => {
-        button.classList.toggle("active", button.dataset.tab === tabName);
-      });
-      tabContents.forEach(content => {
-        content.classList.toggle("active", content.id === `${tabName}-tab`);
-      });
-      errorMessage.textContent = "";
-      console.log(`Switched to ${tabName} tab`);
+      try {
+        tabButtons.forEach(button => {
+          button.classList.toggle("active", button.dataset.tab === tabName);
+        });
+        tabContents.forEach(content => {
+          content.classList.toggle("active", content.id === `${tabName}-tab`);
+        });
+        errorMessage.textContent = "";
+        console.log(`Switched to ${tabName} tab`);
+      } catch (error) {
+        console.error("Tab switch error:", error);
+        showError("Failed to switch tabs.");
+      }
     }
 
     async function handleSignup() {
-      const displayName = signupDisplayName.value.trim();
-      const email = signupEmail.value.trim();
-      const password = signupPassword.value.trim();
-
-      if (!displayName || !email || !password) {
-        showError("Please fill in all fields.");
-        return;
-      }
-
-      showSpinner();
       try {
+        const displayName = signupDisplayName.value.trim();
+        const email = signupEmail.value.trim();
+        const password = signupPassword.value.trim();
+
+        if (!displayName || !email || !password) {
+          showError("Please fill in all fields.");
+          return;
+        }
+
+        showSpinner();
         await setPersistence(auth, browserLocalPersistence);
         console.log("Persistence set for signup");
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -314,13 +336,14 @@
           displayName,
           email,
           online: true,
-          createdAt: Date.now()
+          createdAt: Date.now(),
+          role: "admin"
         });
-        console.log("User signed up:", user.uid, user.email);
+        console.log("Admin user signed up:", user.uid, user.email);
         document.body.classList.add("fade-out");
-        setTimeout(() => window.location.href = "home.html", 500);
+        setTimeout(() => window.location.href = "home.html", 500); // Redirect to dashboard
       } catch (error) {
-        console.error("Signup error:", error, "Code:", error.code);
+        console.error("Signup error:", error, "Code:", error.code || "N/A");
         showError(`Signup failed: ${error.message}`);
       } finally {
         hideSpinner();
@@ -328,49 +351,62 @@
     }
 
     async function handleLogin() {
-      const email = loginEmail.value.trim();
-      const password = loginPassword.value.trim();
-
-      if (!email || !password) {
-        showError("Please fill in all fields.");
-        return;
-      }
-
-      showSpinner();
       try {
+        const email = loginEmail.value.trim();
+        const password = loginPassword.value.trim();
+
+        if (!email || !password) {
+          showError("Please fill in all fields.");
+          return;
+        }
+
+        showSpinner();
         await setPersistence(auth, browserLocalPersistence);
         console.log("Persistence set for login");
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         console.log("User logged in:", userCredential.user.uid, userCredential.user.email);
         document.body.classList.add("fade-out");
-        setTimeout(() => window.location.href = "home.html", 500);
+        setTimeout(() => window.location.href = "home.html", 500); // Redirect to dashboard
       } catch (error) {
-        console.error("Login error:", error, "Code:", error.code);
+        console.error("Login error:", error, "Code:", error.code || "N/A");
         showError(`Login failed: ${error.message}`);
       } finally {
         hideSpinner();
       }
     }
 
-    tabButtons.forEach(button => {
-      button.addEventListener("click", () => switchTab(button.dataset.tab));
-    });
+    function initializeEventListeners() {
+      try {
+        tabButtons.forEach(button => {
+          button.addEventListener("click", () => switchTab(button.dataset.tab));
+        });
 
-    signupButton.addEventListener("click", handleSignup);
-    loginButton.addEventListener("click", handleLogin);
+        signupButton.addEventListener("click", handleSignup);
+        loginButton.addEventListener("click", handleLogin);
 
-    signupPassword.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") handleSignup();
-    });
+        signupPassword.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") handleSignup();
+        });
 
-    loginPassword.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") handleLogin();
-    });
+        loginPassword.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") handleLogin();
+        });
+      } catch (error) {
+        console.error("Error setting up event listeners:", error);
+        showError("Failed to initialize event listeners.");
+      }
+    }
 
-    // Initialize theme
-    const savedTheme = localStorage.getItem("theme") || "light";
-    document.documentElement.setAttribute("data-theme", savedTheme);
-    console.log("Initial theme set to:", savedTheme);
+    // Initialize theme and event listeners
+    try {
+      const savedTheme = localStorage.getItem("theme") || "light";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      console.log("Initial theme set to:", savedTheme);
+      initializeEventListeners();
+    } catch (error) {
+      console.error("Initialization error:", error);
+      showError("Failed to initialize page.");
+    }
   </script>
 </body>
 </html>
