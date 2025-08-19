@@ -8,8 +8,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js" integrity="sha256-7aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js" integrity="sha256-8aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js" integrity="sha256-8aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoYehGL5fB+nUQAhi3I1vS3z3+xnL1d+8d+8d+8=" crossorigin="anonymous" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
   <style>
     :root {
       --primary-purple: #6D28D9;
@@ -27,7 +25,6 @@
       --white-dark: #1F2937;
       --highlight: #F3F4F6;
       --focus-ring: #8B5CF6;
-      --call-green: #10B981;
     }
 
     [data-theme="dark"] {
@@ -188,109 +185,12 @@
       font-size: 0.875rem;
     }
 
+    .incident-table tr {
+      cursor: pointer;
+    }
+
     .incident-table tr:hover {
       background: var(--highlight);
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      justify-content: flex-start;
-      flex-wrap: nowrap;
-    }
-
-    .action-button {
-      padding: 0.4rem 0.8rem;
-      border: none;
-      border-radius: 9999px;
-      cursor: pointer;
-      font-size: 0.75rem;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      min-width: 60px;
-      text-align: center;
-      flex: 1;
-      max-width: 80px;
-    }
-
-    .action-button.resolve {
-      background: var(--primary-purple);
-      color: var(--white);
-    }
-
-    .action-button.escalate {
-      background: var(--danger-red);
-      color: var(--white);
-    }
-
-    .action-button.call {
-      background: var(--call-green);
-      color: var(--white);
-    }
-
-    .action-button:hover,
-    .action-button:focus {
-      transform: scale(1.05);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      outline: 2px solid var(--focus-ring);
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-      align-items: flex-end;
-      justify-content: center;
-    }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: var(--card-background);
-      padding: 1.5rem;
-      border-radius: 20px 20px 0 0;
-      width: 100%;
-      max-width: 500px;
-      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-      transform: translateY(100%);
-      transition: transform 0.4s ease-in-out;
-    }
-
-    .modal.active .modal-content {
-      transform: translateY(0);
-    }
-
-    .modal-content h2 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--text-dark);
-      margin-bottom: 1rem;
-    }
-
-    .modal-content .close-btn {
-      position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
-      width: 24px;
-      height: 24px;
-      background: none;
-      border: none;
-      color: var(--primary-purple);
-      cursor: pointer;
-    }
-
-    .modal-content .close-btn:hover,
-    .modal-content .close-btn:focus {
-      transform: scale(1.2);
-      outline: 2px solid var(--focus-ring);
     }
 
     .alert-modal {
@@ -397,12 +297,6 @@
         font-size: 0.8rem;
         max-width: 90px;
       }
-      .action-button {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.7rem;
-        min-width: 50px;
-        max-width: 70px;
-      }
     }
 
     @media (max-width: 767px) {
@@ -454,17 +348,6 @@
         top: 0;
         z-index: 5;
       }
-      .action-buttons {
-        display: flex;
-        gap: 0.3rem;
-        flex-wrap: nowrap;
-      }
-      .action-button {
-        padding: 0.2rem 0.4rem;
-        font-size: 0.65rem;
-        min-width: 40px;
-        max-width: 60px;
-      }
     }
   </style>
 </head>
@@ -501,7 +384,6 @@
           <th scope="col">User</th>
           <th scope="col">Timestamp</th>
           <th scope="col">Status</th>
-          <th scope="col">Actions</th>
         </tr>
       </thead>
       <tbody id="incident-list"></tbody>
@@ -522,7 +404,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getDatabase, ref, get, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { getDatabase, ref, get, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -615,11 +497,11 @@
           return userSnap.val();
         }
         console.warn(`User data not found for ID: ${userId}`);
-        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null };
+        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null, role: "user" };
       } catch (error) {
         console.error("Error fetching user data:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to fetch user data: ${error.message}`);
-        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null };
+        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null, role: "user" };
       } finally {
         hideSpinner();
       }
@@ -650,9 +532,16 @@
                 hideSpinner();
                 resolve(null);
               } else {
-                console.log(`Auth attempt ${attempts + 1}: User authenticated:`, user.uid, user.email);
-                hideSpinner();
-                resolve(user);
+                const userData = await fetchUserData(user.uid);
+                if (userData.role !== "admin") {
+                  showAlert("Access denied. Admin privileges required.", true);
+                  hideSpinner();
+                  resolve(null);
+                } else {
+                  console.log(`Admin authenticated: ${user.uid}, ${user.email}`);
+                  hideSpinner();
+                  resolve(user);
+                }
               }
             }, (error) => {
               clearTimeout(timeout);
@@ -717,48 +606,24 @@
                 const notificationSnap = await get(notificationRef);
                 const isUnread = notificationSnap.exists() && !notificationSnap.val().read;
                 if (isUnread) unread++;
+                const shortIncidentId = incidentId.slice(0, 5);
                 const row = document.createElement("tr");
+                row.dataset.incidentId = incidentId;
                 row.innerHTML = `
-                  <td title="${incidentId}">${incidentId}${isUnread ? ' <span class="unread-count">New</span>' : ''}</td>
+                  <td title="${incidentId}">${shortIncidentId}${isUnread ? ' <span class="unread-count">New</span>' : ''}</td>
                   <td title="${incident.type || 'Unknown'}">${incident.type || 'Unknown'}</td>
                   <td title="${userData.displayName || userData.email}">${userData.displayName || userData.email}</td>
                   <td title="${new Date(incident.timestamp).toLocaleString()}">${new Date(incident.timestamp).toLocaleString()}</td>
                   <td title="${incident.status || 'Unknown'}">${incident.status || 'Unknown'}</td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="action-button resolve" data-id="${incidentId}" aria-label="Resolve incident ${incidentId}">Resolve</button>
-                      <button class="action-button escalate" data-id="${incidentId}" aria-label="Escalate incident ${incidentId}">Escalate</button>
-                      <button class="action-button call" data-user-id="${incident.userId}" aria-label="Call user ${userData.displayName || userData.email}">Call</button>
-                    </div>
-                  </td>
                 `;
+                row.addEventListener("click", () => {
+                  window.location.href = `map.html?incidentId=${encodeURIComponent(incidentId)}`;
+                });
                 incidentList.appendChild(row);
               }
-
               unreadCount.textContent = unread;
-
-              document.querySelectorAll(".action-button.resolve").forEach(button => {
-                button.addEventListener("click", async () => {
-                  const incidentId = button.dataset.id;
-                  await updateIncidentStatus(incidentId, "resolved");
-                });
-              });
-
-              document.querySelectorAll(".action-button.escalate").forEach(button => {
-                button.addEventListener("click", async () => {
-                  const incidentId = button.dataset.id;
-                  await updateIncidentStatus(incidentId, "escalated");
-                });
-              });
-
-              document.querySelectorAll(".action-button.call").forEach(button => {
-                button.addEventListener("click", () => {
-                  const userId = button.dataset.userId;
-                  initiateCall(userId);
-                });
-              });
             } else {
-              incidentList.innerHTML = '<tr><td colspan="6" class="text-center">No active incidents</td></tr>';
+              incidentList.innerHTML = '<tr><td colspan="5" class="text-center">No active incidents</td></tr>';
               unreadCount.textContent = "0";
             }
           } catch (error) {
@@ -774,64 +639,6 @@
       } catch (error) {
         console.error("Error setting up incidents listener:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to initialize incidents: ${error.message}`);
-        hideSpinner();
-      }
-    }
-
-    async function updateIncidentStatus(incidentId, status) {
-      showSpinner();
-      try {
-        const incidentRef = ref(db, `incidents/${incidentId}`);
-        await update(incidentRef, { status, updatedAt: Date.now() });
-        console.log(`Incident ${incidentId} updated to status: ${status}`);
-        showAlert(`Incident ${status} successfully`);
-        if (status === "resolved") {
-          const incidentSnap = await get(incidentRef);
-          if (incidentSnap.exists()) {
-            const incident = incidentSnap.val();
-            const notificationRef = ref(db, `emergencyNotifications/${incident.userId}/${incidentId}`);
-            await set(notificationRef, {
-              incidentId,
-              type: incident.type || "Unknown",
-              timestamp: Date.now(),
-              read: false,
-              message: `Your ${incident.type || "incident"} incident has been resolved.`,
-              createdAt: Date.now()
-            });
-          }
-        }
-      } catch (error) {
-        console.error(`Error updating incident ${incidentId}:`, error, "Code:", error.code || "N/A");
-        showAlert(`Failed to update incident: ${error.message}`);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    async function initiateCall(userId) {
-      showSpinner();
-      try {
-        const userData = await fetchUserData(userId);
-        const phoneNumber = userData.phoneNumber;
-        if (!phoneNumber) {
-          showAlert("No phone number available for this user.");
-          return;
-        }
-        const callId = `call_${Date.now()}_${auth.currentUser.uid}`;
-        const callLogRef = ref(db, `callLogs/${auth.currentUser.uid}/${callId}`);
-        await set(callLogRef, {
-          callerId: auth.currentUser.uid,
-          recipientId: userId,
-          timestamp: Date.now(),
-          status: "initiated"
-        });
-        console.log(`Call initiated to user ${userId} with phone number ${phoneNumber}`);
-        showAlert(`Initiating call to ${userData.displayName || userData.email}. Phone: ${phoneNumber}`);
-        window.location.href = `tel:${phoneNumber}`;
-      } catch (error) {
-        console.error("Error initiating call:", error, "Code:", error.code || "N/A");
-        showAlert(`Failed to initiate call: ${error.message}`);
-      } finally {
         hideSpinner();
       }
     }
