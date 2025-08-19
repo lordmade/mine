@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin Signup/Login - Emergency Map</title>
+  <title>Sign In - Emergency Map</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js" integrity="sha256-7aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js" integrity="sha256-8aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js" integrity="sha256-8aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
   <style>
     :root {
       --primary-purple: #6D28D9;
@@ -48,6 +48,9 @@
       -webkit-user-select: none;
       -ms-user-select: none;
       -webkit-touch-callout: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     body.fade-out {
@@ -59,99 +62,116 @@
     }
 
     .auth-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 1rem;
-    }
-
-    .auth-card {
       background: var(--card-background);
       padding: 2rem;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       width: 100%;
       max-width: 400px;
       text-align: center;
     }
 
-    .auth-card h1 {
+    .auth-container h1 {
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--text-dark);
       margin-bottom: 1.5rem;
     }
 
-    .tab-nav {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 1.5rem;
-      border-bottom: 2px solid var(--border);
-    }
-
-    .tab-button {
-      flex: 1;
-      padding: 0.75rem;
-      background: none;
-      border: none;
-      font-size: 1rem;
-      font-weight: 500;
-      color: var(--text-light);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    .tab-button.active {
-      color: var(--primary-purple);
-      font-weight: 600;
-    }
-
-    .tab-button.active::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background: var(--primary-purple);
-    }
-
-    .tab-button:hover,
-    .tab-button:focus {
-      color: var(--primary-purple);
-      outline: 2px solid var(--focus-ring);
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .auth-input {
+    .auth-container input {
       width: 100%;
       padding: 0.75rem;
       margin-bottom: 1rem;
       border: 1px solid var(--border);
-      border-radius: 9999px;
-      background: var(--white);
+      border-radius: 8px;
+      font-size: 1rem;
       color: var(--text-dark);
+      background: var(--white);
       outline: none;
-      transition: border-color 0.3s ease;
     }
 
-    .auth-input:focus {
+    .auth-container input:focus {
       border-color: var(--primary-purple);
       box-shadow: 0 0 0 2px var(--focus-ring);
     }
 
-    .auth-button {
+    .auth-container button {
       width: 100%;
       padding: 0.75rem;
+      border: none;
+      border-radius: 9999px;
+      background: var(--primary-purple);
+      color: var(--white);
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .auth-container button:hover,
+    .auth-container button:focus {
+      background: #5B21B6;
+      transform: scale(1.05);
+      outline: 2px solid var(--focus-ring);
+    }
+
+    .auth-container p {
+      color: var(--text-light);
+      font-size: 0.875rem;
+      margin-top: 1rem;
+    }
+
+    .auth-container a {
+      color: var(--primary-purple);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .auth-container a:hover {
+      text-decoration: underline;
+    }
+
+    .alert-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1500;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .alert-modal.active {
+      display: flex;
+    }
+
+    .alert-modal-content {
+      background: var(--card-background);
+      padding: 1.5rem;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      transform: scale(0.7);
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .alert-modal.active .alert-modal-content {
+      transform: scale(1);
+    }
+
+    .alert-modal-content p {
+      color: var(--text-dark);
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .alert-modal-content .alert-close-btn {
+      padding: 0.5rem 1rem;
       border: none;
       border-radius: 9999px;
       background: var(--primary-purple);
@@ -161,11 +181,10 @@
       transition: all 0.3s ease;
     }
 
-    .auth-button:hover,
-    .auth-button:focus {
+    .alert-modal-content .alert-close-btn:hover,
+    .alert-modal-content .alert-close-btn:focus {
       background: #5B21B6;
       transform: scale(1.05);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       outline: 2px solid var(--focus-ring);
     }
 
@@ -202,34 +221,36 @@
     }
 
     @media (max-width: 767px) {
-      .auth-card { padding: 1.5rem; }
-      .auth-card h1 { font-size: 1.25rem; }
-      .tab-button { font-size: 0.9rem; padding: 0.6rem; }
-      .auth-input { padding: 0.6rem; }
-      .auth-button { padding: 0.6rem; }
+      .auth-container {
+        padding: 1.5rem;
+        max-width: 90%;
+      }
+
+      .auth-container h1 {
+        font-size: 1.25rem;
+      }
+
+      .auth-container input,
+      .auth-container button {
+        font-size: 0.875rem;
+        padding: 0.5rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="auth-container">
-    <div class="auth-card">
-      <h1>Admin Access</h1>
-      <div class="tab-nav">
-        <button class="tab-button active" data-tab="signup" aria-label="Switch to signup tab">Sign Up</button>
-        <button class="tab-button" data-tab="login" aria-label="Switch to login tab">Login</button>
-      </div>
-      <div id="signup-tab" class="tab-content active">
-        <input type="text" id="signup-display-name" class="auth-input" placeholder="Display Name" aria-label="Display Name">
-        <input type="email" id="signup-email" class="auth-input" placeholder="Email" aria-label="Email">
-        <input type="password" id="signup-password" class="auth-input" placeholder="Password" aria-label="Password">
-        <button id="signup-button" class="auth-button" aria-label="Sign up as admin">Sign Up</button>
-      </div>
-      <div id="login-tab" class="tab-content">
-        <input type="email" id="login-email" class="auth-input" placeholder="Email" aria-label="Email">
-        <input type="password" id="login-password" class="auth-input" placeholder="Password" aria-label="Password">
-        <button id="login-button" class="auth-button" aria-label="Login as admin">Login</button>
-      </div>
-      <div id="error-message" style="color: var(--danger-red); margin-top: 1rem; font-size: 0.875rem;" aria-live="assertive"></div>
+    <h1>Sign In</h1>
+    <input type="email" id="email" placeholder="Email" aria-label="Email" required>
+    <input type="password" id="password" placeholder="Password" aria-label="Password" required>
+    <button id="signin-button" aria-label="Sign In">Sign In</button>
+    <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+  </div>
+
+  <div class="alert-modal" id="alert-modal" role="dialog" aria-modal="true" aria-labelledby="alert-modal-title">
+    <div class="alert-modal-content">
+      <p id="alert-message" aria-live="assertive"></p>
+      <button class="alert-close-btn transition-base" id="alert-close-btn" aria-label="Close alert">OK</button>
     </div>
   </div>
 
@@ -239,8 +260,8 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -253,128 +274,119 @@
       measurementId: "G-V4W97VMSKL"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+    let app, auth, db;
+    try {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getDatabase(app);
+      console.log("Firebase initialized successfully");
+    } catch (error) {
+      console.error("Firebase initialization error:", error, "Code:", error.code || "N/A");
+      showAlert(`Failed to initialize Firebase: ${error.message}`);
+      throw error;
+    }
 
-    const tabButtons = document.querySelectorAll(".tab-button");
-    const tabContents = document.querySelectorAll(".tab-content");
-    const signupButton = document.getElementById("signup-button");
-    const loginButton = document.getElementById("login-button");
-    const signupDisplayName = document.getElementById("signup-display-name");
-    const signupEmail = document.getElementById("signup-email");
-    const signupPassword = document.getElementById("signup-password");
-    const loginEmail = document.getElementById("login-email");
-    const loginPassword = document.getElementById("login-password");
-    const errorMessage = document.getElementById("error-message");
+    const signinButton = document.getElementById("signin-button");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
     const spinnerOverlay = document.getElementById("spinner-overlay");
+    const alertModal = document.getElementById("alert-modal");
+    const alertMessage = document.getElementById("alert-message");
+    const alertCloseBtn = document.getElementById("alert-close-btn");
 
     function showSpinner() {
-      spinnerOverlay.classList.add("active");
+      if (spinnerOverlay) {
+        spinnerOverlay.classList.add("active");
+      }
     }
 
     function hideSpinner() {
-      spinnerOverlay.classList.remove("active");
-    }
-
-    function showError(message) {
-      errorMessage.textContent = message;
-      console.log("Error displayed:", message);
-    }
-
-    function switchTab(tabName) {
-      tabButtons.forEach(button => {
-        button.classList.toggle("active", button.dataset.tab === tabName);
-      });
-      tabContents.forEach(content => {
-        content.classList.toggle("active", content.id === `${tabName}-tab`);
-      });
-      errorMessage.textContent = "";
-      console.log(`Switched to ${tabName} tab`);
-    }
-
-    async function setAdminRole(user) {
-      try {
-        const adminRef = ref(db, `admins/${user.uid}`);
-        await set(adminRef, {
-          isAdmin: true,
-          email: user.email,
-          displayName: user.displayName || user.email.split("@")[0],
-          createdAt: Date.now()
-        });
-        console.log(`Admin role set for user ${user.uid}`);
-      } catch (error) {
-        console.error("Error setting admin role:", error);
-        showError(`Failed to set admin role: ${error.message}`);
+      if (spinnerOverlay) {
+        spinnerOverlay.classList.remove("active");
       }
     }
 
-    async function handleSignup() {
-      const displayName = signupDisplayName.value.trim();
-      const email = signupEmail.value.trim();
-      const password = signupPassword.value.trim();
-
-      if (!displayName || !email || !password) {
-        showError("Please fill in all fields.");
+    function showAlert(message, redirect = false) {
+      if (!alertMessage || !alertModal || !alertCloseBtn) {
+        console.error("Alert elements not found");
         return;
       }
-
-      showSpinner();
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        await updateProfile(user, { displayName });
-        await setAdminRole(user);
-        console.log("Admin signed up and role set:", user.uid);
-        document.body.classList.add("fade-out");
-        setTimeout(() => window.location.href = "home.html", 500);
-      } catch (error) {
-        console.error("Signup error:", error);
-        showError(`Signup failed: ${error.message}`);
-      } finally {
-        hideSpinner();
+      alertMessage.textContent = message;
+      alertModal.classList.add("active");
+      alertModal.setAttribute("aria-hidden", "false");
+      alertCloseBtn.focus();
+      console.log("Alert shown:", message);
+      if (redirect) {
+        alertCloseBtn.onclick = () => {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+          document.body.classList.add("fade-out");
+          setTimeout(() => window.location.href = "dashboard.html", 500);
+        };
+      } else {
+        alertCloseBtn.onclick = () => {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+        };
       }
+      alertModal.addEventListener("click", (e) => {
+        if (e.target === alertModal) {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+        }
+      }, { once: true });
+      alertCloseBtn.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+        }
+      }, { once: true });
     }
 
-    async function handleLogin() {
-      const email = loginEmail.value.trim();
-      const password = loginPassword.value.trim();
+    async function signin() {
+      showSpinner();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
 
       if (!email || !password) {
-        showError("Please fill in all fields.");
+        showAlert("Please fill in all fields.");
+        hideSpinner();
         return;
       }
 
-      showSpinner();
       try {
+        await setPersistence(auth, browserLocalPersistence);
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log("Admin logged in:", userCredential.user.uid);
-        document.body.classList.add("fade-out");
-        setTimeout(() => window.location.href = "home.html", 500);
+        const user = userCredential.user;
+
+        const userRef = ref(db, `users/${user.uid}`);
+        const userSnap = await get(userRef);
+        if (!userSnap.exists() || !userSnap.val().isAdmin) {
+          showAlert("Access denied. Admin privileges required.");
+          await auth.signOut();
+          hideSpinner();
+          return;
+        }
+
+        console.log("User signed in:", user.uid, email);
+        showAlert("Sign in successful! Redirecting to dashboard...", true);
       } catch (error) {
-        console.error("Login error:", error);
-        showError(`Login failed: ${error.message}`);
-      } finally {
+        console.error("Signin error:", error, "Code:", error.code || "N/A");
+        showAlert(`Failed to sign in: ${error.message}`);
         hideSpinner();
       }
     }
 
-    tabButtons.forEach(button => {
-      button.addEventListener("click", () => switchTab(button.dataset.tab));
+    signinButton.addEventListener("click", signin);
+
+    [emailInput, passwordInput].forEach(input => {
+      input.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          signin();
+        }
+      });
     });
 
-    signupButton.addEventListener("click", handleSignup);
-    loginButton.addEventListener("click", handleLogin);
-
-    signupPassword.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") handleSignup();
-    });
-
-    loginPassword.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") handleLogin();
-    });
-
-    // Initialize theme
     const savedTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
     console.log("Initial theme set to:", savedTheme);
