@@ -401,298 +401,291 @@
     <div class="spinner"></div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getDatabase, ref, get, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+ <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  import { getDatabase, ref, get, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
-      authDomain: "fire-b-a8878.firebaseapp.com",
-      databaseURL: "https://fire-b-a8878.firebaseio.com",
-      projectId: "fire-b-a8878",
-      storageBucket: "fire-b-a8878.firebasestorage.app",
-      messagingSenderId: "658673187627",
-      appId: "1:658673187627:web:6e4c29af661785f0afa36e",
-      measurementId: "G-V4W97VMSKL"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+    authDomain: "fire-b-a8878.firebaseapp.com",
+    databaseURL: "https://fire-b-a8878.firebaseio.com",
+    projectId: "fire-b-a8878",
+    storageBucket: "fire-b-a8878.firebasestorage.app",
+    messagingSenderId: "658673187627",
+    appId: "1:658673187627:web:6e4c29af661785f0afa36e",
+    measurementId: "G-V4W97VMSKL"
+  };
 
-    let app, auth, db;
+  let app, auth, db;
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getDatabase(app);
+    console.log("Firebase initialized successfully");
+  } catch (error) {
+    console.error("Firebase initialization error:", error, "Code:", error.code || "N/A");
+    showAlert(`Failed to initialize Firebase: ${error.message}`);
+    throw error;
+  }
+
+  const spinnerOverlay = document.getElementById("spinner-overlay");
+  const incidentList = document.getElementById("incident-list");
+  const themeToggle = document.getElementById("theme-toggle");
+  const logoutButton = document.getElementById("logout-button");
+  const unreadCount = document.getElementById("unread-count");
+  const alertModal = document.getElementById("alert-modal");
+  const alertMessage = document.getElementById("alert-message");
+  const alertCloseBtn = document.getElementById("alert-close-btn");
+
+  function showSpinner() {
+    if (spinnerOverlay) {
+      spinnerOverlay.classList.add("active");
+    }
+  }
+
+  function hideSpinner() {
+    if (spinnerOverlay) {
+      spinnerOverlay.classList.remove("active");
+    }
+  }
+
+  function showAlert(message, redirect = false) {
+    if (!alertMessage || !alertModal || !alertCloseBtn) {
+      console.error("Alert elements not found");
+      return;
+    }
+    alertMessage.textContent = message;
+    alertModal.classList.add("active");
+    alertModal.setAttribute("aria-hidden", "false");
+    alertCloseBtn.focus();
+    console.log("Alert shown:", message);
+    if (redirect) {
+      alertCloseBtn.onclick = () => {
+        alertModal.classList.remove("active");
+        alertModal.setAttribute("aria-hidden", "true");
+        document.body.classList.add("fade-out");
+        setTimeout(() => window.location.href = "index.html", 500);
+      };
+    } else {
+      alertCloseBtn.onclick = () => {
+        alertModal.classList.remove("active");
+        alertModal.setAttribute("aria-hidden", "true");
+      };
+    }
+    alertModal.addEventListener("click", (e) => {
+      if (e.target === alertModal) {
+        alertModal.classList.remove("active");
+        alertModal.setAttribute("aria-hidden", "true");
+      }
+    }, { once: true });
+    alertCloseBtn.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        alertModal.classList.remove("active");
+        alertModal.setAttribute("aria-hidden", "true");
+      }
+    }, { once: true });
+  }
+
+  async function fetchUserData(userId) {
+    showSpinner();
     try {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getDatabase(app);
-      console.log("Firebase initialized successfully");
+      if (!userId) throw new Error("Invalid user ID");
+      const userRef = ref(db, `users/${userId}`);
+      const userSnap = await get(userRef);
+      if (userSnap.exists()) {
+        return userSnap.val();
+      }
+      console.warn(`User data not found for ID: ${userId}`);
+      return { displayName: "Unknown User", email: "Unknown", phoneNumber: null };
     } catch (error) {
-      console.error("Firebase initialization error:", error, "Code:", error.code || "N/A");
-      showAlert(`Failed to initialize Firebase: ${error.message}`);
-      throw error;
+      console.error("Error fetching user data:", error, "Code:", error.code || "N/A");
+      showAlert(`Failed to fetch user data: ${error.message}`);
+      return { displayName: "Unknown User", email: "Unknown", phoneNumber: null };
+    } finally {
+      hideSpinner();
     }
+  }
 
-    const spinnerOverlay = document.getElementById("spinner-overlay");
-    const incidentList = document.getElementById("incident-list");
-    const themeToggle = document.getElementById("theme-toggle");
-    const logoutButton = document.getElementById("logout-button");
-    const unreadCount = document.getElementById("unread-count");
-    const alertModal = document.getElementById("alert-modal");
-    const alertMessage = document.getElementById("alert-message");
-    const alertCloseBtn = document.getElementById("alert-close-btn");
-
-    function showSpinner() {
-      if (spinnerOverlay) {
-        spinnerOverlay.classList.add("active");
-      }
-    }
-
-    function hideSpinner() {
-      if (spinnerOverlay) {
-        spinnerOverlay.classList.remove("active");
-      }
-    }
-
-    function showAlert(message, redirect = false) {
-      if (!alertMessage || !alertModal || !alertCloseBtn) {
-        console.error("Alert elements not found");
-        return;
-      }
-      alertMessage.textContent = message;
-      alertModal.classList.add("active");
-      alertModal.setAttribute("aria-hidden", "false");
-      alertCloseBtn.focus();
-      console.log("Alert shown:", message);
-      if (redirect) {
-        alertCloseBtn.onclick = () => {
-          alertModal.classList.remove("active");
-          alertModal.setAttribute("aria-hidden", "true");
-          document.body.classList.add("fade-out");
-          setTimeout(() => window.location.href = "index.html", 500);
-        };
-      } else {
-        alertCloseBtn.onclick = () => {
-          alertModal.classList.remove("active");
-          alertModal.setAttribute("aria-hidden", "true");
-        };
-      }
-      alertModal.addEventListener("click", (e) => {
-        if (e.target === alertModal) {
-          alertModal.classList.remove("active");
-          alertModal.setAttribute("aria-hidden", "true");
-        }
-      }, { once: true });
-      alertCloseBtn.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          alertModal.classList.remove("active");
-          alertModal.setAttribute("aria-hidden", "true");
-        }
-      }, { once: true });
-    }
-
-    async function fetchUserData(userId) {
-      showSpinner();
+  async function checkAuthState() {
+    showSpinner();
+    let attempts = 0;
+    const maxAttempts = 3;
+    while (attempts < maxAttempts) {
       try {
-        if (!userId) throw new Error("Invalid user ID");
-        const userRef = ref(db, `users/${userId}`);
-        const userSnap = await get(userRef);
-        if (userSnap.exists()) {
-          return userSnap.val();
-        }
-        console.warn(`User data not found for ID: ${userId}`);
-        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null, isAdmin: false };
-      } catch (error) {
-        console.error("Error fetching user data:", error, "Code:", error.code || "N/A");
-        showAlert(`Failed to fetch user data: ${error.message}`);
-        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null, isAdmin: false };
-      } finally {
-        hideSpinner();
-      }
-    }
+        console.log(`Auth attempt ${attempts + 1}: Setting persistence...`);
+        await setPersistence(auth, browserLocalPersistence);
+        console.log("Persistence set, checking local storage...");
+        const authUser = localStorage.getItem(`firebase:authUser:${firebaseConfig.apiKey}:${firebaseConfig.appId}`);
+        console.log("Local storage authUser:", authUser ? "Found" : "Not found");
+        return await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            console.error(`Auth attempt ${attempts + 1}: Timeout after 30s`);
+            reject(new Error("Authentication timed out"));
+          }, 30000);
 
-    async function checkAuthState() {
-      showSpinner();
-      let attempts = 0;
-      const maxAttempts = 3;
-      while (attempts < maxAttempts) {
-        try {
-          console.log(`Auth attempt ${attempts + 1}: Setting persistence...`);
-          await setPersistence(auth, browserLocalPersistence);
-          console.log("Persistence set, checking local storage...");
-          const authUser = localStorage.getItem(`firebase:authUser:${firebaseConfig.apiKey}:${firebaseConfig.appId}`);
-          console.log("Local storage authUser:", authUser ? "Found" : "Not found");
-          return await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-              console.error(`Auth attempt ${attempts + 1}: Timeout after 30s`);
-              reject(new Error("Authentication timed out"));
-            }, 30000);
-
-            onAuthStateChanged(auth, async (user) => {
-              clearTimeout(timeout);
-              if (!user) {
-                console.log(`Auth attempt ${attempts + 1}: No user detected`);
-                showAlert("Please sign in to access the dashboard.", true);
-                hideSpinner();
-                resolve(null);
-              } else {
-                const userData = await fetchUserData(user.uid);
-                if (userData.isAdmin !== true) {
-                  showAlert("Access denied. Admin privileges required.", true);
-                  hideSpinner();
-                  resolve(null);
-                } else {
-                  console.log(`Admin authenticated: ${user.uid}, ${user.email}`);
-                  hideSpinner();
-                  resolve(user);
-                }
-              }
-            }, (error) => {
-              clearTimeout(timeout);
-              console.error(`Auth attempt ${attempts + 1}: Auth state error:`, error, "Code:", error.code || "N/A");
-              reject(error);
-            });
-          });
-        } catch (error) {
-          attempts++;
-          console.error(`Auth attempt ${attempts} failed:`, error, "Code:", error.code || "N/A");
-          if (attempts === maxAttempts) {
-            showAlert(`Authentication failed after ${maxAttempts} attempts: ${error.message}`, true);
-            hideSpinner();
-            return null;
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      }
-    }
-
-    function toggleTheme() {
-      try {
-        const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
-        const newTheme = currentTheme === "light" ? "dark" : "light";
-        document.documentElement.setAttribute("data-theme", newTheme);
-        localStorage.setItem("theme", newTheme);
-        console.log("Theme toggled to:", newTheme);
-      } catch (error) {
-        console.error("Error toggling theme:", error);
-        showAlert(`Failed to toggle theme: ${error.message}`);
-      }
-    }
-
-    async function logout() {
-      showSpinner();
-      try {
-        await signOut(auth);
-        console.log("User logged out");
-        showAlert("Logged out successfully", true);
-      } catch (error) {
-        console.error("Logout error:", error, "Code:", error.code || "N/A");
-        showAlert(`Failed to log out: ${error.message}`);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    async function loadIncidents() {
-      showSpinner();
-      try {
-        const incidentsRef = ref(db, "incidents");
-        onValue(incidentsRef, async (snapshot) => {
-          try {
-            incidentList.innerHTML = "";
-            let unread = 0;
-            if (snapshot.exists()) {
-              const incidents = snapshot.val();
-              for (let incidentId in incidents) {
-                const incident = incidents[incidentId];
-                const userData = await fetchUserData(incident.userId);
-                const notificationRef = ref(db, `emergencyNotifications/${incident.userId}/${incidentId}`);
-                const notificationSnap = await get(notificationRef);
-                const isUnread = notificationSnap.exists() && !notificationSnap.val().read;
-                if (isUnread) unread++;
-                const shortIncidentId = incidentId.slice(0, 5);
-                const row = document.createElement("tr");
-                row.dataset.incidentId = incidentId;
-                row.innerHTML = `
-                  <td title="${incidentId}">${shortIncidentId}${isUnread ? ' <span class="unread-count">New</span>' : ''}</td>
-                  <td title="${incident.type || 'Unknown'}">${incident.type || 'Unknown'}</td>
-                  <td title="${userData.displayName || userData.email}">${userData.displayName || userData.email}</td>
-                  <td title="${new Date(incident.timestamp).toLocaleString()}">${new Date(incident.timestamp).toLocaleString()}</td>
-                  <td title="${incident.status || 'Unknown'}">${incident.status || 'Unknown'}</td>
-                `;
-                row.addEventListener("click", () => {
-                  window.location.href = `map.html?incidentId=${encodeURIComponent(incidentId)}`;
-                });
-                incidentList.appendChild(row);
-              }
-              unreadCount.textContent = unread;
+          onAuthStateChanged(auth, async (user) => {
+            clearTimeout(timeout);
+            if (!user) {
+              console.log(`Auth attempt ${attempts + 1}: No user detected`);
+              showAlert("Please sign in to access the dashboard.", true);
+              hideSpinner();
+              resolve(null);
             } else {
-              incidentList.innerHTML = '<tr><td colspan="5" class="text-center">No active incidents</td></tr>';
-              unreadCount.textContent = "0";
+              console.log(`User authenticated: ${user.uid}, ${user.email}`);
+              hideSpinner();
+              resolve(user);
             }
-          } catch (error) {
-            console.error("Error processing incidents snapshot:", error, "Code:", error.code || "N/A");
-            showAlert(`Failed to process incidents: ${error.message}`);
-          }
-          hideSpinner();
-        }, (error) => {
-          console.error("Error loading incidents:", error, "Code:", error.code || "N/A");
-          showAlert(`Failed to load incidents: ${error.message}`);
-          hideSpinner();
+          }, (error) => {
+            clearTimeout(timeout);
+            console.error(`Auth attempt ${attempts + 1}: Auth state error:`, error, "Code:", error.code || "N/A");
+            reject(error);
+          });
         });
       } catch (error) {
-        console.error("Error setting up incidents listener:", error, "Code:", error.code || "N/A");
-        showAlert(`Failed to initialize incidents: ${error.message}`);
-        hideSpinner();
+        attempts++;
+        console.error(`Auth attempt ${attempts} failed:`, error, "Code:", error.code || "N/A");
+        if (attempts === maxAttempts) {
+          showAlert(`Authentication failed after ${maxAttempts} attempts: ${error.message}`, true);
+          hideSpinner();
+          return null;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
+  }
 
-    function cleanupOldNotifications(userId) {
-      const FIVE_MINUTES = 5 * 60 * 1000;
-      const notificationsRef = ref(db, `emergencyNotifications/${userId}`);
-      setInterval(async () => {
+  function toggleTheme() {
+    try {
+      const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+      const newTheme = currentTheme === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+      console.log("Theme toggled to:", newTheme);
+    } catch (error) {
+      console.error("Error toggling theme:", error);
+      showAlert(`Failed to toggle theme: ${error.message}`);
+    }
+  }
+
+  async function logout() {
+    showSpinner();
+    try {
+      await signOut(auth);
+      console.log("User logged out");
+      showAlert("Logged out successfully", true);
+    } catch (error) {
+      console.error("Logout error:", error, "Code:", error.code || "N/A");
+      showAlert(`Failed to log out: ${error.message}`);
+    } finally {
+      hideSpinner();
+    }
+  }
+
+  async function loadIncidents() {
+    showSpinner();
+    try {
+      const incidentsRef = ref(db, "incidents");
+      onValue(incidentsRef, async (snapshot) => {
         try {
-          const snapshot = await get(notificationsRef);
+          incidentList.innerHTML = "";
+          let unread = 0;
           if (snapshot.exists()) {
-            const notifications = snapshot.val();
-            const currentTime = Date.now();
-            const removals = [];
-            for (let notificationId in notifications) {
-              const notification = notifications[notificationId];
-              if (notification.createdAt && (currentTime - notification.createdAt) > FIVE_MINUTES) {
-                removals.push(remove(ref(db, `emergencyNotifications/${userId}/${notificationId}`)));
-              }
+            const incidents = snapshot.val();
+            for (let incidentId in incidents) {
+              const incident = incidents[incidentId];
+              const userData = await fetchUserData(incident.userId);
+              const notificationRef = ref(db, `emergencyNotifications/${incident.userId}/${incidentId}`);
+              const notificationSnap = await get(notificationRef);
+              const isUnread = notificationSnap.exists() && !notificationSnap.val().read;
+              if (isUnread) unread++;
+              const shortIncidentId = incidentId.slice(0, 5);
+              const row = document.createElement("tr");
+              row.dataset.incidentId = incidentId;
+              row.innerHTML = `
+                <td title="${incidentId}">${shortIncidentId}${isUnread ? ' <span class="unread-count">New</span>' : ''}</td>
+                <td title="${incident.type || 'Unknown'}">${incident.type || 'Unknown'}</td>
+                <td title="${userData.displayName || userData.email}">${userData.displayName || userData.email}</td>
+                <td title="${new Date(incident.timestamp).toLocaleString()}">${new Date(incident.timestamp).toLocaleString()}</td>
+                <td title="${incident.status || 'Unknown'}">${incident.status || 'Unknown'}</td>
+              `;
+              row.addEventListener("click", () => {
+                window.location.href = `map.html?incidentId=${encodeURIComponent(incidentId)}`;
+              });
+              incidentList.appendChild(row);
             }
-            await Promise.all(removals);
-            console.log(`Cleaned up ${removals.length} expired notifications`);
+            unreadCount.textContent = unread;
+          } else {
+            incidentList.innerHTML = '<tr><td colspan="5" class="text-center">No active incidents</td></tr>';
+            unreadCount.textContent = "0";
           }
         } catch (error) {
-          console.error("Error cleaning up notifications:", error);
-          showAlert(`Failed to clean up notifications: ${error.message}`);
+          console.error("Error processing incidents snapshot:", error, "Code:", error.code || "N/A");
+          showAlert(`Failed to process incidents: ${error.message}`);
         }
-      }, 60000);
+        hideSpinner();
+      }, (error) => {
+        console.error("Error loading incidents:", error, "Code:", error.code || "N/A");
+        showAlert(`Failed to load incidents: ${error.message}`);
+        hideSpinner();
+      });
+    } catch (error) {
+      console.error("Error setting up incidents listener:", error, "Code:", error.code || "N/A");
+      showAlert(`Failed to initialize incidents: ${error.message}`);
+      hideSpinner();
     }
+  }
 
-    themeToggle.addEventListener("click", toggleTheme);
-    logoutButton.addEventListener("click", logout);
-
-    async function init() {
+  function cleanupOldNotifications(userId) {
+    const FIVE_MINUTES = 5 * 60 * 1000;
+    const notificationsRef = ref(db, `emergencyNotifications/${userId}`);
+    setInterval(async () => {
       try {
-        const savedTheme = localStorage.getItem("theme") || "light";
-        document.documentElement.setAttribute("data-theme", savedTheme);
-        console.log("Initial theme set to:", savedTheme);
-
-        const user = await checkAuthState();
-        if (user) {
-          cleanupOldNotifications(user.uid);
-          await loadIncidents();
+        const snapshot = await get(notificationsRef);
+        if (snapshot.exists()) {
+          const notifications = snapshot.val();
+          const currentTime = Date.now();
+          const removals = [];
+          for (let notificationId in notifications) {
+            const notification = notifications[notificationId];
+            if (notification.createdAt && (currentTime - notification.createdAt) > FIVE_MINUTES) {
+              removals.push(remove(ref(db, `emergencyNotifications/${userId}/${notificationId}`)));
+            }
+          }
+          await Promise.all(removals);
+          console.log(`Cleaned up ${removals.length} expired notifications`);
         }
       } catch (error) {
-        console.error("Initialization error:", error, "Code:", error.code || "N/A");
-        showAlert(`Failed to initialize dashboard: ${error.message}`);
+        console.error("Error cleaning up notifications:", error);
+        showAlert(`Failed to clean up notifications: ${error.message}`);
       }
-    }
+    }, 60000);
+  }
 
-    init().catch(error => {
+  themeToggle.addEventListener("click", toggleTheme);
+  logoutButton.addEventListener("click", logout);
+
+  async function init() {
+    try {
+      const savedTheme = localStorage.getItem("theme") || "light";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      console.log("Initial theme set to:", savedTheme);
+
+      const user = await checkAuthState();
+      if (user) {
+        cleanupOldNotifications(user.uid);
+        await loadIncidents();
+      }
+    } catch (error) {
       console.error("Initialization error:", error, "Code:", error.code || "N/A");
       showAlert(`Failed to initialize dashboard: ${error.message}`);
-    });
-  </script>
+    }
+  }
+
+  init().catch(error => {
+    console.error("Initialization error:", error, "Code:", error.code || "N/A");
+    showAlert(`Failed to initialize dashboard: ${error.message}`);
+  });
+</script>
 </body>
 </html>
