@@ -28,7 +28,6 @@
       --highlight: #F3F4F6;
       --focus-ring: #8B5CF6;
       --call-green: #10B981;
-      --map-orange: #F59E0B;
     }
 
     [data-theme="dark"] {
@@ -194,25 +193,25 @@
     }
 
     .action-buttons {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(2, auto);
-      gap: 0.25rem;
+      display: flex;
+      gap: 0.5rem;
       align-items: center;
-      justify-items: center;
+      justify-content: flex-start;
+      flex-wrap: nowrap;
     }
 
     .action-button {
-      padding: 0.4rem 0.6rem;
+      padding: 0.4rem 0.8rem;
       border: none;
       border-radius: 9999px;
       cursor: pointer;
       font-size: 0.75rem;
       font-weight: 500;
       transition: all 0.3s ease;
-      width: 100%;
+      min-width: 60px;
       text-align: center;
-      min-width: 70px;
+      flex: 1;
+      max-width: 80px;
     }
 
     .action-button.resolve {
@@ -225,23 +224,8 @@
       color: var(--white);
     }
 
-    .action-button.chat {
-      background: var(--secondary-teal);
-      color: var(--white);
-    }
-
-    .action-button.user-chat {
-      background: #3B82F6;
-      color: var(--white);
-    }
-
     .action-button.call {
       background: var(--call-green);
-      color: var(--white);
-    }
-
-    .action-button.map {
-      background: var(--map-orange);
       color: var(--white);
     }
 
@@ -309,63 +293,6 @@
       outline: 2px solid var(--focus-ring);
     }
 
-    .chat-message {
-      margin: 0.5rem 0;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      max-width: 80%;
-      word-wrap: break-word;
-      background: var(--highlight);
-      color: var(--text-dark);
-      margin-right: auto;
-    }
-
-    .chat-message.user {
-      background: var(--primary-purple);
-      color: var(--white);
-      margin-left: auto;
-    }
-
-    .chat-message-timestamp {
-      font-size: 0.7rem;
-      color: var(--text-light);
-      margin-top: 0.25rem;
-    }
-
-    #map {
-      height: 400px;
-      width: 100%;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    .spinner-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 2000;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .spinner-overlay.active {
-      display: flex;
-    }
-
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid transparent;
-      border-top: 5px solid var(--primary-purple);
-      border-right: 5px solid var(--secondary-teal);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
     .alert-modal {
       display: none;
       position: fixed;
@@ -423,6 +350,33 @@
       outline: 2px solid var(--focus-ring);
     }
 
+    .spinner-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner-overlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid transparent;
+      border-top: 5px solid var(--primary-purple);
+      border-right: 5px solid var(--secondary-teal);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -444,11 +398,10 @@
         max-width: 90px;
       }
       .action-button {
-        padding: 0.3rem 0.5rem;
+        padding: 0.3rem 0.6rem;
         font-size: 0.7rem;
-      }
-      #map {
-        height: 300px;
+        min-width: 50px;
+        max-width: 70px;
       }
     }
 
@@ -502,33 +455,15 @@
         z-index: 5;
       }
       .action-buttons {
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(3, auto);
+        display: flex;
+        gap: 0.3rem;
+        flex-wrap: nowrap;
       }
       .action-button {
         padding: 0.2rem 0.4rem;
         font-size: 0.65rem;
-      }
-      .modal-content {
-        padding: 1rem;
-      }
-      .modal-content h2 {
-        font-size: 1.1rem;
-      }
-      .chat-message {
-        font-size: 0.8rem;
-      }
-      .chat-message-timestamp {
-        font-size: 0.65rem;
-      }
-      .alert-modal-content {
-        padding: 1rem;
-      }
-      .alert-modal-content p {
-        font-size: 0.9rem;
-      }
-      #map {
-        height: 250px;
+        min-width: 40px;
+        max-width: 60px;
       }
     }
   </style>
@@ -573,53 +508,6 @@
     </table>
   </div>
 
-  <div id="chat-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="chat-modal-title">
-    <div class="modal-content">
-      <h2 id="chat-modal-title">Incident Chat</h2>
-      <button class="close-btn transition-base" id="close-chat-modal" aria-label="Close chat modal">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-      <div id="chat-messages" style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--white);" aria-live="polite"></div>
-      <div style="display: flex; gap: 0.5rem;">
-        <input type="text" id="chat-input" class="transition-base" style="flex: 1; padding: 0.75rem; border: 1px solid var(--border); border-radius: 9999px; outline: none;" placeholder="Type your message..." aria-label="Chat message input">
-        <button id="send-chat-message" class="action-button chat" aria-label="Send message">Send</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="user-chat-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="user-chat-modal-title">
-    <div class="modal-content">
-      <h2 id="user-chat-modal-title">User Chat</h2>
-      <button class="close-btn transition-base" id="close-user-chat-modal" aria-label="Close user chat modal">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-      <div id="user-chat-messages" style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--white);" aria-live="polite"></div>
-      <div style="display: flex; gap: 0.5rem;">
-        <input type="text" id="user-chat-input" class="transition-base" style="flex: 1; padding: 0.75rem; border: 1px solid var(--border); border-radius: 9999px; outline: none;" placeholder="Type your message..." aria-label="User chat message input">
-        <button id="send-user-chat-message" class="action-button user-chat" aria-label="Send user message">Send</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="map-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="map-modal-title">
-    <div class="modal-content">
-      <h2 id="map-modal-title">Incident Location</h2>
-      <button class="close-btn transition-base" id="close-map-modal" aria-label="Close map modal">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-      <div id="map"></div>
-    </div>
-  </div>
-
   <div class="alert-modal" id="alert-modal" role="dialog" aria-modal="true" aria-labelledby="alert-modal-title">
     <div class="alert-modal-content">
       <p id="alert-message" aria-live="assertive"></p>
@@ -634,7 +522,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getDatabase, ref, get, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { getDatabase, ref, get, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -661,27 +549,12 @@
 
     const spinnerOverlay = document.getElementById("spinner-overlay");
     const incidentList = document.getElementById("incident-list");
-    const chatModal = document.getElementById("chat-modal");
-    const closeChatModal = document.getElementById("close-chat-modal");
-    const chatMessages = document.getElementById("chat-messages");
-    const chatInput = document.getElementById("chat-input");
-    const sendChatMessage = document.getElementById("send-chat-message");
-    const userChatModal = document.getElementById("user-chat-modal");
-    const closeUserChatModal = document.getElementById("close-user-chat-modal");
-    const userChatMessages = document.getElementById("user-chat-messages");
-    const userChatInput = document.getElementById("user-chat-input");
-    const sendUserChatMessage = document.getElementById("send-user-chat-message");
-    const mapModal = document.getElementById("map-modal");
-    const closeMapModal = document.getElementById("close-map-modal");
     const themeToggle = document.getElementById("theme-toggle");
     const logoutButton = document.getElementById("logout-button");
     const unreadCount = document.getElementById("unread-count");
     const alertModal = document.getElementById("alert-modal");
     const alertMessage = document.getElementById("alert-message");
     const alertCloseBtn = document.getElementById("alert-close-btn");
-    let activeIncidentId = null;
-    let activeUserChatId = null;
-    let map = null;
 
     function showSpinner() {
       if (spinnerOverlay) {
@@ -855,10 +728,7 @@
                     <div class="action-buttons">
                       <button class="action-button resolve" data-id="${incidentId}" aria-label="Resolve incident ${incidentId}">Resolve</button>
                       <button class="action-button escalate" data-id="${incidentId}" aria-label="Escalate incident ${incidentId}">Escalate</button>
-                      <button class="action-button chat" data-id="${incidentId}" aria-label="Open incident chat for ${incidentId}">Chat</button>
-                      <button class="action-button user-chat" data-user-id="${incident.userId}" aria-label="Chat with user ${userData.displayName || userData.email}">Chat User</button>
                       <button class="action-button call" data-user-id="${incident.userId}" aria-label="Call user ${userData.displayName || userData.email}">Call</button>
-                      <button class="action-button map" data-id="${incidentId}" aria-label="View map for incident ${incidentId}">View Map</button>
                     </div>
                   </td>
                 `;
@@ -881,31 +751,10 @@
                 });
               });
 
-              document.querySelectorAll(".action-button.chat").forEach(button => {
-                button.addEventListener("click", () => {
-                  const incidentId = button.dataset.id;
-                  openChatModal(incidentId);
-                });
-              });
-
-              document.querySelectorAll(".action-button.user-chat").forEach(button => {
-                button.addEventListener("click", () => {
-                  const userId = button.dataset.userId;
-                  openUserChatModal(userId);
-                });
-              });
-
               document.querySelectorAll(".action-button.call").forEach(button => {
                 button.addEventListener("click", () => {
                   const userId = button.dataset.userId;
                   initiateCall(userId);
-                });
-              });
-
-              document.querySelectorAll(".action-button.map").forEach(button => {
-                button.addEventListener("click", () => {
-                  const incidentId = button.dataset.id;
-                  openMapModal(incidentId);
                 });
               });
             } else {
@@ -959,196 +808,6 @@
       }
     }
 
-    function openChatModal(incidentId) {
-      if (!incidentId) {
-        showAlert("Invalid incident ID");
-        return;
-      }
-      activeIncidentId = incidentId;
-      chatModal.classList.add("active");
-      chatModal.setAttribute("aria-hidden", "false");
-      chatMessages.innerHTML = "";
-      chatInput.value = "";
-      chatInput.focus();
-      console.log(`Incident chat modal opened for incident ${incidentId}`);
-      loadChatMessages(incidentId);
-    }
-
-    function closeChatModalFunc() {
-      chatModal.classList.remove("active");
-      chatModal.setAttribute("aria-hidden", "true");
-      activeIncidentId = null;
-      console.log("Incident chat modal closed");
-    }
-
-    async function sendMessage(incidentId, messageText) {
-      if (!auth.currentUser || !messageText.trim()) {
-        showAlert("Please enter a message to send.");
-        return;
-      }
-      showSpinner();
-      try {
-        const messageId = `message_${Date.now()}_${auth.currentUser.uid}`;
-        const messageRef = ref(db, `chatMessages/${incidentId}/${messageId}`);
-        const userData = await fetchUserData(auth.currentUser.uid);
-        await set(messageRef, {
-          senderId: auth.currentUser.uid,
-          senderName: userData.displayName || userData.email,
-          message: messageText,
-          timestamp: Date.now(),
-          isAdmin: false
-        });
-        console.log(`Incident message sent for incident ${incidentId}: ${messageText}`);
-        chatInput.value = "";
-        const incidentRef = ref(db, `incidents/${incidentId}`);
-        const incidentSnap = await get(incidentRef);
-        if (incidentSnap.exists()) {
-          const incident = incidentSnap.val();
-          const notificationRef = ref(db, `emergencyNotifications/${incident.userId}/${incidentId}`);
-          await set(notificationRef, {
-            incidentId,
-            type: incident.type || "Unknown",
-            timestamp: Date.now(),
-            read: false,
-            message: "New message regarding your incident.",
-            createdAt: Date.now()
-          });
-        }
-      } catch (error) {
-        console.error("Error sending incident message:", error, "Code:", error.code || "N/A");
-        showAlert(`Failed to send message: ${error.message}`);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    function loadChatMessages(incidentId) {
-      try {
-        const messagesRef = ref(db, `chatMessages/${incidentId}`);
-        onValue(messagesRef, (snapshot) => {
-          chatMessages.innerHTML = "";
-          if (snapshot.exists()) {
-            const messages = snapshot.val();
-            Object.values(messages)
-              .sort((a, b) => a.timestamp - b.timestamp)
-              .forEach(msg => {
-                const messageEl = document.createElement("div");
-                messageEl.className = `chat-message ${msg.senderId === auth.currentUser.uid ? "user" : ""}`;
-                messageEl.innerHTML = `
-                  <div><strong>${msg.senderName || "Unknown"}:</strong> ${msg.message}</div>
-                  <div class="chat-message-timestamp">${new Date(msg.timestamp).toLocaleTimeString()}</div>
-                `;
-                chatMessages.appendChild(messageEl);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-              });
-          }
-        }, (error) => {
-          console.error("Error loading incident messages:", error, "Code:", error.code || "N/A");
-          showAlert(`Failed to load incident messages: ${error.message}`);
-        });
-      } catch (error) {
-        console.error("Error setting up chat messages listener:", error, "Code:", error.code || "N/A");
-        showAlert(`Failed to initialize chat messages: ${error.message}`);
-      }
-    }
-
-    function openUserChatModal(userId) {
-      if (!userId) {
-        showAlert("Invalid user ID");
-        return;
-      }
-      activeUserChatId = userId;
-      userChatModal.classList.add("active");
-      userChatModal.setAttribute("aria-hidden", "false");
-      userChatMessages.innerHTML = "";
-      userChatInput.value = "";
-      userChatInput.focus();
-      console.log(`User chat modal opened for user ${userId}`);
-      loadUserChatMessages(userId);
-    }
-
-    function closeUserChatModalFunc() {
-      userChatModal.classList.remove("active");
-      userChatModal.setAttribute("aria-hidden", "true");
-      activeUserChatId = null;
-      console.log("User chat modal closed");
-    }
-
-    async function sendUserMessage(userId, messageText) {
-      if (!auth.currentUser || !messageText.trim()) {
-        showAlert("Please enter a message to send.");
-        return;
-      }
-      showSpinner();
-      try {
-        const messageId = `message_${Date.now()}_${auth.currentUser.uid}`;
-        const messageRef = ref(db, `userMessages/${auth.currentUser.uid}/${userId}/${messageId}`);
-        const userData = await fetchUserData(auth.currentUser.uid);
-        await set(messageRef, {
-          senderId: auth.currentUser.uid,
-          senderName: userData.displayName || userData.email,
-          recipientId: userId,
-          message: messageText,
-          timestamp: Date.now()
-        });
-        console.log(`User message sent to user ${userId}: ${messageText}`);
-        userChatInput.value = "";
-        // Mirror the message for the recipient
-        const mirrorMessageRef = ref(db, `userMessages/${userId}/${auth.currentUser.uid}/${messageId}`);
-        await set(mirrorMessageRef, {
-          senderId: auth.currentUser.uid,
-          senderName: userData.displayName || userData.email,
-          recipientId: userId,
-          message: messageText,
-          timestamp: Date.now()
-        });
-        // Add notification for the recipient
-        const notificationRef = ref(db, `emergencyNotifications/${userId}/msg_${messageId}`);
-        await set(notificationRef, {
-          type: "user_message",
-          message: `New message from ${userData.displayName || userData.email}`,
-          timestamp: Date.now(),
-          read: false,
-          createdAt: Date.now()
-        });
-      } catch (error) {
-        console.error("Error sending user message:", error, "Code:", error.code || "N/A");
-        showAlert(`Failed to send user message: ${error.message}`);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    function loadUserChatMessages(userId) {
-      try {
-        const messagesRef = ref(db, `userMessages/${auth.currentUser.uid}/${userId}`);
-        onValue(messagesRef, (snapshot) => {
-          userChatMessages.innerHTML = "";
-          if (snapshot.exists()) {
-            const messages = snapshot.val();
-            Object.values(messages)
-              .sort((a, b) => a.timestamp - b.timestamp)
-              .forEach(msg => {
-                const messageEl = document.createElement("div");
-                messageEl.className = `chat-message ${msg.senderId === auth.currentUser.uid ? "user" : ""}`;
-                messageEl.innerHTML = `
-                  <div><strong>${msg.senderName || "Unknown"}:</strong> ${msg.message}</div>
-                  <div class="chat-message-timestamp">${new Date(msg.timestamp).toLocaleTimeString()}</div>
-                `;
-                userChatMessages.appendChild(messageEl);
-                userChatMessages.scrollTop = userChatMessages.scrollHeight;
-              });
-          }
-        }, (error) => {
-          console.error("Error loading user messages:", error, "Code:", error.code || "N/A");
-          showAlert(`Failed to load user messages: ${error.message}`);
-        });
-      } catch (error) {
-        console.error("Error setting up user messages listener:", error, "Code:", error.code || "N/A");
-        showAlert(`Failed to initialize user messages: ${error.message}`);
-      }
-    }
-
     async function initiateCall(userId) {
       showSpinner();
       try {
@@ -1168,7 +827,6 @@
         });
         console.log(`Call initiated to user ${userId} with phone number ${phoneNumber}`);
         showAlert(`Initiating call to ${userData.displayName || userData.email}. Phone: ${phoneNumber}`);
-        // Optional: Trigger a tel: link for actual call (works on mobile devices)
         window.location.href = `tel:${phoneNumber}`;
       } catch (error) {
         console.error("Error initiating call:", error, "Code:", error.code || "N/A");
@@ -1178,117 +836,31 @@
       }
     }
 
-    async function openMapModal(incidentId) {
-      showSpinner();
-      try {
-        if (!window.L) {
-          throw new Error("Leaflet library not loaded");
-        }
-        const incidentRef = ref(db, `incidents/${incidentId}`);
-        const incidentSnap = await get(incidentRef);
-        if (!incidentSnap.exists()) {
-          showAlert("Incident not found.");
-          return;
-        }
-        const incident = incidentSnap.val();
-        const lat = parseFloat(incident.location?.encryptedLat);
-        const lng = parseFloat(incident.location?.encryptedLng);
-        if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-          showAlert("Invalid or missing location data for this incident.");
-          return;
-        }
-        mapModal.classList.add("active");
-        mapModal.setAttribute("aria-hidden", "false");
-        console.log(`Map modal opened for incident ${incidentId} at ${lat}, ${lng}`);
-        
-        // Initialize map if not already created
-        if (!map) {
-          map = L.map('map').setView([lat, lng], 13);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          }).addTo(map);
-        } else {
-          map.setView([lat, lng], 13);
-        }
-        
-        // Clear existing markers
-        map.eachLayer(layer => {
-          if (layer instanceof L.Marker) {
-            map.removeLayer(layer);
+    function cleanupOldNotifications(userId) {
+      const FIVE_MINUTES = 5 * 60 * 1000;
+      const notificationsRef = ref(db, `emergencyNotifications/${userId}`);
+      setInterval(async () => {
+        try {
+          const snapshot = await get(notificationsRef);
+          if (snapshot.exists()) {
+            const notifications = snapshot.val();
+            const currentTime = Date.now();
+            const removals = [];
+            for (let notificationId in notifications) {
+              const notification = notifications[notificationId];
+              if (notification.createdAt && (currentTime - notification.createdAt) > FIVE_MINUTES) {
+                removals.push(remove(ref(db, `emergencyNotifications/${userId}/${notificationId}`)));
+              }
+            }
+            await Promise.all(removals);
+            console.log(`Cleaned up ${removals.length} expired notifications`);
           }
-        });
-        
-        // Add new marker
-        L.marker([lat, lng]).addTo(map)
-          .bindPopup(`Incident ${incidentId}<br>Type: ${incident.type || "Unknown"}`)
-          .openPopup();
-
-        // Add notification for map view
-        const notificationRef = ref(db, `emergencyNotifications/${incident.userId}/map_${incidentId}`);
-        await set(notificationRef, {
-          incidentId,
-          type: "map_view",
-          message: "Your incident location was viewed.",
-          timestamp: Date.now(),
-          read: false,
-          createdAt: Date.now()
-        });
-      } catch (error) {
-        console.error("Error opening map modal:", error, "Code:", error.code || "N/A");
-        showAlert(`Failed to load map: ${error.message}`);
-      } finally {
-        hideSpinner();
-      }
+        } catch (error) {
+          console.error("Error cleaning up notifications:", error);
+          showAlert(`Failed to clean up notifications: ${error.message}`);
+        }
+      }, 60000);
     }
-
-    function closeMapModalFunc() {
-      if (mapModal) {
-        mapModal.classList.remove("active");
-        mapModal.setAttribute("aria-hidden", "true");
-        console.log("Map modal closed");
-      }
-    }
-
-    closeChatModal.addEventListener("click", closeChatModalFunc);
-    chatModal.addEventListener("click", (e) => {
-      if (e.target === chatModal) {
-        closeChatModalFunc();
-      }
-    });
-    sendChatMessage.addEventListener("click", () => {
-      if (activeIncidentId) {
-        sendMessage(activeIncidentId, chatInput.value.trim());
-      }
-    });
-    chatInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter" && activeIncidentId) {
-        sendMessage(activeIncidentId, chatInput.value.trim());
-      }
-    });
-
-    closeUserChatModal.addEventListener("click", closeUserChatModalFunc);
-    userChatModal.addEventListener("click", (e) => {
-      if (e.target === userChatModal) {
-        closeUserChatModalFunc();
-      }
-    });
-    sendUserChatMessage.addEventListener("click", () => {
-      if (activeUserChatId) {
-        sendUserMessage(activeUserChatId, userChatInput.value.trim());
-      }
-    });
-    userChatInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter" && activeUserChatId) {
-        sendUserMessage(activeUserChatId, userChatInput.value.trim());
-      }
-    });
-
-    closeMapModal.addEventListener("click", closeMapModalFunc);
-    mapModal.addEventListener("click", (e) => {
-      if (e.target === mapModal) {
-        closeMapModalFunc();
-      }
-    });
 
     themeToggle.addEventListener("click", toggleTheme);
     logoutButton.addEventListener("click", logout);
@@ -1301,18 +873,13 @@
 
         const user = await checkAuthState();
         if (user) {
+          cleanupOldNotifications(user.uid);
           await loadIncidents();
         }
       } catch (error) {
         console.error("Initialization error:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to initialize dashboard: ${error.message}`);
       }
-    }
-
-    // Check if Leaflet is loaded
-    if (!window.L) {
-      console.error("Leaflet library failed to load");
-      showAlert("Failed to load map library. Some features may not work.");
     }
 
     init().catch(error => {
