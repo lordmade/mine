@@ -11,6 +11,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --primary-purple: #6D28D9;
@@ -228,6 +229,37 @@
       color: var(--text-dark);
       font-size: 0.9rem;
       border: 1px solid var(--border);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .action-button {
+      background: var(--primary-purple);
+      color: var(--white);
+      border: none;
+      border-radius: 9999px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .action-button.escalate {
+      background: var(--secondary-teal);
+    }
+
+    .action-button.call {
+      background: var(--danger-red);
+    }
+
+    .action-button:hover,
+    .action-button:focus {
+      transform: scale(1.05);
+      outline: 2px solid var(--focus-ring);
     }
 
     #map {
@@ -488,6 +520,37 @@
       margin-top: 0.25rem;
     }
 
+    .statistics-panel {
+      position: fixed;
+      top: 5rem;
+      left: 230px;
+      background: var(--card-background);
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 10;
+      max-width: 400px;
+      color: var(--text-dark);
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+      display: none;
+    }
+
+    .statistics-panel.active {
+      display: block;
+    }
+
+    .statistics-panel h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .statistics-panel canvas {
+      width: 100% !important;
+      height: auto !important;
+    }
+
     @media (max-width: 767px) {
       .sidebar {
         width: 200px;
@@ -525,6 +588,8 @@
       #chat-messages { max-height: 200px; }
       #chat-input { font-size: 0.875rem; padding: 0.5rem 0.75rem; }
       #send-chat-message { padding: 0.5rem; font-size: 0.875rem; }
+      .statistics-panel { max-width: 250px; left: 0.5rem; top: 4rem; }
+      .action-button { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
     }
   </style>
 </head>
@@ -569,6 +634,24 @@
       <span>Notifications</span>
       <span class="badge" id="notification-badge">0</span>
     </div>
+    <div class="sidebar-item transition-base" id="heatmap-tab" tabindex="0" title="Heat Map">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 3v18h18"/>
+        <rect x="3" y="15" width="3" height="6" rx="1"/>
+        <rect x="7" y="5" width="3" height="16" rx="1"/>
+        <rect x="11" y="10" width="3" height="11" rx="1"/>
+        <rect x="15" y="3" width="3" height="18" rx="1"/>
+        <rect x="19" y="12" width="3" height="9" rx="1"/>
+      </svg>
+      <span>Heat Map</span>
+    </div>
+    <div class="sidebar-item transition-base" id="statistics-tab" tabindex="0" title="Statistics">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 3v18h18"/>
+        <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+      </svg>
+      <span>Statistics</span>
+    </div>
   </nav>
   <div class="top-bar" role="banner">
     <h1 class="title">Incident Map</h1>
@@ -605,6 +688,11 @@
     <p id="incident-timestamp">Timestamp: Loading...</p>
     <p id="incident-status">Status: Loading...</p>
     <button class="transition-base" id="chat-button" style="background: var(--primary-purple); color: var(--white); padding: 0.5rem 1rem; border-radius: 9999px; margin-top: 0.5rem;" aria-label="Open chat">Open Chat</button>
+    <div class="action-buttons">
+      <button class="action-button resolve" id="resolve-button">Resolve</button>
+      <button class="action-button escalate" id="escalate-button">Escalate</button>
+      <button class="action-button call" id="call-button">Call</button>
+    </div>
   </div>
   <button class="fab weather-fab transition-base" id="weather-button" aria-label="View weather information" title="View weather information">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
@@ -638,13 +726,18 @@
       </div>
     </div>
   </div>
+  <div class="statistics-panel" id="statistics-panel">
+    <h2>Incident Statistics</h2>
+    <canvas id="type-chart"></canvas>
+    <canvas id="status-chart"></canvas>
+  </div>
   <div class="spinner-overlay" id="spinner-overlay">
     <div class="spinner"></div>
   </div>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getDatabase, ref, get, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { getDatabase, ref, get, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -692,11 +785,22 @@
     const sendChatMessage = document.getElementById("send-chat-message");
     const hamburgerMenu = document.getElementById("hamburger-menu");
     const sidebar = document.querySelector(".sidebar");
+    const heatmapTab = document.getElementById("heatmap-tab");
+    const statisticsTab = document.getElementById("statistics-tab");
+    const resolveButton = document.getElementById("resolve-button");
+    const escalateButton = document.getElementById("escalate-button");
+    const callButton = document.getElementById("call-button");
+    const statisticsPanel = document.getElementById("statistics-panel");
     let map;
     let incidentMarker = null;
     let incidentLocation = null;
     let activeIncidentId = null;
     let currentMapStyle = 'mapbox://styles/mapbox/light-v11';
+    let heatmapLayerVisible = false;
+    let allIncidents = [];
+    let heatmapSource = null;
+    let typeChart = null;
+    let statusChart = null;
 
     const emergencyIcons = {
       'Police Emergency': `
@@ -774,11 +878,11 @@
           return userSnap.val();
         }
         console.warn(`No user data for ${userId}`);
-        return { displayName: null, email: "Unknown User" };
+        return { displayName: null, email: "Unknown User", phoneNumber: null };
       } catch (error) {
         console.error("Error fetching user data:", error.code, error.message);
         showAlert(`Failed to load user data: ${error.message}`, false);
-        return { displayName: null, email: "Unknown User" };
+        return { displayName: null, email: "Unknown User", phoneNumber: null };
       } finally {
         hideSpinner();
       }
@@ -1051,6 +1155,8 @@
             console.log(`Weather marker added at:`, [lng, lat]);
           }
 
+          await loadAllIncidents();
+
           hideSpinner();
         });
 
@@ -1106,6 +1212,11 @@
               .addTo(map);
           }
 
+          if (heatmapLayerVisible) {
+            toggleHeatmap();
+            toggleHeatmap(); // Re-add the layer after style load
+          }
+
           hideSpinner();
         });
       }
@@ -1133,11 +1244,239 @@
         document.getElementById("incident-timestamp").textContent = `Timestamp: ${new Date(incident.timestamp).toLocaleString()}`;
         document.getElementById("incident-status").textContent = `Status: ${incident.status || 'Unknown'}`;
 
+        if (userData.phoneNumber) {
+          callButton.onclick = () => window.location.href = `tel:${userData.phoneNumber}`;
+        } else {
+          callButton.disabled = true;
+          callButton.textContent = "No Phone";
+        }
+
         return { incident, userData, lng, lat };
       } catch (error) {
         console.error("Error loading incident data:", error.code, error.message);
         showAlert(`Failed to load incident data: ${error.message}`, true);
         return null;
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    async function loadAllIncidents() {
+      showSpinner();
+      try {
+        const incidentsRef = ref(db, 'incidents');
+        const incidentsSnap = await get(incidentsRef);
+        if (incidentsSnap.exists()) {
+          allIncidents = Object.entries(incidentsSnap.val()).map(([id, incident]) => {
+            const lng = decryptCoordinate(incident.location.encryptedLng);
+            const lat = decryptCoordinate(incident.location.encryptedLat);
+            return { id, ...incident, lng, lat };
+          }).filter(incident => incident.lng !== null && incident.lat !== null);
+          console.log("All incidents loaded:", allIncidents.length);
+        }
+      } catch (error) {
+        console.error("Error loading all incidents:", error);
+        showAlert("Failed to load incidents for heatmap and statistics.", false);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    function toggleHeatmap() {
+      if (!map) return;
+      heatmapLayerVisible = !heatmapLayerVisible;
+      if (heatmapLayerVisible) {
+        const geojson = {
+          type: 'FeatureCollection',
+          features: allIncidents.map(incident => ({
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [incident.lng, incident.lat]
+            }
+          }))
+        };
+        if (map.getSource('incidents-heat')) {
+          map.getSource('incidents-heat').setData(geojson);
+        } else {
+          map.addSource('incidents-heat', {
+            type: 'geojson',
+            data: geojson
+          });
+          map.addLayer({
+            id: 'incidents-heatmap',
+            type: 'heatmap',
+            source: 'incidents-heat',
+            paint: {
+              'heatmap-weight': [
+                'interpolate',
+                ['linear'],
+                ['get', 'mag'],
+                0,
+                0,
+                6,
+                1
+              ],
+              'heatmap-intensity': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                0,
+                1,
+                9,
+                3
+              ],
+              'heatmap-color': [
+                'interpolate',
+                ['linear'],
+                ['heatmap-density'],
+                0,
+                'rgba(33,102,172,0)',
+                0.2,
+                'rgb(103,169,207)',
+                0.4,
+                'rgb(209,229,240)',
+                0.6,
+                'rgb(253,219,199)',
+                0.8,
+                'rgb(239,138,98)',
+                1,
+                'rgb(178,24,43)'
+              ],
+              'heatmap-radius': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                0,
+                2,
+                9,
+                20
+              ],
+              'heatmap-opacity': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                7,
+                1,
+                9,
+                0
+              ]
+            }
+          });
+        }
+        console.log("Heatmap layer added");
+      } else {
+        if (map.getLayer('incidents-heatmap')) {
+          map.removeLayer('incidents-heatmap');
+        }
+        console.log("Heatmap layer removed");
+      }
+      heatmapTab.classList.toggle("active", heatmapLayerVisible);
+    }
+
+    function toggleStatistics() {
+      const isActive = statisticsPanel.classList.toggle("active");
+      if (isActive) {
+        renderStatistics();
+      } else {
+        if (typeChart) typeChart.destroy();
+        if (statusChart) statusChart.destroy();
+      }
+      console.log("Statistics panel toggled:", isActive);
+    }
+
+    function renderStatistics() {
+      const types = {};
+      const statuses = {};
+      allIncidents.forEach(incident => {
+        types[incident.type] = (types[incident.type] || 0) + 1;
+        statuses[incident.status] = (statuses[incident.status] || 0) + 1;
+      });
+
+      const typeCtx = document.getElementById('type-chart').getContext('2d');
+      typeChart = new Chart(typeCtx, {
+        type: 'pie',
+        data: {
+          labels: Object.keys(types),
+          datasets: [{
+            data: Object.values(types),
+            backgroundColor: ['#6D28D9', '#06B6D4', '#DC2626', '#FBBF24']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            title: {
+              display: true,
+              text: 'Incidents by Type'
+            }
+          }
+        }
+      });
+
+      const statusCtx = document.getElementById('status-chart').getContext('2d');
+      statusChart = new Chart(statusCtx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(statuses),
+          datasets: [{
+            label: 'Count',
+            data: Object.values(statuses),
+            backgroundColor: '#6D28D9'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: 'Incidents by Status'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+      console.log("Statistics rendered");
+    }
+
+    async function resolveIncident() {
+      showSpinner();
+      try {
+        await update(ref(db, `incidents/${activeIncidentId}`), { status: 'resolved' });
+        document.getElementById("incident-status").textContent = `Status: resolved`;
+        if (incidentMarker) {
+          incidentMarker.remove();
+          incidentMarker = null;
+          console.log("Incident marker removed");
+        }
+        showAlert("Incident resolved successfully.", false);
+      } catch (error) {
+        console.error("Error resolving incident:", error);
+        showAlert("Failed to resolve incident.", false);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    async function escalateIncident() {
+      showSpinner();
+      try {
+        await update(ref(db, `incidents/${activeIncidentId}`), { status: 'escalated' });
+        document.getElementById("incident-status").textContent = `Status: escalated`;
+        showAlert("Incident escalated successfully.", false);
+      } catch (error) {
+        console.error("Error escalating incident:", error);
+        showAlert("Failed to escalate incident.", false);
       } finally {
         hideSpinner();
       }
@@ -1270,6 +1609,10 @@
           sendMessage(activeIncidentId, chatInput.value.trim());
         }
       });
+      heatmapTab.addEventListener('click', toggleHeatmap);
+      statisticsTab.addEventListener('click', toggleStatistics);
+      resolveButton.addEventListener('click', resolveIncident);
+      escalateButton.addEventListener('click', escalateIncident);
     }
 
     init().catch(error => {
