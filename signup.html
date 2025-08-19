@@ -54,10 +54,6 @@
       opacity: 0;
     }
 
-    .transition-base {
-      transition: all 0.3s ease;
-    }
-
     .auth-container {
       display: flex;
       justify-content: center;
@@ -219,9 +215,10 @@
         <button class="tab-button" data-tab="login" aria-label="Switch to login tab">Login</button>
       </div>
       <div id="signup-tab" class="tab-content active">
-        <input type="text" id="signup-display-name" class="auth-input" placeholder="Display Name" aria-label="Display Name">
+        <input type="text" id="signup-display-name" class="auth-input" placeholder="Display Name (optional)" aria-label="Display Name">
         <input type="email" id="signup-email" class="auth-input" placeholder="Email" aria-label="Email">
         <input type="password" id="signup-password" class="auth-input" placeholder="Password" aria-label="Password">
+        <input type="tel" id="signup-phone-number" class="auth-input" placeholder="Phone Number (optional)" aria-label="Phone Number">
         <button id="signup-button" class="auth-button" aria-label="Sign up">Sign Up</button>
       </div>
       <div id="login-tab" class="tab-content">
@@ -255,12 +252,13 @@
 
     let app, auth, db;
     try {
+      console.log("Initializing Firebase...");
       app = initializeApp(firebaseConfig);
       auth = getAuth(app);
       db = getDatabase(app);
       console.log("Firebase initialized successfully");
     } catch (error) {
-      console.error("Firebase initialization error:", error, "Code:", error.code || "N/A");
+      console.error("Firebase initialization error:", error.message, "Code:", error.code || "N/A");
       showError(`Failed to initialize Firebase: ${error.message}`);
       throw error;
     }
@@ -272,6 +270,7 @@
     const signupDisplayName = document.getElementById("signup-display-name");
     const signupEmail = document.getElementById("signup-email");
     const signupPassword = document.getElementById("signup-password");
+    const signupPhoneNumber = document.getElementById("signup-phone-number");
     const loginEmail = document.getElementById("login-email");
     const loginPassword = document.getElementById("login-password");
     const errorMessage = document.getElementById("error-message");
@@ -279,7 +278,7 @@
 
     // Validate DOM elements
     if (!tabButtons.length || !tabContents.length || !signupButton || !loginButton ||
-        !signupDisplayName || !signupEmail || !signupPassword ||
+        !signupDisplayName || !signupEmail || !signupPassword || !signupPhoneNumber ||
         !loginEmail || !loginPassword || !errorMessage || !spinnerOverlay) {
       console.error("One or more DOM elements are missing");
       showError("Initialization error: Page elements not found.");
@@ -288,10 +287,12 @@
 
     function showSpinner() {
       spinnerOverlay.classList.add("active");
+      console.log("Spinner shown");
     }
 
     function hideSpinner() {
       spinnerOverlay.classList.remove("active");
+      console.log("Spinner hidden");
     }
 
     function showError(message) {
@@ -317,50 +318,76 @@
 
     async function handleSignup() {
       try {
-        const displayName = signupDisplayName.value.trim();
+        const displayName = signupDisplayName.value.trim() || null;
         const email = signupEmail.value.trim();
         const password = signupPassword.value.trim();
+        const phoneNumber = signupPhoneNumber.value.trim() || null;
 
-        if (!displayName || !email || !password) {
-          showError("Please fill in all fields.");
+        if (!email || !password) {
+          showError("Email and password are required.");
+          console.log("Signup validation failed: Missing email or password");
+          return;
+        }
+
+        // Validate phone number format if provided
+        if (phoneNumber && !/^\+?[1-9]\d{1,14}$/.test(phoneNumber)) {
+          showError("Invalid phone number format.");
+          console.log("Signup validation failed: Invalid phone number");
           return;
         }
 
         showSpinner();
+        console.log("Setting persistence for signup...");
         await setPersistence(auth, browserLocalPersistence);
         console.log("Persistence set for signup");
+
+        console.log("Creating user with email:", email);
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+        console.log("User created:", user.uid, user.email);
+
+        console.log("Updating user profile with displayName:", displayName);
         await updateProfile(user, { displayName });
 
-        // Wait for auth state to propagate
+        console.log("Waiting for auth state to propagate...");
         await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error("Authentication state timeout")), 5000);
+          const timeout = setTimeout(() => reject(new Error("Authentication state timeout")), 10000);
           onAuthStateChanged(auth, (currentUser) => {
             clearTimeout(timeout);
             if (currentUser && currentUser.uid === user.uid) {
-              console.log("Auth state confirmed for user:", user.uid);
+              console.log("Auth state confirmed for user:", user.uid, user.email);
               resolve();
             } else {
+              console.error("Auth state mismatch. Expected UID:", user.uid, "Got:", currentUser ? currentUser.uid : null);
               reject(new Error("Authentication state not confirmed"));
             }
-          }, reject);
+          }, (error) => {
+            clearTimeout(timeout);
+            console.error("Auth state listener error:", error);
+            reject(error);
+          });
         });
 
-        // Write user data
-        console.log("Attempting to write user data for:", user.uid, user.email);
-        await set(ref(db, `users/${user.uid}`), {
-          displayName,
+        const userData = {
           email,
           online: true,
           createdAt: Date.now(),
           role: "admin"
-        });
-        console.log("Admin user signed up:", user.uid, user.email);
+        };
+        if (displayName) userData.displayName = displayName;
+        if (phoneNumber) userData.phoneNumber = phoneNumber;
+
+        console.log("Writing user data to path: users/", user.uid, "Data:", userData);
+        await set(ref(db, `users/${user.uid}`), userData);
+        console.log("User data written successfully:", user.uid, user.email);
+
         document.body.classList.add("fade-out");
-        setTimeout(() => window.location.href = "home.html", 500);
+        setTimeout(() => {
+          console.log("Redirecting to home.html");
+          window.location.href = "home.html";
+        }, 500);
       } catch (error) {
-        console.error("Signup error:", error, "Code:", error.code || "N/A");
+        console.error("Signup error:", error.message, "Code:", error.code || "N/A", "Stack:", error.stack);
         showError(`Signup failed: ${error.message}`);
       } finally {
         hideSpinner();
@@ -373,19 +400,27 @@
         const password = loginPassword.value.trim();
 
         if (!email || !password) {
-          showError("Please fill in all fields.");
+          showError("Email and password are required.");
+          console.log("Login validation failed: Missing email or password");
           return;
         }
 
         showSpinner();
+        console.log("Setting persistence for login...");
         await setPersistence(auth, browserLocalPersistence);
         console.log("Persistence set for login");
+
+        console.log("Logging in with email:", email);
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         console.log("User logged in:", userCredential.user.uid, userCredential.user.email);
+
         document.body.classList.add("fade-out");
-        setTimeout(() => window.location.href = "home.html", 500);
+        setTimeout(() => {
+          console.log("Redirecting to home.html");
+          window.location.href = "home.html";
+        }, 500);
       } catch (error) {
-        console.error("Login error:", error, "Code:", error.code || "N/A");
+        console.error("Login error:", error.message, "Code:", error.code || "N/A", "Stack:", error.stack);
         showError(`Login failed: ${error.message}`);
       } finally {
         hideSpinner();
@@ -408,6 +443,7 @@
         loginPassword.addEventListener("keypress", (e) => {
           if (e.key === "Enter") handleLogin();
         });
+        console.log("Event listeners initialized");
       } catch (error) {
         console.error("Error setting up event listeners:", error);
         showError("Failed to initialize event listeners.");
