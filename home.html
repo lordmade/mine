@@ -465,7 +465,7 @@
           alertModal.classList.remove("active");
           alertModal.setAttribute("aria-hidden", "true");
           document.body.classList.add("fade-out");
-          setTimeout(() => window.location.href = "signup.html", 500);
+          setTimeout(() => window.location.href = "index.html", 500);
         };
       } else {
         alertCloseBtn.onclick = () => {
@@ -497,11 +497,11 @@
           return userSnap.val();
         }
         console.warn(`User data not found for ID: ${userId}`);
-        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null, role: "user" };
+        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null, isAdmin: false };
       } catch (error) {
         console.error("Error fetching user data:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to fetch user data: ${error.message}`);
-        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null, role: "user" };
+        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null, isAdmin: false };
       } finally {
         hideSpinner();
       }
@@ -533,7 +533,7 @@
                 resolve(null);
               } else {
                 const userData = await fetchUserData(user.uid);
-                if (userData.role !== "admin") {
+                if (userData.isAdmin !== true) {
                   showAlert("Access denied. Admin privileges required.", true);
                   hideSpinner();
                   resolve(null);
