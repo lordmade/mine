@@ -29,6 +29,8 @@
       --white-dark: #1F2937;
       --highlight: #F3F4F6;
       --focus-ring: #8B5CF6;
+      --chat-accent: #EDE9FE;
+      --chat-hover: #7C3AED;
     }
 
     [data-theme="dark"] {
@@ -39,6 +41,8 @@
       --white: var(--white-dark);
       --card-background: #1F2937;
       --highlight: #374151;
+      --chat-accent: #4B5563;
+      --chat-hover: #A78BFA;
     }
 
     body {
@@ -439,16 +443,19 @@
       position: fixed;
       top: 0;
       right: 0;
-      width: 320px;
+      width: 50%;
+      max-width: 600px;
       height: 100%;
       background: var(--card-background);
-      box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+      box-shadow: -6px 0 20px rgba(0, 0, 0, 0.2);
       z-index: 1000;
       transform: translateX(100%);
-      transition: transform 0.4s ease-in-out;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       flex-direction: column;
-      padding: 1.5rem;
+      padding: 2rem;
+      border-left: 1px solid var(--border);
+      backdrop-filter: blur(8px);
     }
 
     .chat-panel.active {
@@ -462,70 +469,140 @@
     }
 
     .chat-panel h2 {
-      font-size: 1.25rem;
-      font-weight: 600;
+      font-size: 1.5rem;
+      font-weight: 700;
       color: var(--text-dark);
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      letter-spacing: 0.02em;
     }
 
     .chat-messages {
       flex: 1;
-      max-height: calc(100vh - 150px);
+      max-height: calc(100vh - 200px);
       overflow-y: auto;
-      padding: 1rem;
+      padding: 1.5rem;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--white);
-      margin-bottom: 1rem;
+      border-radius: 12px;
+      background: var(--chat-accent);
+      margin-bottom: 1.5rem;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
     .chat-message {
-      margin: 0.5rem 0;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      max-width: 80%;
+      margin: 0.75rem 0;
+      padding: 0.75rem 1.25rem;
+      border-radius: 12px;
+      max-width: 75%;
       word-wrap: break-word;
+      position: relative;
+      animation: fadeIn 0.3s ease;
     }
 
     .chat-message.user {
       background: var(--primary-purple);
       color: var(--white);
       margin-left: auto;
+      border-bottom-right-radius: 2px;
     }
 
     .chat-message.admin {
       background: var(--highlight);
       color: var(--text-dark);
       margin-right: auto;
+      border-bottom-left-radius: 2px;
     }
 
     .chat-message-timestamp {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       color: var(--text-light);
-      margin-top: 0.25rem;
+      margin-top: 0.5rem;
+      opacity: 0.8;
     }
 
     .chat-input-container {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.75rem;
+      background: var(--white);
+      padding: 0.75rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-input-container input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+      background: transparent;
+      padding: 0.5rem;
+    }
+
+    .chat-input-container input::placeholder {
+      color: var(--text-light);
+    }
+
+    .chat-input-container button {
+      background: var(--primary-purple);
+      color: var(--white);
+      border: none;
+      border-radius: 9999px;
+      padding: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .chat-input-container button:hover,
+    .chat-input-container button:focus {
+      background: var(--chat-hover);
+      transform: scale(1.1);
+      outline: none;
+    }
+
+    .chat-input-container button svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--white);
+      stroke-width: 2;
     }
 
     .chat-panel .close-btn {
       position: absolute;
-      top: 0.75rem;
-      left: 0.75rem;
-      width: 24px;
-      height: 24px;
-      background: none;
-      border: none;
+      top: 1rem;
+      left: 1rem;
+      width: 28px;
+      height: 28px;
+      background: var(--chat-accent);
+      border: 1px solid var(--border);
+      border-radius: 50%;
       color: var(--primary-purple);
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .chat-panel .close-btn:hover,
     .chat-panel .close-btn:focus {
       transform: scale(1.2);
-      outline: 2px solid var(--focus-ring);
+      background: var(--chat-hover);
+      color: var(--white);
+      outline: none;
+    }
+
+    .chat-panel .close-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .statistics-panel {
@@ -592,11 +669,14 @@
       .weather-title { font-size: 1.1rem; }
       .weather-info { font-size: 0.875rem; }
       .weather-info svg { width: 18px; height: 18px; }
-      .chat-panel { width: 100%; max-width: 300px; }
-      .chat-panel h2 { font-size: 1.1rem; }
-      .chat-messages { max-height: calc(100vh - 140px); }
-      .chat-input-container input { font-size: 0.875rem; padding: 0.5rem 0.75rem; }
-      .chat-input-container button { padding: 0.5rem; font-size: 0.875rem; }
+      .chat-panel { width: 100%; max-width: none; }
+      .chat-panel h2 { font-size: 1.25rem; }
+      .chat-messages { max-height: calc(100vh - 160px); padding: 1rem; }
+      .chat-input-container { padding: 0.5rem; }
+      .chat-input-container input { font-size: 0.9rem; }
+      .chat-input-container button { padding: 0.5rem; }
+      .chat-input-container button svg { width: 18px; height: 18px; }
+      .chat-panel .close-btn { width: 24px; height: 24px; }
       .statistics-panel { max-width: 250px; left: 0.5rem; top: 4rem; }
     }
   </style>
@@ -725,7 +805,12 @@
       </div>
       <div class="chat-input-container">
         <input type="text" id="chat-input" class="search-input transition-base" placeholder="Type your message..." aria-label="Chat message input">
-        <button id="send-chat-message" class="transition-base" style="background: var(--primary-purple); color: var(--white); padding: 0.5rem 1rem; border-radius: 9999px;" aria-label="Send message">Send</button>
+        <button id="send-chat-message" class="transition-base" aria-label="Send message">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 2L11 13"></path>
+            <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+          </svg>
+        </button>
       </div>
     </div>
   </div>
@@ -1291,6 +1376,9 @@
             return { id, ...incident, lng, lat };
           }).filter(incident => incident.lng !== null && incident.lat !== null);
           console.log("All incidents loaded:", allIncidents.length);
+        } else {
+          allIncidents = [];
+          console.log("No incidents found.");
         }
       } catch (error) {
         console.error("Error loading all incidents:", error);
@@ -1397,74 +1485,113 @@
       if (isActive) {
         renderStatistics();
       } else {
-        if (typeChart) typeChart.destroy();
-        if (statusChart) statusChart.destroy();
+        if (typeChart) {
+          typeChart.destroy();
+          typeChart = null;
+        }
+        if (statusChart) {
+          statusChart.destroy();
+          statusChart = null;
+        }
       }
       console.log("Statistics panel toggled:", isActive);
     }
 
     function renderStatistics() {
-      const types = {};
-      const statuses = {};
-      allIncidents.forEach(incident => {
-        types[incident.type] = (types[incident.type] || 0) + 1;
-        statuses[incident.status] = (statuses[incident.status] || 0) + 1;
-      });
+      try {
+        const types = {};
+        const statuses = {};
+        allIncidents.forEach(incident => {
+          types[incident.type] = (types[incident.type] || 0) + 1;
+          statuses[incident.status] = (statuses[incident.status] || 0) + 1;
+        });
 
-      const typeCtx = document.getElementById('type-chart').getContext('2d');
-      typeChart = new Chart(typeCtx, {
-        type: 'pie',
-        data: {
-          labels: Object.keys(types),
-          datasets: [{
-            data: Object.values(types),
-            backgroundColor: ['#6D28D9', '#06B6D4', '#DC2626', '#FBBF24']
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'top',
-            },
-            title: {
-              display: true,
-              text: 'Incidents by Type'
-            }
-          }
-        }
-      });
+        const typeLabels = Object.keys(types).length > 0 ? Object.keys(types) : ['No Data'];
+        const typeData = Object.keys(types).length > 0 ? Object.values(types) : [1];
 
-      const statusCtx = document.getElementById('status-chart').getContext('2d');
-      statusChart = new Chart(statusCtx, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(statuses),
-          datasets: [{
-            label: 'Count',
-            data: Object.values(statuses),
-            backgroundColor: '#6D28D9'
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              display: false
-            },
-            title: {
-              display: true,
-              text: 'Incidents by Status'
-            }
+        const typeCtx = document.getElementById('type-chart').getContext('2d');
+        if (typeChart) typeChart.destroy();
+        typeChart = new Chart(typeCtx, {
+          type: 'pie',
+          data: {
+            labels: typeLabels,
+            datasets: [{
+              data: typeData,
+              backgroundColor: ['#6D28D9', '#06B6D4', '#DC2626', '#FBBF24'],
+              borderColor: ['#fff'],
+              borderWidth: 1
+            }]
           },
-          scales: {
-            y: {
-              beginAtZero: true
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: {
+                  font: { size: 12 },
+                  color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#E5E7EB' : '#111827'
+                }
+              },
+              title: {
+                display: true,
+                text: 'Incidents by Type',
+                color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#E5E7EB' : '#111827',
+                font: { size: 14 }
+              }
             }
           }
-        }
-      });
-      console.log("Statistics rendered");
+        });
+
+        const statusLabels = Object.keys(statuses).length > 0 ? Object.keys(statuses) : ['No Data'];
+        const statusData = Object.keys(statuses).length > 0 ? Object.values(statuses) : [1];
+
+        const statusCtx = document.getElementById('status-chart').getContext('2d');
+        if (statusChart) statusChart.destroy();
+        statusChart = new Chart(statusCtx, {
+          type: 'bar',
+          data: {
+            labels: statusLabels,
+            datasets: [{
+              label: 'Count',
+              data: statusData,
+              backgroundColor: '#6D28D9',
+              borderColor: '#5B21B6',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false
+              },
+              title: {
+                display: true,
+                text: 'Incidents by Status',
+                color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#E5E7EB' : '#111827',
+                font: { size: 14 }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#E5E7EB' : '#111827'
+                }
+              },
+              x: {
+                ticks: {
+                  color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#E5E7EB' : '#111827'
+                }
+              }
+            }
+          }
+        });
+        console.log("Statistics rendered successfully");
+      } catch (error) {
+        console.error("Error rendering statistics:", error);
+        showAlert("Failed to render statistics charts.", false);
+      }
     }
 
     function openChatPanel(incidentId) {
