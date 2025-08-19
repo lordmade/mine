@@ -25,7 +25,6 @@
       --white-dark: #1F2937;
       --highlight: #F3F4F6;
       --focus-ring: #8B5CF6;
-      --call-green: #10B981;
     }
 
     [data-theme="dark"] {
@@ -186,14 +185,17 @@
       font-size: 0.875rem;
     }
 
+    .incident-table tr {
+      cursor: pointer;
+    }
+
     .incident-table tr:hover {
       background: var(--highlight);
     }
 
     .action-buttons {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: auto;
+      grid-template-columns: repeat(2, 1fr);
       gap: 0.25rem;
       align-items: center;
       justify-items: center;
@@ -219,11 +221,6 @@
 
     .action-button.escalate {
       background: var(--danger-red);
-      color: var(--white);
-    }
-
-    .action-button.call {
-      background: var(--call-green);
       color: var(--white);
     }
 
@@ -394,8 +391,7 @@
         z-index: 5;
       }
       .action-buttons {
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: auto;
+        grid-template-columns: repeat(2, 1fr);
       }
       .action-button {
         padding: 0.2rem 0.4rem;
@@ -709,6 +705,7 @@
                 const isUnread = notificationSnap.exists() && !notificationSnap.val().read;
                 if (isUnread) unread++;
                 const row = document.createElement("tr");
+                row.dataset.incidentId = incidentId;
                 row.innerHTML = `
                   <td title="${incidentId}">${incidentId.slice(0, 4)}${isUnread ? ' <span class="unread-count">New</span>' : ''}</td>
                   <td title="${incident.type || 'Unknown'}">${incident.type || 'Unknown'}</td>
@@ -718,8 +715,7 @@
                   <td>
                     <div class="action-buttons">
                       <button class="action-button resolve" data-id="${incidentId}" aria-label="Resolve incident ${incidentId}">Resolve</button>
-                      <button class="action-button escalate" data-id="${incidentId}" aria-label="Escalate incident ${incidentId}">Escalate</button>
-                      <button class="action-button call" data-user-id="${incident.userId}" aria-label="Call user ${userData.displayName || userData.email}">Call</button>
+                      <button class="action-button escalate" data-user-id="${incident.userId}" aria-label="Call user for incident ${incidentId}">Escalate</button>
                     </div>
                   </td>
                 `;
@@ -728,9 +724,23 @@
 
               unreadCount.textContent = unread;
 
+              // Add click event for table rows to redirect to map.html
+              document.querySelectorAll(".incident-table tr").forEach(row => {
+                row.addEventListener("click", (e) => {
+                  // Prevent redirect if clicking on action buttons
+                  if (e.target.classList.contains("action-button")) return;
+                  const incidentId = row.dataset.incidentId;
+                  if (incidentId) {
+                    document.body.classList.add("fade-out");
+                    setTimeout(() => window.location.href = `map.html?incidentId=${incidentId}`, 500);
+                  }
+                });
+              });
+
               document.querySelectorAll(".action-button.resolve").forEach(button => {
                 button.addEventListener("click", async (e) => {
                   e.preventDefault();
+                  e.stopPropagation(); // Prevent row click event
                   const incidentId = button.dataset.id;
                   await updateIncidentStatus(incidentId, "resolved");
                 });
@@ -739,14 +749,7 @@
               document.querySelectorAll(".action-button.escalate").forEach(button => {
                 button.addEventListener("click", async (e) => {
                   e.preventDefault();
-                  const incidentId = button.dataset.id;
-                  await updateIncidentStatus(incidentId, "escalated");
-                });
-              });
-
-              document.querySelectorAll(".action-button.call").forEach(button => {
-                button.addEventListener("click", async (e) => {
-                  e.preventDefault();
+                  e.stopPropagation(); // Prevent row click event
                   const userId = button.dataset.userId;
                   await initiateCall(userId);
                 });
