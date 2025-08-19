@@ -358,7 +358,7 @@
         });
         console.log("Admin user signed up:", user.uid, user.email);
         document.body.classList.add("fade-out");
-        setTimeout(() => window.location.href = "home.html", 500); // Redirect to dashboard
+        setTimeout(() => window.location.href = "home.html", 500);
       } catch (error) {
         console.error("Signup error:", error, "Code:", error.code || "N/A");
         showError(`Signup failed: ${error.message}`);
@@ -383,7 +383,7 @@
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         console.log("User logged in:", userCredential.user.uid, userCredential.user.email);
         document.body.classList.add("fade-out");
-        setTimeout(() => window.location.href = "home.html", 500); // Redirect to dashboard
+        setTimeout(() => window.location.href = "home.html", 500);
       } catch (error) {
         console.error("Login error:", error, "Code:", error.code || "N/A");
         showError(`Login failed: ${error.message}`);
