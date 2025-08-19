@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Signup/Login - Emergency Map</title>
+  <title>Sign Up - Emergency Map</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js" integrity="sha256-7aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js" integrity="sha256-8aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
@@ -48,106 +48,130 @@
       -webkit-user-select: none;
       -ms-user-select: none;
       -webkit-touch-callout: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     body.fade-out {
       opacity: 0;
     }
 
-    .auth-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 1rem;
+    .transition-base {
+      transition: all 0.3s ease;
     }
 
-    .auth-card {
+    .auth-container {
       background: var(--card-background);
       padding: 2rem;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       width: 100%;
       max-width: 400px;
       text-align: center;
     }
 
-    .auth-card h1 {
+    .auth-container h1 {
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--text-dark);
       margin-bottom: 1.5rem;
     }
 
-    .tab-nav {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 1.5rem;
-      border-bottom: 2px solid var(--border);
-    }
-
-    .tab-button {
-      flex: 1;
-      padding: 0.75rem;
-      background: none;
-      border: none;
-      font-size: 1rem;
-      font-weight: 500;
-      color: var(--text-light);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    .tab-button.active {
-      color: var(--primary-purple);
-      font-weight: 600;
-    }
-
-    .tab-button.active::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background: var(--primary-purple);
-    }
-
-    .tab-button:hover,
-    .tab-button:focus {
-      color: var(--primary-purple);
-      outline: 2px solid var(--focus-ring);
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .auth-input {
+    .auth-container input {
       width: 100%;
       padding: 0.75rem;
       margin-bottom: 1rem;
       border: 1px solid var(--border);
-      border-radius: 9999px;
-      background: var(--white);
+      border-radius: 8px;
+      font-size: 1rem;
       color: var(--text-dark);
+      background: var(--white);
       outline: none;
-      transition: border-color 0.3s ease;
     }
 
-    .auth-input:focus {
+    .auth-container input:focus {
       border-color: var(--primary-purple);
       box-shadow: 0 0 0 2px var(--focus-ring);
     }
 
-    .auth-button {
+    .auth-container button {
       width: 100%;
       padding: 0.75rem;
+      border: none;
+      border-radius: 9999px;
+      background: var(--primary-purple);
+      color: var(--white);
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .auth-container button:hover,
+    .auth-container button:focus {
+      background: #5B21B6;
+      transform: scale(1.05);
+      outline: 2px solid var(--focus-ring);
+    }
+
+    .auth-container p {
+      color: var(--text-light);
+      font-size: 0.875rem;
+      margin-top: 1rem;
+    }
+
+    .auth-container a {
+      color: var(--primary-purple);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .auth-container a:hover {
+      text-decoration: underline;
+    }
+
+    .alert-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1500;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .alert-modal.active {
+      display: flex;
+    }
+
+    .alert-modal-content {
+      background: var(--card-background);
+      padding: 1.5rem;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      transform: scale(0.7);
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .alert-modal.active .alert-modal-content {
+      transform: scale(1);
+    }
+
+    .alert-modal-content p {
+      color: var(--text-dark);
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .alert-modal-content .alert-close-btn {
+      padding: 0.5rem 1rem;
       border: none;
       border-radius: 9999px;
       background: var(--primary-purple);
@@ -157,11 +181,10 @@
       transition: all 0.3s ease;
     }
 
-    .auth-button:hover,
-    .auth-button:focus {
+    .alert-modal-content .alert-close-btn:hover,
+    .alert-modal-content .alert-close-btn:focus {
       background: #5B21B6;
       transform: scale(1.05);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       outline: 2px solid var(--focus-ring);
     }
 
@@ -198,35 +221,37 @@
     }
 
     @media (max-width: 767px) {
-      .auth-card { padding: 1.5rem; }
-      .auth-card h1 { font-size: 1.25rem; }
-      .tab-button { font-size: 0.9rem; padding: 0.6rem; }
-      .auth-input { padding: 0.6rem; }
-      .auth-button { padding: 0.6rem; }
+      .auth-container {
+        padding: 1.5rem;
+        max-width: 90%;
+      }
+
+      .auth-container h1 {
+        font-size: 1.25rem;
+      }
+
+      .auth-container input,
+      .auth-container button {
+        font-size: 0.875rem;
+        padding: 0.5rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="auth-container">
-    <div class="auth-card">
-      <h1>Access Emergency Map</h1>
-      <div class="tab-nav">
-        <button class="tab-button active" data-tab="signup" aria-label="Switch to signup tab">Sign Up</button>
-        <button class="tab-button" data-tab="login" aria-label="Switch to login tab">Login</button>
-      </div>
-      <div id="signup-tab" class="tab-content active">
-        <input type="text" id="signup-display-name" class="auth-input" placeholder="Display Name (optional)" aria-label="Display Name">
-        <input type="email" id="signup-email" class="auth-input" placeholder="Email" aria-label="Email">
-        <input type="password" id="signup-password" class="auth-input" placeholder="Password" aria-label="Password">
-        <input type="tel" id="signup-phone-number" class="auth-input" placeholder="Phone Number (optional)" aria-label="Phone Number">
-        <button id="signup-button" class="auth-button" aria-label="Sign up">Sign Up</button>
-      </div>
-      <div id="login-tab" class="tab-content">
-        <input type="email" id="login-email" class="auth-input" placeholder="Email" aria-label="Email">
-        <input type="password" id="login-password" class="auth-input" placeholder="Password" aria-label="Password">
-        <button id="login-button" class="auth-button" aria-label="Login">Login</button>
-      </div>
-      <div id="error-message" style="color: var(--danger-red); margin-top: 1rem; font-size: 0.875rem;" aria-live="assertive"></div>
+    <h1>Sign Up</h1>
+    <input type="text" id="displayName" placeholder="Full Name" aria-label="Full Name" required>
+    <input type="email" id="email" placeholder="Email" aria-label="Email" required>
+    <input type="password" id="password" placeholder="Password" aria-label="Password" required>
+    <button id="signup-button" aria-label="Sign Up">Sign Up</button>
+    <p>Already have an account? <a href="signin.html">Sign In</a></p>
+  </div>
+
+  <div class="alert-modal" id="alert-modal" role="dialog" aria-modal="true" aria-labelledby="alert-modal-title">
+    <div class="alert-modal-content">
+      <p id="alert-message" aria-live="assertive"></p>
+      <button class="alert-close-btn transition-base" id="alert-close-btn" aria-label="Close alert">OK</button>
     </div>
   </div>
 
@@ -236,7 +261,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const firebaseConfig = {
@@ -252,214 +277,121 @@
 
     let app, auth, db;
     try {
-      console.log("Initializing Firebase...");
       app = initializeApp(firebaseConfig);
       auth = getAuth(app);
       db = getDatabase(app);
       console.log("Firebase initialized successfully");
     } catch (error) {
-      console.error("Firebase initialization error:", error.message, "Code:", error.code || "N/A");
-      showError(`Failed to initialize Firebase: ${error.message}`);
+      console.error("Firebase initialization error:", error, "Code:", error.code || "N/A");
+      showAlert(`Failed to initialize Firebase: ${error.message}`);
       throw error;
     }
 
-    const tabButtons = document.querySelectorAll(".tab-button");
-    const tabContents = document.querySelectorAll(".tab-content");
     const signupButton = document.getElementById("signup-button");
-    const loginButton = document.getElementById("login-button");
-    const signupDisplayName = document.getElementById("signup-display-name");
-    const signupEmail = document.getElementById("signup-email");
-    const signupPassword = document.getElementById("signup-password");
-    const signupPhoneNumber = document.getElementById("signup-phone-number");
-    const loginEmail = document.getElementById("login-email");
-    const loginPassword = document.getElementById("login-password");
-    const errorMessage = document.getElementById("error-message");
+    const displayNameInput = document.getElementById("displayName");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
     const spinnerOverlay = document.getElementById("spinner-overlay");
-
-    // Validate DOM elements
-    if (!tabButtons.length || !tabContents.length || !signupButton || !loginButton ||
-        !signupDisplayName || !signupEmail || !signupPassword || !signupPhoneNumber ||
-        !loginEmail || !loginPassword || !errorMessage || !spinnerOverlay) {
-      console.error("One or more DOM elements are missing");
-      showError("Initialization error: Page elements not found.");
-      throw new Error("Missing DOM elements");
-    }
+    const alertModal = document.getElementById("alert-modal");
+    const alertMessage = document.getElementById("alert-message");
+    const alertCloseBtn = document.getElementById("alert-close-btn");
 
     function showSpinner() {
-      spinnerOverlay.classList.add("active");
-      console.log("Spinner shown");
+      if (spinnerOverlay) {
+        spinnerOverlay.classList.add("active");
+      }
     }
 
     function hideSpinner() {
-      spinnerOverlay.classList.remove("active");
-      console.log("Spinner hidden");
-    }
-
-    function showError(message) {
-      errorMessage.textContent = message;
-      console.log("Error displayed:", message);
-    }
-
-    function switchTab(tabName) {
-      try {
-        tabButtons.forEach(button => {
-          button.classList.toggle("active", button.dataset.tab === tabName);
-        });
-        tabContents.forEach(content => {
-          content.classList.toggle("active", content.id === `${tabName}-tab`);
-        });
-        errorMessage.textContent = "";
-        console.log(`Switched to ${tabName} tab`);
-      } catch (error) {
-        console.error("Tab switch error:", error);
-        showError("Failed to switch tabs.");
+      if (spinnerOverlay) {
+        spinnerOverlay.classList.remove("active");
       }
     }
 
-    async function handleSignup() {
+    function showAlert(message, redirect = false) {
+      if (!alertMessage || !alertModal || !alertCloseBtn) {
+        console.error("Alert elements not found");
+        return;
+      }
+      alertMessage.textContent = message;
+      alertModal.classList.add("active");
+      alertModal.setAttribute("aria-hidden", "false");
+      alertCloseBtn.focus();
+      console.log("Alert shown:", message);
+      if (redirect) {
+        alertCloseBtn.onclick = () => {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+          document.body.classList.add("fade-out");
+          setTimeout(() => window.location.href = "dashboard.html", 500);
+        };
+      } else {
+        alertCloseBtn.onclick = () => {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+        };
+      }
+      alertModal.addEventListener("click", (e) => {
+        if (e.target === alertModal) {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+        }
+      }, { once: true });
+      alertCloseBtn.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          alertModal.classList.remove("active");
+          alertModal.setAttribute("aria-hidden", "true");
+        }
+      }, { once: true });
+    }
+
+    async function signup() {
+      showSpinner();
+      const displayName = displayNameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!displayName || !email || !password) {
+        showAlert("Please fill in all fields.");
+        hideSpinner();
+        return;
+      }
+
       try {
-        const displayName = signupDisplayName.value.trim() || null;
-        const email = signupEmail.value.trim();
-        const password = signupPassword.value.trim();
-        const phoneNumber = signupPhoneNumber.value.trim() || null;
-
-        if (!email || !password) {
-          showError("Email and password are required.");
-          console.log("Signup validation failed: Missing email or password");
-          return;
-        }
-
-        // Validate phone number format if provided
-        if (phoneNumber && !/^\+?[1-9]\d{1,14}$/.test(phoneNumber)) {
-          showError("Invalid phone number format.");
-          console.log("Signup validation failed: Invalid phone number");
-          return;
-        }
-
-        showSpinner();
-        console.log("Setting persistence for signup...");
-        await setPersistence(auth, browserLocalPersistence);
-        console.log("Persistence set for signup");
-
-        console.log("Creating user with email:", email);
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        console.log("User created:", user.uid, user.email);
 
-        console.log("Updating user profile with displayName:", displayName);
         await updateProfile(user, { displayName });
 
-        console.log("Waiting for auth state to propagate...");
-        await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error("Authentication state timeout")), 10000);
-          onAuthStateChanged(auth, (currentUser) => {
-            clearTimeout(timeout);
-            if (currentUser && currentUser.uid === user.uid) {
-              console.log("Auth state confirmed for user:", user.uid, user.email);
-              resolve();
-            } else {
-              console.error("Auth state mismatch. Expected UID:", user.uid, "Got:", currentUser ? currentUser.uid : null);
-              reject(new Error("Authentication state not confirmed"));
-            }
-          }, (error) => {
-            clearTimeout(timeout);
-            console.error("Auth state listener error:", error);
-            reject(error);
-          });
-        });
-
-        const userData = {
+        await set(ref(db, `users/${user.uid}`), {
+          displayName,
           email,
-          online: true,
-          createdAt: Date.now(),
-          role: "admin"
-        };
-        if (displayName) userData.displayName = displayName;
-        if (phoneNumber) userData.phoneNumber = phoneNumber;
+          isAdmin: true, // Set as admin for signup
+          createdAt: Date.now()
+        });
 
-        console.log("Writing user data to path: users/", user.uid, "Data:", userData);
-        await set(ref(db, `users/${user.uid}`), userData);
-        console.log("User data written successfully:", user.uid, user.email);
-
-        document.body.classList.add("fade-out");
-        setTimeout(() => {
-          console.log("Redirecting to home.html");
-          window.location.href = "home.html";
-        }, 500);
+        console.log("User signed up and stored:", user.uid, email);
+        showAlert("Sign up successful! Redirecting to dashboard...", true);
       } catch (error) {
-        console.error("Signup error:", error.message, "Code:", error.code || "N/A", "Stack:", error.stack);
-        showError(`Signup failed: ${error.message}`);
-      } finally {
+        console.error("Signup error:", error, "Code:", error.code || "N/A");
+        showAlert(`Failed to sign up: ${error.message}`);
         hideSpinner();
       }
     }
 
-    async function handleLogin() {
-      try {
-        const email = loginEmail.value.trim();
-        const password = loginPassword.value.trim();
+    signupButton.addEventListener("click", signup);
 
-        if (!email || !password) {
-          showError("Email and password are required.");
-          console.log("Login validation failed: Missing email or password");
-          return;
+    [displayNameInput, emailInput, passwordInput].forEach(input => {
+      input.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          signup();
         }
+      });
+    });
 
-        showSpinner();
-        console.log("Setting persistence for login...");
-        await setPersistence(auth, browserLocalPersistence);
-        console.log("Persistence set for login");
-
-        console.log("Logging in with email:", email);
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log("User logged in:", userCredential.user.uid, userCredential.user.email);
-
-        document.body.classList.add("fade-out");
-        setTimeout(() => {
-          console.log("Redirecting to home.html");
-          window.location.href = "home.html";
-        }, 500);
-      } catch (error) {
-        console.error("Login error:", error.message, "Code:", error.code || "N/A", "Stack:", error.stack);
-        showError(`Login failed: ${error.message}`);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    function initializeEventListeners() {
-      try {
-        tabButtons.forEach(button => {
-          button.addEventListener("click", () => switchTab(button.dataset.tab));
-        });
-
-        signupButton.addEventListener("click", handleSignup);
-        loginButton.addEventListener("click", handleLogin);
-
-        signupPassword.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") handleSignup();
-        });
-
-        loginPassword.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") handleLogin();
-        });
-        console.log("Event listeners initialized");
-      } catch (error) {
-        console.error("Error setting up event listeners:", error);
-        showError("Failed to initialize event listeners.");
-      }
-    }
-
-    // Initialize theme and event listeners
-    try {
-      const savedTheme = localStorage.getItem("theme") || "light";
-      document.documentElement.setAttribute("data-theme", savedTheme);
-      console.log("Initial theme set to:", savedTheme);
-      initializeEventListeners();
-    } catch (error) {
-      console.error("Initialization error:", error);
-      showError("Failed to initialize page.");
-    }
+    const savedTheme = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+    console.log("Initial theme set to:", savedTheme);
   </script>
 </body>
 </html>
