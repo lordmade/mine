@@ -6,7 +6,7 @@
   <title>Dashboard - Emergency Map</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js" integrity="sha256-7aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js" integrity="sha256-7aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js" integrity="sha256-8aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js" integrity="sha256-8aQS2xI8kG2P4ZfN3D6D2gW+3W+3W+3W+3W+3W+3W+3"></script>
   <style>
@@ -119,7 +119,7 @@
       margin-bottom: 0.5rem;
     }
 
-    .sidebar-nav a {
+    .sidebar-nav a, .sidebar-nav button {
       display: flex;
       align-items: center;
       padding: 0.75rem;
@@ -128,9 +128,14 @@
       border-radius: 8px;
       text-decoration: none;
       transition: all 0.3s ease;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
     }
 
-    .sidebar-nav a:hover, .sidebar-nav a.active {
+    .sidebar-nav a:hover, .sidebar-nav a.active, .sidebar-nav button:hover {
       background: var(--highlight);
       color: var(--primary-purple);
     }
@@ -478,6 +483,7 @@
       <li><a href="#" class="active" data-view="incidents" aria-label="View incidents">Incidents <span id="unread-count" class="unread-count">0</span></a></li>
       <li><a href="#" data-view="statistics" aria-label="View statistics">Statistics</a></li>
       <li><a href="settings.html" aria-label="View settings">Settings</a></li>
+      <li><button id="create-post-button" onclick="window.location.href='create.html'" aria-label="Create new post">Create Post</button></li>
     </ul>
   </div>
 
@@ -615,11 +621,11 @@
           return userSnap.val();
         }
         console.warn(`User data not found for ID: ${userId}`);
-        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null };
+        return { displayName: "Unknown User", email: "Unknown", mobileNumber: null };
       } catch (error) {
         console.error("Error fetching user data:", error, "Code:", error.code || "N/A");
         showAlert(`Failed to fetch user data: ${error.message}`);
-        return { displayName: "Unknown User", email: "Unknown", phoneNumber: null };
+        return { displayName: "Unknown User", email: "Unknown", mobileNumber: null };
       }
     }
 
@@ -728,7 +734,7 @@
     async function initiateCall(userId) {
       try {
         const userData = await fetchUserData(userId);
-        const phoneNumber = userData.phoneNumber;
+        const phoneNumber = userData.mobileNumber; // Fetch mobileNumber from user profile
         if (!phoneNumber) {
           showAlert("No phone number available for this user.");
           return;
