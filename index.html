@@ -843,31 +843,10 @@
         onAuthStateChanged(auth, async (user) => {
           if (user) {
             console.log("Authenticated user detected:", user.uid);
-            try {
-              const userRef = ref(db, `users/${user.uid}`);
-              const snapshot = await get(userRef);
-              if (snapshot.exists() && snapshot.val().role === "admin") {
-                console.log("User is admin, loading dashboard");
-                sidebar.classList.add("active");
-                mobileNav.classList.add("active");
-                signoutBtn.style.display = "flex";
-                loadPendingRegistrations();
-              } else {
-                console.log("User is not an admin, redirecting to index.html");
-                showAlert("Access denied. Admins only.", true);
-                document.body.classList.add("fade-out");
-                setTimeout(() => {
-                  window.location.href = "index.html";
-                }, 1500);
-              }
-            } catch (error) {
-              console.error("Error checking user role:", error.code, error.message);
-              showAlert("Failed to verify admin status. Please try again.", false);
-              document.body.classList.add("fade-out");
-              setTimeout(() => {
-                window.location.href = "index.html";
-              }, 1500);
-            }
+            sidebar.classList.add("active");
+            mobileNav.classList.add("active");
+            signoutBtn.style.display = "flex";
+            loadPendingRegistrations();
           } else {
             console.log("No authenticated user, redirecting to signup.html");
             showAlert("Please sign in to access the admin dashboard.", true);
