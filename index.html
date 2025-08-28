@@ -997,22 +997,12 @@
         console.log("Persistence set to browserLocalPersistence");
         onAuthStateChanged(auth, async (user) => {
           if (user) {
-            const idTokenResult = await user.getIdTokenResult();
-            if (idTokenResult.claims.admin) {
-              console.log("Authenticated admin detected:", user.uid);
-              loadPendingRegistrations();
-              loadRegisteredBusinesses();
-            } else {
-              console.log("Non-admin user, redirecting to signup.html");
-              showAlert("Access restricted to admins.", true);
-              document.body.classList.add("fade-out");
-              setTimeout(() => {
-                window.location.href = "signup.html";
-              }, 1500);
-            }
+            console.log("Authenticated user detected:", user.uid);
+            loadPendingRegistrations();
+            loadRegisteredBusinesses();
           } else {
             console.log("No authenticated user, redirecting to signup.html");
-            showAlert("Please sign in to access the admin dashboard.", true);
+            showAlert("Please sign in to access the dashboard.", true);
             document.body.classList.add("fade-out");
             setTimeout(() => {
               window.location.href = "signup.html";
