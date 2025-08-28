@@ -77,11 +77,6 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       animation: fadeInLeft 1s ease-out forwards;
       opacity: 0;
-      display: none;
-    }
-
-    .sidebar.active {
-      display: block;
     }
 
     .sidebar-tab {
@@ -98,6 +93,11 @@
       width: 100%;
       cursor: pointer;
       transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .sidebar-tab.active {
+      background: var(--highlight);
+      color: var(--primary-orange);
     }
 
     .sidebar-tab:hover,
@@ -249,7 +249,7 @@
       height: 100%;
     }
 
-    .registrations-table {
+    .registrations-table, .businesses-table, .statistics {
       background: var(--card-background);
       border-radius: 12px;
       padding: 1.5rem;
@@ -257,9 +257,14 @@
       margin-bottom: 2rem;
       animation: fadeInUp 1s ease-out forwards;
       opacity: 0;
+      display: none;
     }
 
-    .registrations-table h2 {
+    .registrations-table.active, .businesses-table.active, .statistics.active {
+      display: block;
+    }
+
+    .registrations-table h2, .businesses-table h2, .statistics h2 {
       font-size: 1.25rem;
       font-weight: 700;
       color: var(--text-dark);
@@ -299,8 +304,13 @@
       color: var(--white);
     }
 
-    .decline-btn {
+    .decline-btn, .suspend-btn {
       background: var(--danger-red);
+      color: var(--white);
+    }
+
+    .activate-btn {
+      background: var(--primary-orange);
       color: var(--white);
     }
 
@@ -369,58 +379,30 @@
       justify-content: flex-end;
     }
 
-    .mobile-nav {
-      display: none;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .stat-card {
       background: var(--white);
-      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-      padding: 0.75rem 0;
-      z-index: 10;
-      min-height: 60px;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .mobile-nav.active {
-      display: block;
-    }
-
-    .nav-items {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.25rem;
-      color: var(--text-light);
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: color 0.2s ease;
-      min-width: 60px;
-      min-height: 60px;
-      padding: 0.5rem;
-    }
-
-    .nav-item.active {
+    .stat-card h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
       color: var(--primary-orange);
+      margin-bottom: 0.5rem;
     }
 
-    .nav-item:hover,
-    .nav-item:focus {
-      color: var(--secondary-orange);
-      outline: none;
-    }
-
-    .nav-item svg {
-      width: 28px;
-      height: 28px;
-      fill: currentColor;
+    .stat-card p {
+      font-size: 0.9rem;
+      color: var(--text-light);
     }
 
     @keyframes pulse {
@@ -441,21 +423,16 @@
     @media (max-width: 768px) {
       .main-container {
         flex-direction: column;
-        padding: 0.5rem 0.5rem 4rem;
+        padding: 0.5rem;
       }
       .sidebar {
-        display: none;
+        width: 100%;
+        margin-bottom: 1rem;
       }
-      .sidebar.active {
-        display: none;
-      }
-      .mobile-nav.active {
-        display: block;
-      }
-      .registrations-table {
+      .registrations-table, .businesses-table, .statistics {
         padding: 1rem;
       }
-      .registrations-table h2 {
+      .registrations-table h2, .businesses-table h2, .statistics h2 {
         font-size: 1.1rem;
       }
       th, td {
@@ -478,13 +455,16 @@
         padding: 0.5rem;
         font-size: 0.85rem;
       }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 480px) {
       .main-container {
-        padding: 0.5rem 0.25rem 3.5rem;
+        padding: 0.5rem 0.25rem;
       }
-      .registrations-table h2 {
+      .registrations-table h2, .businesses-table h2, .statistics h2 {
         font-size: 1rem;
       }
       th, td {
@@ -507,18 +487,6 @@
         min-height: 40px;
         font-size: 0.8rem;
       }
-      .mobile-nav {
-        min-height: 56px;
-      }
-      .nav-item {
-        font-size: 0.75rem;
-        min-width: 56px;
-        min-height: 56px;
-      }
-      .nav-item svg {
-        width: 24px;
-        height: 24px;
-      }
       .modal-content {
         padding: 1rem;
         width: 95%;
@@ -532,7 +500,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .header, .registrations-table, .dot, .sidebar, .custom-alert, .modal-content {
+      .header, .registrations-table, .businesses-table, .statistics, .dot, .sidebar, .custom-alert, .modal-content {
         animation: none;
       }
     }
@@ -540,24 +508,24 @@
 </head>
 <body>
   <div class="main-container">
-    <div class="sidebar" id="sidebar">
-      <button class="sidebar-tab" onclick="switchTab('home')">
+    <div class="sidebar">
+      <button class="sidebar-tab active" onclick="switchTab('registrations')">
         <svg viewBox="0 0 24 24">
-          <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
         </svg>
-        Home
+        Pending Registrations
       </button>
-      <button class="sidebar-tab" onclick="switchTab('favorites')">
+      <button class="sidebar-tab" onclick="switchTab('businesses')">
         <svg viewBox="0 0 24 24">
-          <path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/>
+          <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
         </svg>
-        Favorites
+        Registered Businesses
       </button>
-      <button class="sidebar-tab" onclick="switchTab('orders')">
+      <button class="sidebar-tab" onclick="switchTab('statistics')">
         <svg viewBox="0 0 24 24">
-          <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0021.25 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+          <path d="M5 9h4v10H5zm6-6h4v16h-4zm6 6h4v10h-4z"/>
         </svg>
-        Orders
+        Statistics
       </button>
     </div>
     <div class="content">
@@ -574,7 +542,7 @@
               <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
             </svg>
           </button>
-          <button id="signout-btn" class="signout-btn" onclick="handleSignOut()" style="display: none;">Sign Out</button>
+          <button id="signout-btn" class="signout-btn" onclick="handleSignOut()">Sign Out</button>
         </div>
       </div>
       <div id="custom-alert" class="custom-alert" role="dialog" aria-hidden="true" aria-labelledby="alert-message">
@@ -591,9 +559,9 @@
         <div class="dot"></div>
         <div class="dot"></div>
       </div>
-      <div class="registrations-table">
+      <div class="registrations-table active" id="registrations-table">
         <h2>Pending Business Registrations</h2>
-        <table id="registrations-table" role="grid">
+        <table role="grid">
           <thead>
             <tr>
               <th>Email</th>
@@ -608,6 +576,52 @@
           <tbody id="registrations-body"></tbody>
         </table>
       </div>
+      <div class="businesses-table" id="businesses-table">
+        <h2>Registered Businesses</h2>
+        <table role="grid">
+          <thead>
+            <tr>
+              <th>Business Name</th>
+              <th>Type</th>
+              <th>Address</th>
+              <th>Contact Name</th>
+              <th>Contact Number</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="businesses-body"></tbody>
+        </table>
+      </div>
+      <div class="statistics" id="statistics">
+        <h2>Platform Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3 id="total-businesses">0</h3>
+            <p>Total Businesses</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="pending-registrations">0</h3>
+            <p>Pending Registrations</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="approved-registrations">0</h3>
+            <p>Approved Registrations</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="rejected-registrations">0</h3>
+            <p>Rejected Registrations</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="active-businesses">0</h3>
+            <p>Active Businesses</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="suspended-businesses">0</h3>
+            <p>Suspended Businesses</p>
+          </div>
+        </div>
+      </div>
       <div id="decline-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="modal-title">
         <div class="modal-content">
           <h3 id="modal-title">Decline Registration</h3>
@@ -615,30 +629,19 @@
           <textarea id="rejection-reason" placeholder="Enter rejection reason" aria-label="Rejection reason"></textarea>
           <div class="modal-actions">
             <button class="action-btn decline-btn" onclick="confirmDecline()">Confirm Decline</button>
-            <button class="action-btn" style="background: var(--text-light);" onclick="closeModal()">Cancel</button>
+            <button class="action-btn" style="background: var(--text-light);" onclick="closeModal('decline')">Cancel</button>
           </div>
         </div>
       </div>
-    </div>
-    <div class="mobile-nav" id="mobile-nav">
-      <div class="nav-items">
-        <div class="nav-item" onclick="switchTab('home')">
-          <svg viewBox="0 0 24 24">
-            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-          </svg>
-          Home
-        </div>
-        <div class="nav-item" onclick="switchTab('favorites')">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/>
-          </svg>
-          Favorites
-        </div>
-        <div class="nav-item" onclick="switchTab('orders')">
-          <svg viewBox="0 0 24 24">
-            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0021.25 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
-          </svg>
-          Orders
+      <div id="suspend-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="suspend-modal-title">
+        <div class="modal-content">
+          <h3 id="suspend-modal-title">Suspend Business</h3>
+          <p>Provide a reason for suspending this business (optional):</p>
+          <textarea id="suspension-reason" placeholder="Enter suspension reason" aria-label="Suspension reason"></textarea>
+          <div class="modal-actions">
+            <button class="action-btn suspend-btn" onclick="confirmSuspend()">Confirm Suspend</button>
+            <button class="action-btn" style="background: var(--text-light);" onclick="closeModal('suspend')">Cancel</button>
+          </div>
         </div>
       </div>
     </div>
@@ -647,7 +650,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getDatabase, ref, get, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { getDatabase, ref, get, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -661,17 +664,21 @@
     };
 
     let app, auth, db;
-    let currentRegistrationId;
+    let currentRegistrationId, currentBusinessId, currentBusinessType;
+    let currentTab = 'registrations';
 
     const customAlert = document.getElementById("custom-alert");
     const alertMessage = document.getElementById("alert-message");
     const loader = document.getElementById("loader");
-    const sidebar = document.getElementById("sidebar");
-    const mobileNav = document.getElementById("mobile-nav");
-    const signoutBtn = document.getElementById("signout-btn");
+    const registrationsTable = document.getElementById("registrations-table");
+    const businessesTable = document.getElementById("businesses-table");
+    const statistics = document.getElementById("statistics");
     const registrationsBody = document.getElementById("registrations-body");
+    const businessesBody = document.getElementById("businesses-body");
     const declineModal = document.getElementById("decline-modal");
+    const suspendModal = document.getElementById("suspend-modal");
     const rejectionReasonInput = document.getElementById("rejection-reason");
+    const suspensionReasonInput = document.getElementById("suspension-reason");
 
     function initializeFirebase() {
       try {
@@ -724,11 +731,22 @@
       console.log("Decline modal opened for registration:", registrationId);
     }
 
-    function closeModal() {
-      declineModal.classList.remove("active");
-      declineModal.setAttribute("aria-hidden", "true");
+    function openSuspendModal(businessId, businessType) {
+      currentBusinessId = businessId;
+      currentBusinessType = businessType;
+      suspendModal.classList.add("active");
+      suspendModal.setAttribute("aria-hidden", "false");
+      suspensionReasonInput.value = "";
+      suspensionReasonInput.focus();
+      console.log("Suspend modal opened for business:", businessId, businessType);
+    }
+
+    function closeModal(modalType) {
+      const modal = modalType === 'decline' ? declineModal : suspendModal;
+      modal.classList.remove("active");
+      modal.setAttribute("aria-hidden", "true");
       document.querySelector(".content").focus();
-      console.log("Decline modal closed");
+      console.log(`${modalType} modal closed`);
     }
 
     async function loadPendingRegistrations() {
@@ -738,8 +756,10 @@
           registrationsBody.innerHTML = "";
           if (snapshot.exists()) {
             const registrations = snapshot.val();
+            let pendingCount = 0, approvedCount = 0, rejectedCount = 0;
             Object.entries(registrations).forEach(([id, data]) => {
               if (data.status === "pending") {
+                pendingCount++;
                 const row = document.createElement("tr");
                 row.innerHTML = `
                   <td>${data.email}</td>
@@ -755,16 +775,86 @@
                 `;
                 registrationsBody.appendChild(row);
               }
+              if (data.status === "approved") approvedCount++;
+              if (data.status === "rejected") rejectedCount++;
             });
+            document.getElementById("pending-registrations").textContent = pendingCount;
+            document.getElementById("approved-registrations").textContent = approvedCount;
+            document.getElementById("rejected-registrations").textContent = rejectedCount;
             console.log("Pending registrations loaded");
           } else {
             registrationsBody.innerHTML = `<tr><td colspan="7" class="text-center">No pending registrations.</td></tr>`;
+            document.getElementById("pending-registrations").textContent = "0";
+            document.getElementById("approved-registrations").textContent = "0";
+            document.getElementById("rejected-registrations").textContent = "0";
             console.log("No pending registrations found");
           }
         });
       } catch (error) {
         console.error("Error loading registrations:", error);
         showAlert("Failed to load registrations. Please try again.", false);
+      }
+    }
+
+    async function loadRegisteredBusinesses() {
+      try {
+        const restaurantsRef = ref(db, "restaurants");
+        const shopsRef = ref(db, "shops");
+        onValue(restaurantsRef, (restaurantSnapshot) => {
+          onValue(shopsRef, (shopSnapshot) => {
+            businessesBody.innerHTML = "";
+            let totalBusinesses = 0, activeCount = 0, suspendedCount = 0;
+            const businesses = [];
+
+            if (restaurantSnapshot.exists()) {
+              Object.entries(restaurantSnapshot.val()).forEach(([id, data]) => {
+                businesses.push({ id, type: "restaurant", ...data });
+                totalBusinesses++;
+                if (data.status === "active" || !data.status) activeCount++;
+                if (data.status === "suspended") suspendedCount++;
+              });
+            }
+
+            if (shopSnapshot.exists()) {
+              Object.entries(shopSnapshot.val()).forEach(([id, data]) => {
+                businesses.push({ id, type: "shop", ...data });
+                totalBusinesses++;
+                if (data.status === "active" || !data.status) activeCount++;
+                if (data.status === "suspended") suspendedCount++;
+              });
+            }
+
+            businesses.forEach(data => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${data.name}</td>
+                <td>${data.type.charAt(0).toUpperCase() + data.type.slice(1)}</td>
+                <td>${data.address}</td>
+                <td>${data.contactName}</td>
+                <td>${data.contactNumber}</td>
+                <td>${data.status === "suspended" ? "Suspended" : "Active"}</td>
+                <td>
+                  ${data.status === "suspended" ? 
+                    `<button class="action-btn activate-btn" onclick="activateBusiness('${data.id}', '${data.type}')" aria-label="Activate ${data.name}">Activate</button>` :
+                    `<button class="action-btn suspend-btn" onclick="openSuspendModal('${data.id}', '${data.type}')" aria-label="Suspend ${data.name}">Suspend</button>`}
+                </td>
+              `;
+              businessesBody.appendChild(row);
+            });
+
+            if (businesses.length === 0) {
+              businessesBody.innerHTML = `<tr><td colspan="7" class="text-center">No registered businesses.</td></tr>`;
+            }
+
+            document.getElementById("total-businesses").textContent = totalBusinesses;
+            document.getElementById("active-businesses").textContent = activeCount;
+            document.getElementById("suspended-businesses").textContent = suspendedCount;
+            console.log("Registered businesses loaded");
+          });
+        });
+      } catch (error) {
+        console.error("Error loading businesses:", error);
+        showAlert("Failed to load businesses. Please try again.", false);
       }
     }
 
@@ -779,6 +869,11 @@
           return;
         }
         const data = snapshot.val();
+        if (!data.latitude || !data.longitude) {
+          showAlert("Cannot approve: Missing location data.", false);
+          hideSpinner();
+          return;
+        }
         const businessId = push(ref(db, `${data.businessType}s`)).key;
         await set(ref(db, `${data.businessType}s/${businessId}`), {
           ownerId: data.userId,
@@ -787,7 +882,12 @@
           address: data.address,
           contactName: data.contactName,
           contactNumber: data.contactNumber,
-          createdAt: Date.now()
+          latitude: data.latitude,
+          longitude: data.longitude,
+          createdAt: Date.now(),
+          rating: 0,
+          cloudinaryImage: data.cloudinaryImage || 'https://via.placeholder.com/300x180',
+          status: "active"
         });
         await set(ref(db, `users/${data.userId}/approvedBusinessId`), businessId);
         await set(registrationRef, {
@@ -812,7 +912,7 @@
         const snapshot = await get(registrationRef);
         if (!snapshot.exists()) {
           showAlert("Registration not found.", false);
-          closeModal();
+          closeModal('decline');
           hideSpinner();
           return;
         }
@@ -826,10 +926,65 @@
         });
         showAlert(`Declined ${data.businessName}!`, true);
         console.log(`Declined registration ${currentRegistrationId} for ${data.businessName}`);
-        closeModal();
+        closeModal('decline');
       } catch (error) {
         console.error("Decline failed:", error.code, error.message);
         showAlert("Failed to decline registration. Please try again.", false);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    async function confirmSuspend() {
+      showSpinner();
+      try {
+        const businessRef = ref(db, `${currentBusinessType}s/${currentBusinessId}`);
+        const snapshot = await get(businessRef);
+        if (!snapshot.exists()) {
+          showAlert("Business not found.", false);
+          closeModal('suspend');
+          hideSpinner();
+          return;
+        }
+        const data = snapshot.val();
+        const suspensionReason = suspensionReasonInput.value.trim();
+        await update(businessRef, {
+          status: "suspended",
+          suspensionReason: suspensionReason || "No reason provided",
+          suspendedAt: Date.now()
+        });
+        showAlert(`Suspended ${data.name}!`, true);
+        console.log(`Suspended business ${currentBusinessId} (${currentBusinessType})`);
+        closeModal('suspend');
+      } catch (error) {
+        console.error("Suspension failed:", error.code, error.message);
+        showAlert("Failed to suspend business. Please try again.", false);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    async function activateBusiness(businessId, businessType) {
+      showSpinner();
+      try {
+        const businessRef = ref(db, `${businessType}s/${businessId}`);
+        const snapshot = await get(businessRef);
+        if (!snapshot.exists()) {
+          showAlert("Business not found.", false);
+          hideSpinner();
+          return;
+        }
+        const data = snapshot.val();
+        await update(businessRef, {
+          status: "active",
+          suspensionReason: null,
+          suspendedAt: null
+        });
+        showAlert(`Activated ${data.name}!`, true);
+        console.log(`Activated business ${businessId} (${businessType})`);
+      } catch (error) {
+        console.error("Activation failed:", error.code, error.message);
+        showAlert("Failed to activate business. Please try again.", false);
       } finally {
         hideSpinner();
       }
@@ -842,11 +997,19 @@
         console.log("Persistence set to browserLocalPersistence");
         onAuthStateChanged(auth, async (user) => {
           if (user) {
-            console.log("Authenticated user detected:", user.uid);
-            sidebar.classList.add("active");
-            mobileNav.classList.add("active");
-            signoutBtn.style.display = "flex";
-            loadPendingRegistrations();
+            const idTokenResult = await user.getIdTokenResult();
+            if (idTokenResult.claims.admin) {
+              console.log("Authenticated admin detected:", user.uid);
+              loadPendingRegistrations();
+              loadRegisteredBusinesses();
+            } else {
+              console.log("Non-admin user, redirecting to signup.html");
+              showAlert("Access restricted to admins.", true);
+              document.body.classList.add("fade-out");
+              setTimeout(() => {
+                window.location.href = "signup.html";
+              }, 1500);
+            }
           } else {
             console.log("No authenticated user, redirecting to signup.html");
             showAlert("Please sign in to access the admin dashboard.", true);
@@ -866,21 +1029,12 @@
 
     window.switchTab = function(tab) {
       document.querySelectorAll(".sidebar-tab").forEach(t => t.classList.remove("active"));
-      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      document.querySelectorAll(".registrations-table, .businesses-table, .statistics").forEach(c => c.classList.remove("active"));
       document.querySelector(`.sidebar-tab[onclick="switchTab('${tab}')"]`).classList.add("active");
-      document.querySelector(`.nav-item[onclick="switchTab('${tab}')"]`).classList.add("active");
-      document.body.classList.add("fade-out");
-      setTimeout(() => {
-        if (tab === 'home') {
-          window.location.href = "index.html";
-        } else if (tab === 'favorites') {
-          window.location.href = "favorites.html";
-        } else if (tab === 'orders') {
-          window.location.href = "orders.html";
-        }
-      }, 500);
-      showAlert(`Switched to ${tab} tab`, true);
-      console.log(`Switched to ${tab} tab`);
+      document.getElementById(`${tab}-table`).classList.add("active");
+      currentTab = tab;
+      showAlert(`Switched to ${tab} view`, true);
+      console.log(`Switched to ${tab} view`);
     };
 
     window.toggleTheme = function() {
@@ -912,6 +1066,9 @@
     window.approveRegistration = approveRegistration;
     window.openDeclineModal = openDeclineModal;
     window.confirmDecline = confirmDecline;
+    window.openSuspendModal = openSuspendModal;
+    window.confirmSuspend = confirmSuspend;
+    window.activateBusiness = activateBusiness;
     window.closeModal = closeModal;
 
     document.addEventListener('DOMContentLoaded', () => {
