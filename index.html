@@ -70,29 +70,33 @@
     }
 
     .sidebar {
-      width: 250px;
+      width: 60px;
       background: var(--card-background);
       border-radius: 12px;
-      padding: 1.5rem;
+      padding: 1rem;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       animation: fadeInLeft 1s ease-out forwards;
       opacity: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .sidebar-tab {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
+      padding: 0.75rem;
       color: var(--text-dark);
       font-weight: 600;
       border-radius: 8px;
       background: none;
       border: none;
-      text-align: left;
-      width: 100%;
       cursor: pointer;
       transition: background 0.2s ease, color 0.2s ease;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
     }
 
     .sidebar-tab.active {
@@ -108,8 +112,8 @@
     }
 
     .sidebar-tab svg {
-      width: 20px;
-      height: 20px;
+      width: 24px;
+      height: 24px;
       fill: currentColor;
     }
 
@@ -427,7 +431,12 @@
       }
       .sidebar {
         width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
         margin-bottom: 1rem;
+      }
+      .sidebar-tab {
+        margin-bottom: 0;
       }
       .registrations-table, .businesses-table, .statistics {
         padding: 1rem;
@@ -509,23 +518,20 @@
 <body>
   <div class="main-container">
     <div class="sidebar">
-      <button class="sidebar-tab active" onclick="switchTab('registrations')">
+      <button class="sidebar-tab active" onclick="switchTab('registrations')" aria-label="View Pending Registrations">
         <svg viewBox="0 0 24 24">
           <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
         </svg>
-        Pending Registrations
       </button>
-      <button class="sidebar-tab" onclick="switchTab('businesses')">
+      <button class="sidebar-tab" onclick="switchTab('businesses')" aria-label="View Registered Businesses">
         <svg viewBox="0 0 24 24">
           <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
         </svg>
-        Registered Businesses
       </button>
-      <button class="sidebar-tab" onclick="switchTab('statistics')">
+      <button class="sidebar-tab" onclick="switchTab('statistics')" aria-label="View Platform Statistics">
         <svg viewBox="0 0 24 24">
           <path d="M5 9h4v10H5zm6-6h4v16h-4zm6 6h4v10h-4z"/>
         </svg>
-        Statistics
       </button>
     </div>
     <div class="content">
@@ -667,19 +673,6 @@
     let currentRegistrationId, currentBusinessId, currentBusinessType;
     let currentTab = 'registrations';
 
-    const customAlert = document.getElementById("custom-alert");
-    const alertMessage = document.getElementById("alert-message");
-    const loader = document.getElementById("loader");
-    const registrationsTable = document.getElementById("registrations-table");
-    const businessesTable = document.getElementById("businesses-table");
-    const statistics = document.getElementById("statistics");
-    const registrationsBody = document.getElementById("registrations-body");
-    const businessesBody = document.getElementById("businesses-body");
-    const declineModal = document.getElementById("decline-modal");
-    const suspendModal = document.getElementById("suspend-modal");
-    const rejectionReasonInput = document.getElementById("rejection-reason");
-    const suspensionReasonInput = document.getElementById("suspension-reason");
-
     function initializeFirebase() {
       try {
         app = initializeApp(firebaseConfig);
@@ -688,72 +681,127 @@
         console.log("Firebase initialized successfully at", new Date().toLocaleString());
         checkAuthState();
       } catch (error) {
-        console.error("Firebase initialization failed:", error.code, error.message);
+        console.error("Firebase initialization failed:", error.code || error.message);
         showAlert("Failed to connect to Firebase. Please check your network.", false);
         hideSpinner();
       }
     }
 
     function showSpinner() {
-      loader.classList.add("active");
-      console.log("Spinner shown at", new Date().toLocaleString());
+      const loader = document.getElementById("loader");
+      if (loader) {
+        loader.classList.add("active");
+        console.log("Spinner shown at", new Date().toLocaleString());
+      } else {
+        console.error("Loader element not found");
+      }
     }
 
     function hideSpinner() {
-      loader.classList.remove("active");
-      console.log("Spinner hidden at", new Date().toLocaleString());
+      const loader = document.getElementById("loader");
+      if (loader) {
+        loader.classList.remove("active");
+        console.log("Spinner hidden at", new Date().toLocaleString());
+      } else {
+        console.error("Loader element not found");
+      }
     }
 
     function showAlert(message, autoHide = true) {
-      alertMessage.textContent = message;
-      customAlert.classList.add("active");
-      customAlert.setAttribute("aria-hidden", "false");
-      document.querySelector(".close-btn").focus();
-      console.log("Alert shown:", message);
-      if (autoHide) {
-        setTimeout(hideAlert, 5000);
+      const alertMessage = document.getElementById("alert-message");
+      const customAlert = document.getElementById("custom-alert");
+      if (alertMessage && customAlert) {
+        alertMessage.textContent = message;
+        customAlert.classList.add("active");
+        customAlert.setAttribute("aria-hidden", "false");
+        const closeBtn = customAlert.querySelector(".close-btn");
+        if (closeBtn) closeBtn.focus();
+        console.log("Alert shown:", message);
+        if (autoHide) {
+          setTimeout(hideAlert, 5000);
+        }
+      } else {
+        console.error("Alert elements not found");
       }
     }
 
     function hideAlert() {
-      customAlert.classList.remove("active");
-      customAlert.setAttribute("aria-hidden", "true");
-      document.querySelector(".content").focus();
-      console.log("Alert hidden");
+      const customAlert = document.getElementById("custom-alert");
+      if (customAlert) {
+        customAlert.classList.remove("active");
+        customAlert.setAttribute("aria-hidden", "true");
+        const content = document.querySelector(".content");
+        if (content) content.focus();
+        console.log("Alert hidden");
+      } else {
+        console.error("Custom alert element not found");
+      }
     }
 
     function openDeclineModal(registrationId) {
-      currentRegistrationId = registrationId;
-      declineModal.classList.add("active");
-      declineModal.setAttribute("aria-hidden", "false");
-      rejectionReasonInput.value = "";
-      rejectionReasonInput.focus();
-      console.log("Decline modal opened for registration:", registrationId);
+      const declineModal = document.getElementById("decline-modal");
+      const rejectionReasonInput = document.getElementById("rejection-reason");
+      if (declineModal && rejectionReasonInput) {
+        currentRegistrationId = registrationId;
+        declineModal.classList.add("active");
+        declineModal.setAttribute("aria-hidden", "false");
+        rejectionReasonInput.value = "";
+        rejectionReasonInput.focus();
+        console.log("Decline modal opened for registration:", registrationId);
+      } else {
+        console.error("Decline modal or input not found");
+        showAlert("Unable to open decline modal.", false);
+      }
     }
 
     function openSuspendModal(businessId, businessType) {
-      currentBusinessId = businessId;
-      currentBusinessType = businessType;
-      suspendModal.classList.add("active");
-      suspendModal.setAttribute("aria-hidden", "false");
-      suspensionReasonInput.value = "";
-      suspensionReasonInput.focus();
-      console.log("Suspend modal opened for business:", businessId, businessType);
+      const suspendModal = document.getElementById("suspend-modal");
+      const suspensionReasonInput = document.getElementById("suspension-reason");
+      if (suspendModal && suspensionReasonInput) {
+        currentBusinessId = businessId;
+        currentBusinessType = businessType;
+        suspendModal.classList.add("active");
+        suspendModal.setAttribute("aria-hidden", "false");
+        suspensionReasonInput.value = "";
+        suspensionReasonInput.focus();
+        console.log("Suspend modal opened for business:", businessId, businessType);
+      } else {
+        console.error("Suspend modal or input not found");
+        showAlert("Unable to open suspend modal.", false);
+      }
     }
 
     function closeModal(modalType) {
-      const modal = modalType === 'decline' ? declineModal : suspendModal;
-      modal.classList.remove("active");
-      modal.setAttribute("aria-hidden", "true");
-      document.querySelector(".content").focus();
-      console.log(`${modalType} modal closed`);
+      const modal = modalType === 'decline' ? document.getElementById("decline-modal") : document.getElementById("suspend-modal");
+      if (modal) {
+        modal.classList.remove("active");
+        modal.setAttribute("aria-hidden", "true");
+        const content = document.querySelector(".content");
+        if (content) content.focus();
+        console.log(`${modalType} modal closed`);
+      } else {
+        console.error(`${modalType} modal not found`);
+      }
     }
 
     async function loadPendingRegistrations() {
+      const registrationsBody = document.getElementById("registrations-body");
+      if (!registrationsBody) {
+        console.error("Registrations body element not found");
+        showAlert("Failed to load registrations table.", false);
+        return;
+      }
       try {
         const registrationsRef = ref(db, "pending_registrations");
         onValue(registrationsRef, (snapshot) => {
           registrationsBody.innerHTML = "";
+          const pendingCountEl = document.getElementById("pending-registrations");
+          const approvedCountEl = document.getElementById("approved-registrations");
+          const rejectedCountEl = document.getElementById("rejected-registrations");
+          if (!(pendingCountEl && approvedCountEl && rejectedCountEl)) {
+            console.error("Statistics elements not found");
+            return;
+          }
           if (snapshot.exists()) {
             const registrations = snapshot.val();
             let pendingCount = 0, approvedCount = 0, rejectedCount = 0;
@@ -762,15 +810,15 @@
                 pendingCount++;
                 const row = document.createElement("tr");
                 row.innerHTML = `
-                  <td>${data.email}</td>
-                  <td>${data.businessName}</td>
-                  <td>${data.businessType.charAt(0).toUpperCase() + data.businessType.slice(1)}</td>
-                  <td>${data.address}</td>
-                  <td>${data.contactName}</td>
-                  <td>${data.contactNumber}</td>
+                  <td>${data.contactEmail || 'N/A'}</td>
+                  <td>${data.businessName || 'N/A'}</td>
+                  <td>${data.businessType ? data.businessType.charAt(0).toUpperCase() + data.businessType.slice(1) : 'N/A'}</td>
+                  <td>${data.address || 'N/A'}</td>
+                  <td>${data.contactName || 'N/A'}</td>
+                  <td>${data.contactNumber || 'N/A'}</td>
                   <td>
-                    <button class="action-btn approve-btn" onclick="approveRegistration('${id}')" aria-label="Approve registration for ${data.businessName}">Approve</button>
-                    <button class="action-btn decline-btn" onclick="openDeclineModal('${id}')" aria-label="Decline registration for ${data.businessName}">Decline</button>
+                    <button class="action-btn approve-btn" onclick="approveRegistration('${id}')" aria-label="Approve registration for ${data.businessName || 'business'}">Approve</button>
+                    <button class="action-btn decline-btn" onclick="openDeclineModal('${id}')" aria-label="Decline registration for ${data.businessName || 'business'}">Decline</button>
                   </td>
                 `;
                 registrationsBody.appendChild(row);
@@ -778,17 +826,20 @@
               if (data.status === "approved") approvedCount++;
               if (data.status === "rejected") rejectedCount++;
             });
-            document.getElementById("pending-registrations").textContent = pendingCount;
-            document.getElementById("approved-registrations").textContent = approvedCount;
-            document.getElementById("rejected-registrations").textContent = rejectedCount;
+            pendingCountEl.textContent = pendingCount;
+            approvedCountEl.textContent = approvedCount;
+            rejectedCountEl.textContent = rejectedCount;
             console.log("Pending registrations loaded");
           } else {
             registrationsBody.innerHTML = `<tr><td colspan="7" class="text-center">No pending registrations.</td></tr>`;
-            document.getElementById("pending-registrations").textContent = "0";
-            document.getElementById("approved-registrations").textContent = "0";
-            document.getElementById("rejected-registrations").textContent = "0";
+            pendingCountEl.textContent = "0";
+            approvedCountEl.textContent = "0";
+            rejectedCountEl.textContent = "0";
             console.log("No pending registrations found");
           }
+        }, (error) => {
+          console.error("Error in onValue for registrations:", error);
+          showAlert("Failed to load registrations. Please try again.", false);
         });
       } catch (error) {
         console.error("Error loading registrations:", error);
@@ -797,12 +848,25 @@
     }
 
     async function loadRegisteredBusinesses() {
+      const businessesBody = document.getElementById("businesses-body");
+      if (!businessesBody) {
+        console.error("Businesses body element not found");
+        showAlert("Failed to load businesses table.", false);
+        return;
+      }
       try {
         const restaurantsRef = ref(db, "restaurants");
         const shopsRef = ref(db, "shops");
         onValue(restaurantsRef, (restaurantSnapshot) => {
           onValue(shopsRef, (shopSnapshot) => {
             businessesBody.innerHTML = "";
+            const totalBusinessesEl = document.getElementById("total-businesses");
+            const activeCountEl = document.getElementById("active-businesses");
+            const suspendedCountEl = document.getElementById("suspended-businesses");
+            if (!(totalBusinessesEl && activeCountEl && suspendedCountEl)) {
+              console.error("Statistics elements not found");
+              return;
+            }
             let totalBusinesses = 0, activeCount = 0, suspendedCount = 0;
             const businesses = [];
 
@@ -827,16 +891,16 @@
             businesses.forEach(data => {
               const row = document.createElement("tr");
               row.innerHTML = `
-                <td>${data.name}</td>
+                <td>${data.name || 'N/A'}</td>
                 <td>${data.type.charAt(0).toUpperCase() + data.type.slice(1)}</td>
-                <td>${data.address}</td>
-                <td>${data.contactName}</td>
-                <td>${data.contactNumber}</td>
+                <td>${data.address || 'N/A'}</td>
+                <td>${data.contactName || 'N/A'}</td>
+                <td>${data.contactNumber || 'N/A'}</td>
                 <td>${data.status === "suspended" ? "Suspended" : "Active"}</td>
                 <td>
                   ${data.status === "suspended" ? 
-                    `<button class="action-btn activate-btn" onclick="activateBusiness('${data.id}', '${data.type}')" aria-label="Activate ${data.name}">Activate</button>` :
-                    `<button class="action-btn suspend-btn" onclick="openSuspendModal('${data.id}', '${data.type}')" aria-label="Suspend ${data.name}">Suspend</button>`}
+                    `<button class="action-btn activate-btn" onclick="activateBusiness('${data.id}', '${data.type}')" aria-label="Activate ${data.name || 'business'}">Activate</button>` :
+                    `<button class="action-btn suspend-btn" onclick="openSuspendModal('${data.id}', '${data.type}')" aria-label="Suspend ${data.name || 'business'}">Suspend</button>`}
                 </td>
               `;
               businessesBody.appendChild(row);
@@ -846,11 +910,17 @@
               businessesBody.innerHTML = `<tr><td colspan="7" class="text-center">No registered businesses.</td></tr>`;
             }
 
-            document.getElementById("total-businesses").textContent = totalBusinesses;
-            document.getElementById("active-businesses").textContent = activeCount;
-            document.getElementById("suspended-businesses").textContent = suspendedCount;
+            totalBusinessesEl.textContent = totalBusinesses;
+            activeCountEl.textContent = activeCount;
+            suspendedCountEl.textContent = suspendedCount;
             console.log("Registered businesses loaded");
+          }, (error) => {
+            console.error("Error in onValue for shops:", error);
+            showAlert("Failed to load businesses. Please try again.", false);
           });
+        }, (error) => {
+          console.error("Error in onValue for restaurants:", error);
+          showAlert("Failed to load businesses. Please try again.", false);
         });
       } catch (error) {
         console.error("Error loading businesses:", error);
@@ -869,11 +939,6 @@
           return;
         }
         const data = snapshot.val();
-        if (!data.latitude || !data.longitude) {
-          showAlert("Cannot approve: Missing location data.", false);
-          hideSpinner();
-          return;
-        }
         const businessId = push(ref(db, `${data.businessType}s`)).key;
         await set(ref(db, `${data.businessType}s/${businessId}`), {
           ownerId: data.userId,
@@ -882,8 +947,8 @@
           address: data.address,
           contactName: data.contactName,
           contactNumber: data.contactNumber,
-          latitude: data.latitude,
-          longitude: data.longitude,
+          latitude: data.latitude || null,
+          longitude: data.longitude || null,
           createdAt: Date.now(),
           rating: 0,
           cloudinaryImage: data.cloudinaryImage || 'https://via.placeholder.com/300x180',
@@ -895,10 +960,10 @@
           status: "approved",
           approvedAt: Date.now()
         });
-        showAlert(`Approved ${data.businessName}!`, true);
-        console.log(`Approved registration ${registrationId} for ${data.businessName}`);
+        showAlert(`Approved ${data.businessName || 'business'}!`, true);
+        console.log(`Approved registration ${registrationId} for ${data.businessName || 'business'}`);
       } catch (error) {
-        console.error("Approval failed:", error.code, error.message);
+        console.error("Approval failed:", error.code || error.message);
         showAlert("Failed to approve registration. Please try again.", false);
       } finally {
         hideSpinner();
@@ -917,18 +982,18 @@
           return;
         }
         const data = snapshot.val();
-        const rejectionReason = rejectionReasonInput.value.trim();
+        const rejectionReason = document.getElementById("rejection-reason")?.value.trim() || "";
         await set(registrationRef, {
           ...data,
           status: "rejected",
           rejectionReason: rejectionReason || "No reason provided",
           rejectedAt: Date.now()
         });
-        showAlert(`Declined ${data.businessName}!`, true);
-        console.log(`Declined registration ${currentRegistrationId} for ${data.businessName}`);
+        showAlert(`Declined ${data.businessName || 'business'}!`, true);
+        console.log(`Declined registration ${currentRegistrationId} for ${data.businessName || 'business'}`);
         closeModal('decline');
       } catch (error) {
-        console.error("Decline failed:", error.code, error.message);
+        console.error("Decline failed:", error.code || error.message);
         showAlert("Failed to decline registration. Please try again.", false);
       } finally {
         hideSpinner();
@@ -947,17 +1012,17 @@
           return;
         }
         const data = snapshot.val();
-        const suspensionReason = suspensionReasonInput.value.trim();
+        const suspensionReason = document.getElementById("suspension-reason")?.value.trim() || "";
         await update(businessRef, {
           status: "suspended",
           suspensionReason: suspensionReason || "No reason provided",
           suspendedAt: Date.now()
         });
-        showAlert(`Suspended ${data.name}!`, true);
+        showAlert(`Suspended ${data.name || 'business'}!`, true);
         console.log(`Suspended business ${currentBusinessId} (${currentBusinessType})`);
         closeModal('suspend');
       } catch (error) {
-        console.error("Suspension failed:", error.code, error.message);
+        console.error("Suspension failed:", error.code || error.message);
         showAlert("Failed to suspend business. Please try again.", false);
       } finally {
         hideSpinner();
@@ -980,10 +1045,10 @@
           suspensionReason: null,
           suspendedAt: null
         });
-        showAlert(`Activated ${data.name}!`, true);
+        showAlert(`Activated ${data.name || 'business'}!`, true);
         console.log(`Activated business ${businessId} (${businessType})`);
       } catch (error) {
-        console.error("Activation failed:", error.code, error.message);
+        console.error("Activation failed:", error.code || error.message);
         showAlert("Failed to activate business. Please try again.", false);
       } finally {
         hideSpinner();
@@ -1009,50 +1074,77 @@
             }, 1500);
           }
           hideSpinner();
+        }, (error) => {
+          console.error("Auth state error:", error);
+          showAlert("Failed to check authentication state.", false);
+          hideSpinner();
         });
       } catch (error) {
-        console.error("Auth state check failed:", error.code, error.message);
+        console.error("Auth state check failed:", error.code || error.message);
         showAlert("Failed to check authentication state. Please try again.", false);
         hideSpinner();
       }
     }
 
-    window.switchTab = function(tab) {
-      document.querySelectorAll(".sidebar-tab").forEach(t => t.classList.remove("active"));
-      document.querySelectorAll(".registrations-table, .businesses-table, .statistics").forEach(c => c.classList.remove("active"));
-      document.querySelector(`.sidebar-tab[onclick="switchTab('${tab}')"]`).classList.add("active");
-      document.getElementById(`${tab}-table`).classList.add("active");
-      currentTab = tab;
-      showAlert(`Switched to ${tab} view`, true);
-      console.log(`Switched to ${tab} view`);
-    };
+    function switchTab(tab) {
+      const tabs = document.querySelectorAll(".sidebar-tab");
+      const sections = document.querySelectorAll(".registrations-table, .businesses-table, .statistics");
+      if (tabs.length && sections.length) {
+        tabs.forEach(t => t.classList.remove("active"));
+        sections.forEach(c => c.classList.remove("active"));
+        const tabBtn = document.querySelector(`.sidebar-tab[onclick="switchTab('${tab}')"]`);
+        const section = document.getElementById(`${tab}-table`);
+        if (tabBtn && section) {
+          tabBtn.classList.add("active");
+          section.classList.add("active");
+          currentTab = tab;
+          showAlert(`Switched to ${tab} view`, true);
+          console.log(`Switched to ${tab} view`);
+        } else {
+          console.error(`Tab or section not found for ${tab}`);
+        }
+      } else {
+        console.error("Tabs or sections not found");
+      }
+    }
 
-    window.toggleTheme = function() {
+    function toggleTheme() {
       const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
       const newTheme = currentTheme === 'light' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', newTheme);
       localStorage.setItem('theme', newTheme);
-      document.getElementById('theme-icon').innerHTML = newTheme === 'light'
-        ? `<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>`
-        : `<path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>`;
-      if (auth.currentUser) {
-        set(ref(db, `users/${auth.currentUser.uid}/theme`), newTheme);
+      const themeIcon = document.getElementById('theme-icon');
+      if (themeIcon) {
+        themeIcon.innerHTML = newTheme === 'light'
+          ? `<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>`
+          : `<path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>`;
       }
-    };
+      if (auth?.currentUser) {
+        set(ref(db, `users/${auth.currentUser.uid}/theme`), newTheme).catch(error => {
+          console.error("Failed to save theme:", error);
+        });
+      }
+    }
 
-    window.handleSignOut = function() {
-      signOut(auth).then(() => {
-        console.log("User signed out at", new Date().toLocaleString());
-        document.body.classList.add("fade-out");
-        setTimeout(() => {
-          window.location.href = "signup.html";
-        }, 1500);
-      }).catch((error) => {
-        console.error("Sign out failed:", error.code, error.message);
-        showAlert("Failed to sign out. Please try again.", false);
-      });
-    };
+    function handleSignOut() {
+      if (auth) {
+        signOut(auth).then(() => {
+          console.log("User signed out at", new Date().toLocaleString());
+          document.body.classList.add("fade-out");
+          setTimeout(() => {
+            window.location.href = "signup.html";
+          }, 1500);
+        }).catch((error) => {
+          console.error("Sign out failed:", error.code || error.message);
+          showAlert("Failed to sign out. Please try again.", false);
+        });
+      } else {
+        console.error("Auth not initialized");
+        showAlert("Authentication not initialized.", false);
+      }
+    }
 
+    // Expose functions to global scope
     window.approveRegistration = approveRegistration;
     window.openDeclineModal = openDeclineModal;
     window.confirmDecline = confirmDecline;
@@ -1060,15 +1152,36 @@
     window.confirmSuspend = confirmSuspend;
     window.activateBusiness = activateBusiness;
     window.closeModal = closeModal;
+    window.switchTab = switchTab;
+    window.toggleTheme = toggleTheme;
+    window.handleSignOut = handleSignOut;
 
     document.addEventListener('DOMContentLoaded', () => {
       console.log("DOMContentLoaded event fired at", new Date().toLocaleString());
+      
+      // Initialize DOM elements
+      const customAlert = document.getElementById("custom-alert");
+      const registrationsTable = document.getElementById("registrations-table");
+      const businessesTable = document.getElementById("businesses-table");
+      const statistics = document.getElementById("statistics");
+      const declineModal = document.getElementById("decline-modal");
+      const suspendModal = document.getElementById("suspend-modal");
+
+      if (!(customAlert && registrationsTable && businessesTable && statistics && declineModal && suspendModal)) {
+        console.error("One or more critical DOM elements not found");
+        return;
+      }
+
       const savedTheme = localStorage.getItem("theme") || "light";
       document.documentElement.setAttribute("data-theme", savedTheme);
-      document.getElementById('theme-icon').innerHTML = savedTheme === 'light'
-        ? `<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>`
-        : `<path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>`;
-      console.log("Initial theme set to:", savedTheme);
+      const themeIcon = document.getElementById('theme-icon');
+      if (themeIcon) {
+        themeIcon.innerHTML = savedTheme === 'light'
+          ? `<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>`
+          : `<path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>`;
+        console.log("Initial theme set to:", savedTheme);
+      }
+
       initializeFirebase();
     });
   </script>
