@@ -253,7 +253,7 @@
       height: 100%;
     }
 
-    .registrations-table, .businesses-table, .statistics {
+    .registrations-table, .businesses-table, .statistics, .inventory-table, .orders-table {
       background: var(--card-background);
       border-radius: 12px;
       padding: 1.5rem;
@@ -264,11 +264,11 @@
       display: none;
     }
 
-    .registrations-table.active, .businesses-table.active, .statistics.active {
+    .registrations-table.active, .businesses-table.active, .statistics.active, .inventory-table.active, .orders-table.active {
       display: block;
     }
 
-    .registrations-table h2, .businesses-table h2, .statistics h2 {
+    .registrations-table h2, .businesses-table h2, .statistics h2, .inventory-table h2, .orders-table h2 {
       font-size: 1.25rem;
       font-weight: 700;
       color: var(--text-dark);
@@ -308,12 +308,12 @@
       color: var(--white);
     }
 
-    .decline-btn, .suspend-btn {
+    .decline-btn, .suspend-btn, .delete-btn {
       background: var(--danger-red);
       color: var(--white);
     }
 
-    .activate-btn {
+    .activate-btn, .edit-btn {
       background: var(--primary-orange);
       color: var(--white);
     }
@@ -358,7 +358,9 @@
       margin-bottom: 1rem;
     }
 
-    .modal-content textarea {
+    .modal-content textarea,
+    .modal-content input,
+    .modal-content select {
       width: 100%;
       padding: 0.75rem;
       border: 1px solid var(--border);
@@ -366,15 +368,20 @@
       font-size: 0.9rem;
       color: var(--text-dark);
       background: var(--white);
-      resize: vertical;
-      min-height: 100px;
       margin-bottom: 1rem;
     }
 
-    .modal-content textarea:focus {
+    .modal-content textarea:focus,
+    .modal-content input:focus,
+    .modal-content select:focus {
       outline: none;
       border-color: var(--primary-orange);
       box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    .modal-content textarea {
+      resize: vertical;
+      min-height: 100px;
     }
 
     .modal-actions {
@@ -409,6 +416,86 @@
       color: var(--text-light);
     }
 
+    .inventory-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .inventory-form input,
+    .inventory-form select,
+    .inventory-form textarea {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .inventory-form button {
+      flex: 0 0 auto;
+      background: var(--primary-orange);
+      color: var(--white);
+    }
+
+    .category-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .category-section h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.75rem;
+    }
+
+    .item-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .item-card {
+      background: var(--white);
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .item-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .item-card p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text-dark);
+    }
+
+    .item-card .price {
+      font-weight: 600;
+      color: var(--primary-orange);
+    }
+
+    .orders-table select {
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: var(--text-dark);
+      background: var(--white);
+    }
+
+    .orders-table select:focus {
+      outline: none;
+      border-color: var(--primary-orange);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
     @keyframes pulse {
       0%, 100% { transform: scale(1); opacity: 0.8; }
       50% { transform: scale(1.5); opacity: 0.4; }
@@ -438,10 +525,10 @@
       .sidebar-tab {
         margin-bottom: 0;
       }
-      .registrations-table, .businesses-table, .statistics {
+      .registrations-table, .businesses-table, .statistics, .inventory-table, .orders-table {
         padding: 1rem;
       }
-      .registrations-table h2, .businesses-table h2, .statistics h2 {
+      .registrations-table h2, .businesses-table h2, .statistics h2, .inventory-table h2, .orders-table h2 {
         font-size: 1.1rem;
       }
       th, td {
@@ -464,8 +551,18 @@
         padding: 0.5rem;
         font-size: 0.85rem;
       }
-      .stats-grid {
+      .stats-grid, .item-grid {
         grid-template-columns: 1fr;
+      }
+      .inventory-form input,
+      .inventory-form select,
+      .inventory-form textarea {
+        min-width: 100%;
+      }
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
       }
     }
 
@@ -473,7 +570,7 @@
       .main-container {
         padding: 0.5rem 0.25rem;
       }
-      .registrations-table h2, .businesses-table h2, .statistics h2 {
+      .registrations-table h2, .businesses-table h2, .statistics h2, .inventory-table h2, .orders-table h2 {
         font-size: 1rem;
       }
       th, td {
@@ -503,13 +600,15 @@
       .modal-content h3 {
         font-size: 1rem;
       }
-      .modal-content textarea {
+      .modal-content textarea,
+      .modal-content input,
+      .modal-content select {
         font-size: 0.85rem;
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .header, .registrations-table, .businesses-table, .statistics, .dot, .sidebar, .custom-alert, .modal-content {
+      .header, .registrations-table, .businesses-table, .statistics, .inventory-table, .orders-table, .dot, .sidebar, .custom-alert, .modal-content {
         animation: none;
       }
     }
@@ -531,6 +630,16 @@
       <button class="sidebar-tab" onclick="switchTab('statistics')" aria-label="View Platform Statistics">
         <svg viewBox="0 0 24 24">
           <path d="M5 9h4v10H5zm6-6h4v16h-4zm6 6h4v10h-4z"/>
+        </svg>
+      </button>
+      <button class="sidebar-tab" onclick="switchTab('inventory')" aria-label="Manage Grocery Inventory">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 4h16v2H4zm0 4h16v2H4zm0 4h16v2H4zm0 4h16v2H4z"/>
+        </svg>
+      </button>
+      <button class="sidebar-tab" onclick="switchTab('orders')" aria-label="View Customer Orders">
+        <svg viewBox="0 0 24 24">
+          <path d="M17 2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 16H8v-1h8v1zm0-3H8v-1h8v1zm0-3H8v-1h8v1zm0-3H8V8h8v1z"/>
         </svg>
       </button>
     </div>
@@ -628,6 +737,47 @@
           </div>
         </div>
       </div>
+      <div class="inventory-table" id="inventory-table">
+        <h2>Grocery Inventory</h2>
+        <form id="add-item-form" class="inventory-form">
+          <input type="text" id="item-name" placeholder="Item Name" aria-label="Item Name" required>
+          <textarea id="item-description" placeholder="Item Description" aria-label="Item Description" required></textarea>
+          <input type="number" id="item-price" placeholder="Price (e.g., 10.99)" step="0.01" aria-label="Item Price" required>
+          <select id="item-category" aria-label="Item Category" required>
+            <option value="" disabled selected>Select Category</option>
+            <option value="Produce">Produce</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Bakery">Bakery</option>
+            <option value="Meat">Meat</option>
+            <option value="Beverages">Beverages</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Pantry">Pantry</option>
+          </select>
+          <input type="file" id="item-image" accept="image/*" aria-label="Item Image" required>
+          <button type="submit" class="action-btn">Add Item</button>
+        </form>
+        <div id="inventory-body"></div>
+      </div>
+      <div class="orders-table" id="orders-table">
+        <h2>Customer Orders</h2>
+        <table role="grid" aria-label="Customer Orders">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer Email</th>
+              <th>Business Name</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Delivery Address</th>
+              <th>Payment Method</th>
+              <th>Status</th>
+              <th>Order Time</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body"></tbody>
+        </table>
+      </div>
       <div id="decline-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="modal-title">
         <div class="modal-content">
           <h3 id="modal-title">Decline Registration</h3>
@@ -650,13 +800,36 @@
           </div>
         </div>
       </div>
+      <div id="edit-item-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="edit-modal-title">
+        <div class="modal-content">
+          <h3 id="edit-modal-title">Edit Item</h3>
+          <input type="text" id="edit-item-name" placeholder="Item Name" aria-label="Edit Item Name" required>
+          <textarea id="edit-item-description" placeholder="Item Description" aria-label="Edit Item Description" required></textarea>
+          <input type="number" id="edit-item-price" placeholder="Price (e.g., 10.99)" step="0.01" aria-label="Edit Item Price" required>
+          <select id="edit-item-category" aria-label="Edit Item Category" required>
+            <option value="" disabled>Select Category</option>
+            <option value="Produce">Produce</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Bakery">Bakery</option>
+            <option value="Meat">Meat</option>
+            <option value="Beverages">Beverages</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Pantry">Pantry</option>
+          </select>
+          <input type="file" id="edit-item-image" accept="image/*" aria-label="Edit Item Image">
+          <div class="modal-actions">
+            <button class="action-btn edit-btn" onclick="confirmEditItem()">Save Changes</button>
+            <button class="action-btn" style="background: var(--text-light);" onclick="closeModal('edit-item')">Cancel</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getDatabase, ref, get, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { getDatabase, ref, get, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -669,8 +842,12 @@
       measurementId: "G-V4W97VMSKL"
     };
 
+    // Cloudinary configuration
+    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload';
+    const CLOUDINARY_UPLOAD_PRESET = 'YOUR_UPLOAD_PRESET'; // Replace with your unsigned upload preset
+
     let app, auth, db;
-    let currentRegistrationId, currentBusinessId, currentBusinessType;
+    let currentRegistrationId, currentBusinessId, currentBusinessType, currentItemId;
     let currentTab = 'registrations';
 
     function initializeFirebase() {
@@ -771,8 +948,40 @@
       }
     }
 
+    function openEditItemModal(itemId) {
+      const editModal = document.getElementById("edit-item-modal");
+      const nameInput = document.getElementById("edit-item-name");
+      const descInput = document.getElementById("edit-item-description");
+      const priceInput = document.getElementById("edit-item-price");
+      const categoryInput = document.getElementById("edit-item-category");
+      if (editModal && nameInput && descInput && priceInput && categoryInput) {
+        currentItemId = itemId;
+        get(ref(db, `grocery_items/${itemId}`)).then(snapshot => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            nameInput.value = data.name;
+            descInput.value = data.description;
+            priceInput.value = data.price;
+            categoryInput.value = data.category;
+            editModal.classList.add("active");
+            editModal.setAttribute("aria-hidden", "false");
+            nameInput.focus();
+            console.log("Edit modal opened for item:", itemId);
+          } else {
+            showAlert("Item not found.", false);
+          }
+        }).catch(error => {
+          console.error("Error fetching item:", error);
+          showAlert("Failed to load item data.", false);
+        });
+      } else {
+        console.error("Edit modal or inputs not found");
+        showAlert("Unable to open edit modal.", false);
+      }
+    }
+
     function closeModal(modalType) {
-      const modal = modalType === 'decline' ? document.getElementById("decline-modal") : document.getElementById("suspend-modal");
+      const modal = document.getElementById(`${modalType}-modal`);
       if (modal) {
         modal.classList.remove("active");
         modal.setAttribute("aria-hidden", "true");
@@ -781,6 +990,318 @@
         console.log(`${modalType} modal closed`);
       } else {
         console.error(`${modalType} modal not found`);
+      }
+    }
+
+    async function uploadImage(file) {
+      if (!file) return null;
+      showSpinner();
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        const response = await fetch(CLOUDINARY_URL, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+        if (data.secure_url) {
+          console.log("Image uploaded to Cloudinary:", data.secure_url);
+          return data.secure_url;
+        } else {
+          throw new Error("Image upload failed");
+        }
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        showAlert("Failed to upload image. Please try again.", false);
+        return null;
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    async function addItem(event) {
+      event.preventDefault();
+      const nameInput = document.getElementById("item-name");
+      const descInput = document.getElementById("item-description");
+      const priceInput = document.getElementById("item-price");
+      const categoryInput = document.getElementById("item-category");
+      const imageInput = document.getElementById("item-image");
+      if (!(nameInput && descInput && priceInput && categoryInput && imageInput)) {
+        console.error("Form inputs not found");
+        showAlert("Form inputs missing.", false);
+        return;
+      }
+      const name = nameInput.value.trim();
+      const description = descInput.value.trim();
+      const price = parseFloat(priceInput.value);
+      const category = categoryInput.value;
+      const image = imageInput.files[0];
+      if (!name || !description || !price || !category || !image) {
+        showAlert("Please fill all required fields and select an image.", false);
+        return;
+      }
+      showSpinner();
+      try {
+        const imageUrl = await uploadImage(image);
+        if (!imageUrl) {
+          showAlert("Failed to upload image.", false);
+          return;
+        }
+        const itemId = push(ref(db, 'grocery_items')).key;
+        await set(ref(db, `grocery_items/${itemId}`), {
+          name,
+          description,
+          price,
+          category,
+          imageUrl,
+          createdAt: Date.now()
+        });
+        showAlert(`Added ${name} to inventory!`, true);
+        console.log(`Added item ${itemId}: ${name}`);
+        nameInput.value = '';
+        descInput.value = '';
+        priceInput.value = '';
+        categoryInput.value = '';
+        imageInput.value = '';
+      } catch (error) {
+        console.error("Error adding item:", error);
+        showAlert("Failed to add item. Please try again.", false);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    async function confirmEditItem() {
+      const nameInput = document.getElementById("edit-item-name");
+      const descInput = document.getElementById("edit-item-description");
+      const priceInput = document.getElementById("edit-item-price");
+      const categoryInput = document.getElementById("edit-item-category");
+      const imageInput = document.getElementById("edit-item-image");
+      if (!(nameInput && descInput && priceInput && categoryInput && imageInput)) {
+        console.error("Edit form inputs not found");
+        showAlert("Form inputs missing.", false);
+        return;
+      }
+      const name = nameInput.value.trim();
+      const description = descInput.value.trim();
+      const price = parseFloat(priceInput.value);
+      const category = categoryInput.value;
+      const image = imageInput.files[0];
+      if (!name || !description || !price || !category) {
+        showAlert("Please fill all required fields.", false);
+        return;
+      }
+      showSpinner();
+      try {
+        let updates = { name, description, price, category };
+        if (image) {
+          const imageUrl = await uploadImage(image);
+          if (imageUrl) {
+            updates.imageUrl = imageUrl;
+          } else {
+            showAlert("Failed to upload new image.", false);
+            return;
+          }
+        }
+        await update(ref(db, `grocery_items/${currentItemId}`), updates);
+        showAlert(`Updated ${name}!`, true);
+        console.log(`Updated item ${currentItemId}: ${name}`);
+        closeModal('edit-item');
+      } catch (error) {
+        console.error("Error updating item:", error);
+        showAlert("Failed to update item. Please try again.", false);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    async function deleteItem(itemId) {
+      showSpinner();
+      try {
+        const itemRef = ref(db, `grocery_items/${itemId}`);
+        const snapshot = await get(itemRef);
+        if (!snapshot.exists()) {
+          showAlert("Item not found.", false);
+          return;
+        }
+        const data = snapshot.val();
+        await remove(itemRef);
+        showAlert(`Deleted ${data.name}!`, true);
+        console.log(`Deleted item ${itemId}: ${data.name}`);
+      } catch (error) {
+        console.error("Error deleting item:", error);
+        showAlert("Failed to delete item. Please try again.", false);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    async function loadInventory() {
+      const inventoryBody = document.getElementById("inventory-body");
+      if (!inventoryBody) {
+        console.error("Inventory body element not found");
+        showAlert("Failed to load inventory.", false);
+        return;
+      }
+      try {
+        const itemsRef = ref(db, "grocery_items");
+        onValue(itemsRef, (snapshot) => {
+          inventoryBody.innerHTML = "";
+          if (snapshot.exists()) {
+            const items = snapshot.val();
+            const categories = {};
+            Object.entries(items).forEach(([id, data]) => {
+              if (!categories[data.category]) {
+                categories[data.category] = [];
+              }
+              categories[data.category].push({ id, ...data });
+            });
+            Object.keys(categories).sort().forEach(category => {
+              const section = document.createElement("div");
+              section.className = "category-section";
+              section.innerHTML = `<h3>${category}</h3>`;
+              const grid = document.createElement("div");
+              grid.className = "item-grid";
+              categories[category].forEach(item => {
+                const card = document.createElement("div");
+                card.className = "item-card";
+                card.innerHTML = `
+                  <img src="${item.imageUrl}" alt="${item.name}">
+                  <p><strong>${item.name}</strong></p>
+                  <p>${item.description}</p>
+                  <p class="price">$${item.price.toFixed(2)}</p>
+                  <div>
+                    <button class="action-btn edit-btn" onclick="openEditItemModal('${item.id}')" aria-label="Edit ${item.name}">Edit</button>
+                    <button class="action-btn delete-btn" onclick="deleteItem('${item.id}')" aria-label="Delete ${item.name}">Delete</button>
+                  </div>
+                `;
+                grid.appendChild(card);
+              });
+              section.appendChild(grid);
+              inventoryBody.appendChild(section);
+            });
+            console.log("Inventory loaded");
+          } else {
+            inventoryBody.innerHTML = `<p class="text-center">No items in inventory.</p>`;
+            console.log("No inventory items found");
+          }
+        }, (error) => {
+          console.error("Error in onValue for inventory:", error);
+          showAlert("Failed to load inventory. Please try again.", false);
+        });
+      } catch (error) {
+        console.error("Error loading inventory:", error);
+        showAlert("Failed to load inventory. Please try again.", false);
+      }
+    }
+
+    async function loadOrders() {
+      const ordersBody = document.getElementById("orders-body");
+      if (!ordersBody) {
+        console.error("Orders body element not found");
+        showAlert("Failed to load orders: UI element missing.", false);
+        return;
+      }
+      try {
+        const usersRef = ref(db, "users");
+        onValue(usersRef, async (snapshot) => {
+          ordersBody.innerHTML = "";
+          let ordersFound = false;
+          const businesses = {};
+          // Fetch business names for reference
+          const [restaurantsSnapshot, shopsSnapshot] = await Promise.all([
+            get(ref(db, "restaurants")),
+            get(ref(db, "shops"))
+          ]);
+          if (restaurantsSnapshot.exists()) {
+            Object.entries(restaurantsSnapshot.val()).forEach(([id, data]) => {
+              businesses[id] = { name: data.name, type: "restaurants" };
+            });
+          }
+          if (shopsSnapshot.exists()) {
+            Object.entries(shopsSnapshot.val()).forEach(([id, data]) => {
+              businesses[id] = { name: data.name, type: "shops" };
+            });
+          }
+          if (snapshot.exists()) {
+            const users = snapshot.val();
+            Object.entries(users).forEach(([userId, userData]) => {
+              if (userData.orders && Object.keys(userData.orders).length > 0) {
+                Object.entries(userData.orders).forEach(([orderId, order]) => {
+                  ordersFound = true;
+                  const business = businesses[order.entityId] || { name: "Unknown Business", type: "unknown" };
+                  const itemsList = Object.values(order.items || {}).map(item => `${item.name} (x${item.quantity})`).join(", ");
+                  const total = order.total || 0;
+                  const row = document.createElement("tr");
+                  row.innerHTML = `
+                    <td>${orderId}</td>
+                    <td>${userData.email || "Unknown"}</td>
+                    <td>${business.name}</td>
+                    <td>${itemsList || "No items"}</td>
+                    <td>R${total.toFixed(2)}</td>
+                    <td>${order.deliveryAddress || "Not provided"}</td>
+                    <td>${order.paymentMethod ? order.paymentMethod.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : "Not provided"}</td>
+                    <td>
+                      <select onchange="updateOrderStatus('${userId}', '${orderId}', this.value)" aria-label="Order Status for ${orderId}">
+                        <option value="pending" ${order.status === "pending" ? "selected" : ""}>Pending</option>
+                        <option value="preparing" ${order.status === "preparing" ? "selected" : ""}>Preparing</option>
+                        <option value="delivered" ${order.status === "delivered" ? "selected" : ""}>Delivered</option>
+                      </select>
+                    </td>
+                    <td>${order.timestamp ? new Date(order.timestamp).toLocaleString('en-ZA', { timeZone: 'Africa/Johannesburg' }) : "Unknown"}</td>
+                    <td>
+                      <button class="action-btn delete-btn" onclick="deleteOrder('${userId}', '${orderId}')" aria-label="Delete Order ${orderId}">Delete</button>
+                    </td>
+                  `;
+                  ordersBody.appendChild(row);
+                });
+              }
+            });
+            if (!ordersFound) {
+              ordersBody.innerHTML = `<tr><td colspan="10" class="text-center">No orders found.</td></tr>`;
+            }
+            console.log("Orders loaded");
+          } else {
+            ordersBody.innerHTML = `<tr><td colspan="10" class="text-center">No orders found.</td></tr>`;
+            console.log("No orders found");
+          }
+        }, (error) => {
+          console.error("Error in onValue for orders:", error);
+          showAlert("Failed to load orders. Please try again.", false);
+        });
+      } catch (error) {
+        console.error("Error loading orders:", error);
+        showAlert("Failed to load orders. Please try again.", false);
+      }
+    }
+
+    async function updateOrderStatus(userId, orderId, status) {
+      showSpinner();
+      try {
+        await update(ref(db, `users/${userId}/orders/${orderId}`), { status });
+        showAlert(`Order ${orderId} status updated to ${status}!`, true);
+        console.log("Order status updated for order:", orderId, "to:", status);
+      } catch (error) {
+        console.error("Error updating order status:", error);
+        showAlert("Failed to update order status. Please try again.", false);
+      } finally {
+        hideSpinner();
+      }
+    }
+
+    async function deleteOrder(userId, orderId) {
+      if (!confirm(`Are you sure you want to delete order ${orderId}?`)) return;
+      showSpinner();
+      try {
+        await remove(ref(db, `users/${userId}/orders/${orderId}`));
+        showAlert("Order deleted successfully!", true);
+        console.log("Order deleted:", orderId);
+      } catch (error) {
+        console.error("Error deleting order:", error);
+        showAlert("Failed to delete order. Please try again.", false);
+      } finally {
+        hideSpinner();
       }
     }
 
@@ -1065,6 +1586,8 @@
             console.log("Authenticated user detected:", user.uid);
             loadPendingRegistrations();
             loadRegisteredBusinesses();
+            loadInventory();
+            loadOrders();
           } else {
             console.log("No authenticated user, redirecting to signup.html");
             showAlert("Please sign in to access the dashboard.", true);
@@ -1088,7 +1611,7 @@
 
     function switchTab(tab) {
       const tabs = document.querySelectorAll(".sidebar-tab");
-      const sections = document.querySelectorAll(".registrations-table, .businesses-table, .statistics");
+      const sections = document.querySelectorAll(".registrations-table, .businesses-table, .statistics, .inventory-table, .orders-table");
       if (tabs.length && sections.length) {
         tabs.forEach(t => t.classList.remove("active"));
         sections.forEach(c => c.classList.remove("active"));
@@ -1155,6 +1678,11 @@
     window.switchTab = switchTab;
     window.toggleTheme = toggleTheme;
     window.handleSignOut = handleSignOut;
+    window.openEditItemModal = openEditItemModal;
+    window.confirmEditItem = confirmEditItem;
+    window.deleteItem = deleteItem;
+    window.updateOrderStatus = updateOrderStatus;
+    window.deleteOrder = deleteOrder;
 
     document.addEventListener('DOMContentLoaded', () => {
       console.log("DOMContentLoaded event fired at", new Date().toLocaleString());
@@ -1164,10 +1692,13 @@
       const registrationsTable = document.getElementById("registrations-table");
       const businessesTable = document.getElementById("businesses-table");
       const statistics = document.getElementById("statistics");
+      const inventoryTable = document.getElementById("inventory-table");
+      const ordersTable = document.getElementById("orders-table");
       const declineModal = document.getElementById("decline-modal");
       const suspendModal = document.getElementById("suspend-modal");
+      const editItemModal = document.getElementById("edit-item-modal");
 
-      if (!(customAlert && registrationsTable && businessesTable && statistics && declineModal && suspendModal)) {
+      if (!(customAlert && registrationsTable && businessesTable && statistics && inventoryTable && ordersTable && declineModal && suspendModal && editItemModal)) {
         console.error("One or more critical DOM elements not found");
         return;
       }
@@ -1180,6 +1711,11 @@
           ? `<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>`
           : `<path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>`;
         console.log("Initial theme set to:", savedTheme);
+      }
+
+      const addItemForm = document.getElementById("add-item-form");
+      if (addItemForm) {
+        addItemForm.addEventListener('submit', addItem);
       }
 
       initializeFirebase();
