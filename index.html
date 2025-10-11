@@ -259,7 +259,6 @@
 
     let currentUser = null;
     let allUsers = [];
-    let isAdmin = false;
 
     const verifiedIcon = `<span class="material-icons" style="color: #1DA1F2; font-size: 16px;">verified</span>`;
 
@@ -286,11 +285,6 @@
     }
 
     async function toggleVerified(uid, currentVerified, buttonEl) {
-      if (!isAdmin) {
-        showAlert('You are not authorized to verify users.', true);
-        return;
-      }
-
       // Disable button during operation
       const originalText = buttonEl.textContent;
       buttonEl.disabled = true;
@@ -366,20 +360,9 @@
       }
     };
 
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, (user) => {
       currentUser = user;
       if (user) {
-        // Check if user is admin
-        const userRef = ref(db, `users/${user.uid}`);
-        const userSnap = await get(userRef);
-        if (userSnap.exists()) {
-          isAdmin = userSnap.val().isAdmin || false;
-          if (!isAdmin) {
-            showAlert('Access denied. Admin privileges required.', true);
-            setTimeout(() => window.location.href = 'login.html', 2000);
-            return;
-          }
-        }
         loadUsers();
       } else {
         window.location.href = 'login.html';
