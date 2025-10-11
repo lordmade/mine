@@ -2,834 +2,240 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin Dashboard - My Two Minutes Food</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Verification Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
     :root {
-      --primary-orange: #F97316;
-      --secondary-orange: #FB923C;
-      --danger-red: #DC2626;
-      --success-green: #10B981;
-      --text-dark: #111827;
-      --text-light: #6B7280;
-      --border: #D1D5DB;
-      --white: #FFFFFF;
-      --background: #F9FAFB;
-      --card-background: #fff;
-      --text-dark-dark: #E5E7EB;
-      --text-light-dark: #9CA3AF;
-      --border-dark: #374151;
-      --white-dark: #1F2937;
-      --highlight: #F3F4F6;
-      --focus-ring: #F97316;
+      --bg: #ffffff;
+      --card-bg: rgba(255, 255, 255, 0.8);
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --accent: #00ff88;
+      --accent-secondary: #ff00ff;
+      --gradient: linear-gradient(135deg, #00ff88 0%, #00b7ff 50%, #ff00ff 100%);
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 20px 40px rgba(0, 0, 0, 0.1);
+      --glass: rgba(255, 255, 255, 0.2);
     }
-
-    [data-theme="dark"] {
-      --background: #111827;
-      --text-dark: var(--text-dark-dark);
-      --text-light: var(--text-light-dark);
-      --border: var(--border-dark);
-      --white: var(--white-dark);
-      --card-background: #1F2937;
-      --highlight: #374151;
+    body.dark {
+      --bg: #0f0f23;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --border: rgba(255, 255, 255, 0.1);
+      --glass: rgba(255, 255, 255, 0.05);
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--background);
-      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
       margin: 0;
       padding: 0;
-      transition: opacity 0.5s ease;
-      user-select: none;
-      -webkit-user-select: none;
-      -ms-user-select: none;
-      -webkit-touch-callout: none;
-      max-width: 100vw;
-      overflow-x: hidden;
+      line-height: 1.6;
     }
-
-    body.fade-out {
-      opacity: 0;
-    }
-
-    .main-container {
-      max-width: 100vw;
-      margin: 0 auto;
-      padding: 1rem;
-      display: flex;
-      gap: 1rem;
-    }
-
-    .sidebar {
-      width: 60px;
-      background: var(--card-background);
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      animation: fadeInLeft 1s ease-out forwards;
-      opacity: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .sidebar-tab {
-      padding: 0.75rem;
-      color: var(--text-dark);
-      font-weight: 600;
-      border-radius: 8px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 0.5rem;
-    }
-
-    .sidebar-tab.active {
-      background: var(--highlight);
-      color: var(--primary-orange);
-    }
-
-    .sidebar-tab:hover,
-    .sidebar-tab:focus {
-      background: var(--highlight);
-      color: var(--secondary-orange);
-      outline: none;
-    }
-
-    .sidebar-tab svg {
-      width: 24px;
-      height: 24px;
-      fill: currentColor;
-    }
-
-    .content {
-      flex: 1;
-      padding: 0 0.5rem;
-    }
-
     .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(30px);
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      animation: fadeInUp 1s ease-out forwards;
-      opacity: 0;
+      box-shadow: var(--shadow-sm);
     }
-
-    .header-title {
-      color: var(--text-dark);
-      font-weight: 800;
-      font-size: 1.5rem;
-      letter-spacing: -0.5px;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    body.dark .header {
+      background: rgba(15, 15, 35, 0.95);
     }
-
-    .header-title svg {
-      width: 28px;
-      height: 28px;
-      fill: var(--primary-orange);
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
     }
-
-    [data-theme="dark"] .header-title {
-      color: var(--text-dark-dark);
-    }
-
-    .search-container {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .signout-btn {
-      padding: 0.75rem;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-weight: 600;
-      color: var(--text-dark);
-      cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-      min-width: 44px;
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .signout-btn:hover,
-    .signout-btn:focus {
-      background: var(--highlight);
-      border-color: var(--primary-orange);
-      transform: scale(1.05);
-      outline: none;
-    }
-
-    .loader {
-      display: none;
-      gap: 8px;
-      justify-content: center;
-      margin: 1rem 0;
-    }
-
-    .loader.active {
-      display: flex;
-    }
-
-    .dot {
-      width: 10px;
-      height: 10px;
-      background: linear-gradient(45deg, var(--primary-orange), var(--secondary-orange));
-      border-radius: 50%;
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-
-    .dot:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    .dot:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-
-    .custom-alert {
-      display: none;
-      background: var(--card-background);
-      padding: 1rem;
-      border-radius: 8px;
-      border: 1px solid var(--danger-red);
-      color: var(--danger-red);
-      margin: 1rem auto;
-      text-align: center;
-      font-weight: 500;
-      animation: fadeIn 0.3s ease-out forwards;
-      max-width: 90%;
-      position: relative;
-    }
-
-    .custom-alert.active {
-      display: block;
-    }
-
-    .custom-alert .close-btn {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
-      width: 24px;
-      height: 24px;
-      background: none;
+    .logout-btn {
+      background: #ff0080;
+      color: white;
       border: none;
-      color: var(--primary-orange);
+      padding: 8px 16px;
+      border-radius: 20px;
       cursor: pointer;
-      transition: transform 0.2s ease, color 0.2s ease;
-    }
-
-    .custom-alert .close-btn:hover,
-    .custom-alert .close-btn:focus {
-      transform: scale(1.2);
-      color: var(--secondary-orange);
-      outline: 2px solid var(--focus-ring);
-    }
-
-    .custom-alert .close-btn svg {
-      width: 100%;
-      height: 100%;
-    }
-
-    .registrations-table, .businesses-table, .statistics, .inventory-table, .orders-table {
-      background: var(--card-background);
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
-      animation: fadeInUp 1s ease-out forwards;
-      opacity: 0;
-      display: none;
-    }
-
-    .registrations-table.active, .businesses-table.active, .statistics.active, .inventory-table.active, .orders-table.active {
-      display: block;
-    }
-
-    .registrations-table h2, .businesses-table h2, .statistics h2, .inventory-table h2, .orders-table h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 1rem;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.9rem;
-      color: var(--text-dark);
-    }
-
-    th {
       font-weight: 600;
-      background: var(--highlight);
+      transition: background 0.3s;
     }
-
-    .action-btn {
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
-      min-height: 36px;
+    .logout-btn:hover {
+      background: #cc0066;
     }
-
-    .approve-btn {
-      background: var(--success-green);
-      color: var(--white);
+    .main-content {
+      padding: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
-
-    .decline-btn, .suspend-btn, .delete-btn {
-      background: var(--danger-red);
-      color: var(--white);
-    }
-
-    .activate-btn, .edit-btn {
-      background: var(--primary-orange);
-      color: var(--white);
-    }
-
-    .action-btn:hover,
-    .action-btn:focus {
-      transform: scale(1.05);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      outline: 2px solid var(--focus-ring);
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-    }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: var(--card-background);
-      border-radius: 12px;
-      padding: 1.5rem;
-      max-width: 400px;
-      width: 90%;
-      animation: fadeInUp 0.3s ease-out forwards;
-    }
-
-    .modal-content h3 {
-      font-size: 1.1rem;
+    .section-title {
+      font-size: 20px;
       font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 1rem;
+      margin-bottom: 16px;
+      color: var(--text-primary);
     }
-
-    .modal-content textarea,
-    .modal-content input,
-    .modal-content select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.9rem;
-      color: var(--text-dark);
-      background: var(--white);
-      margin-bottom: 1rem;
-    }
-
-    .modal-content textarea:focus,
-    .modal-content input:focus,
-    .modal-content select:focus {
-      outline: none;
-      border-color: var(--primary-orange);
-      box-shadow: 0 0 0 3px var(--focus-ring);
-    }
-
-    .modal-content textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 0.5rem;
-      justify-content: flex-end;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-    }
-
-    .stat-card {
-      background: var(--white);
-      border-radius: 8px;
-      padding: 1rem;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .stat-card h3 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--primary-orange);
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-card p {
-      font-size: 0.9rem;
-      color: var(--text-light);
-    }
-
-    .inventory-form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .inventory-form input,
-    .inventory-form select,
-    .inventory-form textarea {
-      flex: 1;
-      min-width: 200px;
-    }
-
-    .inventory-form button {
-      flex: 0 0 auto;
-      background: var(--primary-orange);
-      color: var(--white);
-    }
-
-    .category-section {
-      margin-bottom: 1.5rem;
-    }
-
-    .category-section h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--text-dark);
-      margin-bottom: 0.75rem;
-    }
-
-    .item-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-    }
-
-    .item-card {
-      background: var(--white);
-      border-radius: 8px;
-      padding: 1rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    .users-list {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 12px;
     }
-
-    .item-card img {
-      width: 100%;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-
-    .item-card p {
-      margin: 0;
-      font-size: 0.9rem;
-      color: var(--text-dark);
-    }
-
-    .item-card .price {
-      font-weight: 600;
-      color: var(--primary-orange);
-    }
-
-    .orders-table select {
-      padding: 0.5rem;
+    .user-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: var(--glass);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.9rem;
-      color: var(--text-dark);
-      background: var(--white);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(15px);
     }
-
-    .orders-table select:focus {
-      outline: none;
-      border-color: var(--primary-orange);
-      box-shadow: 0 0 0 3px var(--focus-ring);
+    .user-item:hover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-md);
     }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.5); opacity: 0.4; }
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: bold;
+      flex-shrink: 0;
     }
-
-    @keyframes fadeInUp {
-      0% { opacity: 0; transform: translateY(20px); }
-      100% { opacity: 1; transform: translateY(0); }
+    .user-info {
+      flex: 1;
+      min-width: 0;
     }
-
-    @keyframes fadeInLeft {
-      0% { opacity: 0; transform: translateX(-20px); }
-      100% { opacity: 1; transform: translateX(0); }
+    .user-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-primary);
     }
-
-    @media (max-width: 768px) {
-      .main-container {
-        flex-direction: column;
-        padding: 0.5rem;
-      }
-      .sidebar {
-        width: 100%;
-        flex-direction: row;
-        justify-content: space-around;
-        margin-bottom: 1rem;
-      }
-      .sidebar-tab {
-        margin-bottom: 0;
-      }
-      .registrations-table, .businesses-table, .statistics, .inventory-table, .orders-table {
-        padding: 1rem;
-      }
-      .registrations-table h2, .businesses-table h2, .statistics h2, .inventory-table h2, .orders-table h2 {
-        font-size: 1.1rem;
-      }
-      th, td {
-        font-size: 0.85rem;
-        padding: 0.5rem;
-      }
-      .action-btn {
-        font-size: 0.85rem;
-        padding: 0.5rem 0.75rem;
-        min-height: 32px;
-      }
-      .header-title {
-        font-size: 1.25rem;
-      }
-      .header-title svg {
-        width: 24px;
-        height: 24px;
-      }
-      .signout-btn {
-        padding: 0.5rem;
-        font-size: 0.85rem;
-      }
-      .stats-grid, .item-grid {
-        grid-template-columns: 1fr;
-      }
-      .inventory-form input,
-      .inventory-form select,
-      .inventory-form textarea {
-        min-width: 100%;
-      }
-      table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-      }
+    .user-email {
+      color: var(--text-secondary);
+      font-size: 14px;
     }
-
-    @media (max-width: 480px) {
-      .main-container {
-        padding: 0.5rem 0.25rem;
-      }
-      .registrations-table h2, .businesses-table h2, .statistics h2, .inventory-table h2, .orders-table h2 {
-        font-size: 1rem;
-      }
-      th, td {
-        font-size: 0.8rem;
-        padding: 0.5rem 0.25rem;
-      }
-      .action-btn {
-        font-size: 0.8rem;
-        padding: 0.5rem 0.75rem;
-      }
-      .header-title {
-        font-size: 1.1rem;
-      }
-      .header-title svg {
-        width: 20px;
-        height: 20px;
-      }
-      .signout-btn {
-        min-width: 40px;
-        min-height: 40px;
-        font-size: 0.8rem;
-      }
-      .modal-content {
-        padding: 1rem;
-        width: 95%;
-      }
-      .modal-content h3 {
-        font-size: 1rem;
-      }
-      .modal-content textarea,
-      .modal-content input,
-      .modal-content select {
-        font-size: 0.85rem;
-      }
+    .verified-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 14px;
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      .header, .registrations-table, .businesses-table, .statistics, .inventory-table, .orders-table, .dot, .sidebar, .custom-alert, .modal-content {
-        animation: none;
-      }
+    .verified-badge {
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .toggle-btn {
+      background: var(--gradient);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      min-width: 100px;
+    }
+    .toggle-btn:hover {
+      transform: scale(1.05);
+    }
+    .spinner {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin: 0 4px;
+      animation: spin 1.2s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes spin {
+      0%, 100% { transform: scale(0.8); opacity: 0.5; }
+      50% { transform: scale(1.2); opacity: 1; }
+    }
+    .alert {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--gradient);
+      color: #000;
+      padding: 12px 20px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-md);
+      z-index: 1000;
+      font-weight: 600;
+      display: none;
+    }
+    .alert.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .search-container {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+    }
+    .search-input {
+      width: 100%;
+      max-width: 400px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 25px;
+      background: var(--glass);
+      color: var(--text-primary);
+      font-size: 16px;
+    }
+    .search-input::placeholder {
+      color: var(--text-secondary);
     }
   </style>
 </head>
 <body>
-  <div class="main-container">
-    <div class="sidebar">
-      <button class="sidebar-tab active" onclick="switchTab('registrations')" aria-label="View Pending Registrations">
-        <svg viewBox="0 0 24 24">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-        </svg>
-      </button>
-      <button class="sidebar-tab" onclick="switchTab('businesses')" aria-label="View Registered Businesses">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
-        </svg>
-      </button>
-      <button class="sidebar-tab" onclick="switchTab('statistics')" aria-label="View Platform Statistics">
-        <svg viewBox="0 0 24 24">
-          <path d="M5 9h4v10H5zm6-6h4v16h-4zm6 6h4v10h-4z"/>
-        </svg>
-      </button>
-      <button class="sidebar-tab" onclick="switchTab('inventory')" aria-label="Manage Grocery Inventory">
-        <svg viewBox="0 0 24 24">
-          <path d="M4 4h16v2H4zm0 4h16v2H4zm0 4h16v2H4zm0 4h16v2H4z"/>
-        </svg>
-      </button>
-      <button class="sidebar-tab" onclick="switchTab('orders')" aria-label="View Customer Orders">
-        <svg viewBox="0 0 24 24">
-          <path d="M17 2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 16H8v-1h8v1zm0-3H8v-1h8v1zm0-3H8v-1h8v1zm0-3H8V8h8v1z"/>
-        </svg>
-      </button>
+  <header class="header">
+    <h1>User Verification Dashboard</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </header>
+
+  <div class="alert" id="alert"></div>
+
+  <div class="main-content">
+    <div class="search-container">
+      <input type="text" id="search-input" class="search-input" placeholder="Search users..." oninput="filterUsers()">
     </div>
-    <div class="content">
-      <div class="header">
-        <h1 class="header-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79-4-4-4z"/>
-          </svg>
-          Admin Dashboard
-        </h1>
-        <div class="search-container">
-          <button id="theme-toggle" class="signout-btn" onclick="toggleTheme()" aria-label="Toggle theme">
-            <svg id="theme-icon" viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-            </svg>
-          </button>
-          <button id="signout-btn" class="signout-btn" onclick="handleSignOut()">Sign Out</button>
-        </div>
-      </div>
-      <div id="custom-alert" class="custom-alert" role="dialog" aria-hidden="true" aria-labelledby="alert-message">
-        <button class="close-btn" onclick="hideAlert()" aria-label="Close alert">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-        <p id="alert-message"></p>
-      </div>
-      <div class="loader active" id="loader">
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-      </div>
-      <div class="registrations-table active" id="registrations-table">
-        <h2>Pending Business Registrations</h2>
-        <table role="grid">
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Business Name</th>
-              <th>Type</th>
-              <th>Address</th>
-              <th>Contact Name</th>
-              <th>Contact Number</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="registrations-body"></tbody>
-        </table>
-      </div>
-      <div class="businesses-table" id="businesses-table">
-        <h2>Registered Businesses</h2>
-        <table role="grid">
-          <thead>
-            <tr>
-              <th>Business Name</th>
-              <th>Type</th>
-              <th>Address</th>
-              <th>Contact Name</th>
-              <th>Contact Number</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="businesses-body"></tbody>
-        </table>
-      </div>
-      <div class="statistics" id="statistics">
-        <h2>Platform Statistics</h2>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <h3 id="total-businesses">0</h3>
-            <p>Total Businesses</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="pending-registrations">0</h3>
-            <p>Pending Registrations</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="approved-registrations">0</h3>
-            <p>Approved Registrations</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="rejected-registrations">0</h3>
-            <p>Rejected Registrations</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="active-businesses">0</h3>
-            <p>Active Businesses</p>
-          </div>
-          <div class="stat-card">
-            <h3 id="suspended-businesses">0</h3>
-            <p>Suspended Businesses</p>
-          </div>
-        </div>
-      </div>
-      <div class="inventory-table" id="inventory-table">
-        <h2>Grocery Inventory</h2>
-        <form id="add-item-form" class="inventory-form">
-          <input type="text" id="item-name" placeholder="Item Name" aria-label="Item Name" required>
-          <textarea id="item-description" placeholder="Item Description" aria-label="Item Description" required></textarea>
-          <input type="number" id="item-price" placeholder="Price (e.g., 10.99)" step="0.01" aria-label="Item Price" required>
-          <select id="item-category" aria-label="Item Category" required>
-            <option value="" disabled selected>Select Category</option>
-            <option value="Produce">Produce</option>
-            <option value="Dairy">Dairy</option>
-            <option value="Bakery">Bakery</option>
-            <option value="Meat">Meat</option>
-            <option value="Beverages">Beverages</option>
-            <option value="Snacks">Snacks</option>
-            <option value="Pantry">Pantry</option>
-          </select>
-          <input type="file" id="item-image" accept="image/*" aria-label="Item Image" required>
-          <button type="submit" class="action-btn">Add Item</button>
-        </form>
-        <div id="inventory-body"></div>
-      </div>
-      <div class="orders-table" id="orders-table">
-        <h2>Customer Orders</h2>
-        <table role="grid" aria-label="Customer Orders">
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Customer Email</th>
-              <th>Business Name</th>
-              <th>Items</th>
-              <th>Total</th>
-              <th>Delivery Address</th>
-              <th>Payment Method</th>
-              <th>Status</th>
-              <th>Order Time</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="orders-body"></tbody>
-        </table>
-      </div>
-      <div id="decline-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="modal-title">
-        <div class="modal-content">
-          <h3 id="modal-title">Decline Registration</h3>
-          <p>Provide a reason for declining this registration (optional):</p>
-          <textarea id="rejection-reason" placeholder="Enter rejection reason" aria-label="Rejection reason"></textarea>
-          <div class="modal-actions">
-            <button class="action-btn decline-btn" onclick="confirmDecline()">Confirm Decline</button>
-            <button class="action-btn" style="background: var(--text-light);" onclick="closeModal('decline')">Cancel</button>
-          </div>
-        </div>
-      </div>
-      <div id="suspend-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="suspend-modal-title">
-        <div class="modal-content">
-          <h3 id="suspend-modal-title">Suspend Business</h3>
-          <p>Provide a reason for suspending this business (optional):</p>
-          <textarea id="suspension-reason" placeholder="Enter suspension reason" aria-label="Suspension reason"></textarea>
-          <div class="modal-actions">
-            <button class="action-btn suspend-btn" onclick="confirmSuspend()">Confirm Suspend</button>
-            <button class="action-btn" style="background: var(--text-light);" onclick="closeModal('suspend')">Cancel</button>
-          </div>
-        </div>
-      </div>
-      <div id="edit-item-modal" class="modal" role="dialog" aria-hidden="true" aria-labelledby="edit-modal-title">
-        <div class="modal-content">
-          <h3 id="edit-modal-title">Edit Item</h3>
-          <input type="text" id="edit-item-name" placeholder="Item Name" aria-label="Edit Item Name" required>
-          <textarea id="edit-item-description" placeholder="Item Description" aria-label="Edit Item Description" required></textarea>
-          <input type="number" id="edit-item-price" placeholder="Price (e.g., 10.99)" step="0.01" aria-label="Edit Item Price" required>
-          <select id="edit-item-category" aria-label="Edit Item Category" required>
-            <option value="" disabled>Select Category</option>
-            <option value="Produce">Produce</option>
-            <option value="Dairy">Dairy</option>
-            <option value="Bakery">Bakery</option>
-            <option value="Meat">Meat</option>
-            <option value="Beverages">Beverages</option>
-            <option value="Snacks">Snacks</option>
-            <option value="Pantry">Pantry</option>
-          </select>
-          <input type="file" id="edit-item-image" accept="image/*" aria-label="Edit Item Image">
-          <div class="modal-actions">
-            <button class="action-btn edit-btn" onclick="confirmEditItem()">Save Changes</button>
-            <button class="action-btn" style="background: var(--text-light);" onclick="closeModal('edit-item')">Cancel</button>
-          </div>
-        </div>
-      </div>
+    <h2 class="section-title">Users</h2>
+    <div id="users-list" class="users-list">
+      <!-- Users will be loaded here -->
     </div>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getDatabase, ref, get, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+    import { getDatabase, ref, get, update, onValue } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -838,887 +244,113 @@
       projectId: "fire-b-a8878",
       storageBucket: "fire-b-a8878.firebasestorage.app",
       messagingSenderId: "658673187627",
-      appId: "1:658673187627:web:6e4c29af661785f0afa36e",
-      measurementId: "G-V4W97VMSKL"
+      appId: "1:658673187627:web:6e4c29af661785f0afa36e"
     };
 
-    // Cloudinary configuration
-    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dqkujefxj/image/upload';
-    const CLOUDINARY_UPLOAD_PRESET = 'banter_box'; // Replace with your unsigned upload preset
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-    let app, auth, db;
-    let currentRegistrationId, currentBusinessId, currentBusinessType, currentItemId;
-    let currentTab = 'registrations';
+    let currentUser = null;
+    let allUsers = [];
 
-    function initializeFirebase() {
-      try {
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getDatabase(app);
-        console.log("Firebase initialized successfully at", new Date().toLocaleString());
-        checkAuthState();
-      } catch (error) {
-        console.error("Firebase initialization failed:", error.code || error.message);
-        showAlert("Failed to connect to Firebase. Please check your network.", false);
-        hideSpinner();
-      }
+    const verifiedIcon = `<span class="material-icons" style="color: #1DA1F2; font-size: 16px;">verified</span>`;
+
+    function showAlert(message, isError = false) {
+      const alert = document.getElementById('alert');
+      alert.textContent = message;
+      alert.style.background = isError ? '#ff4444' : 'var(--gradient)';
+      alert.classList.add('show');
+      setTimeout(() => alert.classList.remove('show'), 3000);
     }
 
-    function showSpinner() {
-      const loader = document.getElementById("loader");
-      if (loader) {
-        loader.classList.add("active");
-        console.log("Spinner shown at", new Date().toLocaleString());
-      } else {
-        console.error("Loader element not found");
-      }
-    }
-
-    function hideSpinner() {
-      const loader = document.getElementById("loader");
-      if (loader) {
-        loader.classList.remove("active");
-        console.log("Spinner hidden at", new Date().toLocaleString());
-      } else {
-        console.error("Loader element not found");
-      }
-    }
-
-    function showAlert(message, autoHide = true) {
-      const alertMessage = document.getElementById("alert-message");
-      const customAlert = document.getElementById("custom-alert");
-      if (alertMessage && customAlert) {
-        alertMessage.textContent = message;
-        customAlert.classList.add("active");
-        customAlert.setAttribute("aria-hidden", "false");
-        const closeBtn = customAlert.querySelector(".close-btn");
-        if (closeBtn) closeBtn.focus();
-        console.log("Alert shown:", message);
-        if (autoHide) {
-          setTimeout(hideAlert, 5000);
-        }
-      } else {
-        console.error("Alert elements not found");
-      }
-    }
-
-    function hideAlert() {
-      const customAlert = document.getElementById("custom-alert");
-      if (customAlert) {
-        customAlert.classList.remove("active");
-        customAlert.setAttribute("aria-hidden", "true");
-        const content = document.querySelector(".content");
-        if (content) content.focus();
-        console.log("Alert hidden");
-      } else {
-        console.error("Custom alert element not found");
-      }
-    }
-
-    function openDeclineModal(registrationId) {
-      const declineModal = document.getElementById("decline-modal");
-      const rejectionReasonInput = document.getElementById("rejection-reason");
-      if (declineModal && rejectionReasonInput) {
-        currentRegistrationId = registrationId;
-        declineModal.classList.add("active");
-        declineModal.setAttribute("aria-hidden", "false");
-        rejectionReasonInput.value = "";
-        rejectionReasonInput.focus();
-        console.log("Decline modal opened for registration:", registrationId);
-      } else {
-        console.error("Decline modal or input not found");
-        showAlert("Unable to open decline modal.", false);
-      }
-    }
-
-    function openSuspendModal(businessId, businessType) {
-      const suspendModal = document.getElementById("suspend-modal");
-      const suspensionReasonInput = document.getElementById("suspension-reason");
-      if (suspendModal && suspensionReasonInput) {
-        currentBusinessId = businessId;
-        currentBusinessType = businessType;
-        suspendModal.classList.add("active");
-        suspendModal.setAttribute("aria-hidden", "false");
-        suspensionReasonInput.value = "";
-        suspensionReasonInput.focus();
-        console.log("Suspend modal opened for business:", businessId, businessType);
-      } else {
-        console.error("Suspend modal or input not found");
-        showAlert("Unable to open suspend modal.", false);
-      }
-    }
-
-    function openEditItemModal(itemId) {
-      const editModal = document.getElementById("edit-item-modal");
-      const nameInput = document.getElementById("edit-item-name");
-      const descInput = document.getElementById("edit-item-description");
-      const priceInput = document.getElementById("edit-item-price");
-      const categoryInput = document.getElementById("edit-item-category");
-      if (editModal && nameInput && descInput && priceInput && categoryInput) {
-        currentItemId = itemId;
-        get(ref(db, `grocery_items/${itemId}`)).then(snapshot => {
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            nameInput.value = data.name;
-            descInput.value = data.description;
-            priceInput.value = data.price;
-            categoryInput.value = data.category;
-            editModal.classList.add("active");
-            editModal.setAttribute("aria-hidden", "false");
-            nameInput.focus();
-            console.log("Edit modal opened for item:", itemId);
-          } else {
-            showAlert("Item not found.", false);
-          }
-        }).catch(error => {
-          console.error("Error fetching item:", error);
-          showAlert("Failed to load item data.", false);
-        });
-      } else {
-        console.error("Edit modal or inputs not found");
-        showAlert("Unable to open edit modal.", false);
-      }
-    }
-
-    function closeModal(modalType) {
-      const modal = document.getElementById(`${modalType}-modal`);
-      if (modal) {
-        modal.classList.remove("active");
-        modal.setAttribute("aria-hidden", "true");
-        const content = document.querySelector(".content");
-        if (content) content.focus();
-        console.log(`${modalType} modal closed`);
-      } else {
-        console.error(`${modalType} modal not found`);
-      }
-    }
-
-    async function uploadImage(file) {
-      if (!file) return null;
-      showSpinner();
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        const response = await fetch(CLOUDINARY_URL, {
-          method: 'POST',
-          body: formData
-        });
-        const data = await response.json();
-        if (data.secure_url) {
-          console.log("Image uploaded to Cloudinary:", data.secure_url);
-          return data.secure_url;
+    function filterUsers() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const userItems = document.querySelectorAll('.user-item');
+      userItems.forEach(item => {
+        const name = item.querySelector('.user-name').textContent.toLowerCase();
+        const email = item.querySelector('.user-email').textContent.toLowerCase();
+        if (name.includes(searchTerm) || email.includes(searchTerm)) {
+          item.style.display = 'flex';
         } else {
-          throw new Error("Image upload failed");
+          item.style.display = 'none';
         }
-      } catch (error) {
-        console.error("Image upload failed:", error);
-        showAlert("Failed to upload image. Please try again.", false);
-        return null;
-      } finally {
-        hideSpinner();
-      }
+      });
     }
 
-    async function addItem(event) {
-      event.preventDefault();
-      const nameInput = document.getElementById("item-name");
-      const descInput = document.getElementById("item-description");
-      const priceInput = document.getElementById("item-price");
-      const categoryInput = document.getElementById("item-category");
-      const imageInput = document.getElementById("item-image");
-      if (!(nameInput && descInput && priceInput && categoryInput && imageInput)) {
-        console.error("Form inputs not found");
-        showAlert("Form inputs missing.", false);
-        return;
-      }
-      const name = nameInput.value.trim();
-      const description = descInput.value.trim();
-      const price = parseFloat(priceInput.value);
-      const category = categoryInput.value;
-      const image = imageInput.files[0];
-      if (!name || !description || !price || !category || !image) {
-        showAlert("Please fill all required fields and select an image.", false);
-        return;
-      }
-      showSpinner();
+    async function toggleVerified(uid, currentVerified) {
       try {
-        const imageUrl = await uploadImage(image);
-        if (!imageUrl) {
-          showAlert("Failed to upload image.", false);
-          return;
-        }
-        const itemId = push(ref(db, 'grocery_items')).key;
-        await set(ref(db, `grocery_items/${itemId}`), {
-          name,
-          description,
-          price,
-          category,
-          imageUrl,
-          createdAt: Date.now()
-        });
-        showAlert(`Added ${name} to inventory!`, true);
-        console.log(`Added item ${itemId}: ${name}`);
-        nameInput.value = '';
-        descInput.value = '';
-        priceInput.value = '';
-        categoryInput.value = '';
-        imageInput.value = '';
+        await update(ref(db, `users/${uid}`), { verified: !currentVerified });
+        showAlert(`User ${!currentVerified ? 'verified' : 'unverified'} successfully!`);
+        loadUsers(); // Reload to update UI
       } catch (error) {
-        console.error("Error adding item:", error);
-        showAlert("Failed to add item. Please try again.", false);
-      } finally {
-        hideSpinner();
+        console.error('Error updating verification:', error);
+        showAlert('Failed to update verification.', true);
       }
     }
 
-    async function confirmEditItem() {
-      const nameInput = document.getElementById("edit-item-name");
-      const descInput = document.getElementById("edit-item-description");
-      const priceInput = document.getElementById("edit-item-price");
-      const categoryInput = document.getElementById("edit-item-category");
-      const imageInput = document.getElementById("edit-item-image");
-      if (!(nameInput && descInput && priceInput && categoryInput && imageInput)) {
-        console.error("Edit form inputs not found");
-        showAlert("Form inputs missing.", false);
-        return;
-      }
-      const name = nameInput.value.trim();
-      const description = descInput.value.trim();
-      const price = parseFloat(priceInput.value);
-      const category = categoryInput.value;
-      const image = imageInput.files[0];
-      if (!name || !description || !price || !category) {
-        showAlert("Please fill all required fields.", false);
-        return;
-      }
-      showSpinner();
+    function renderUser(user) {
+      const initial = user.displayName ? user.displayName[0].toUpperCase() : 'U';
+      const avatarHtml = user.photoURL 
+        ? `<img src="${user.photoURL}" alt="${user.displayName}" class="user-avatar" style="object-fit: cover;">`
+        : `<div class="user-avatar">${initial}</div>`;
+
+      const nameHtml = user.displayName || 'Unknown User';
+      const verifiedHtml = user.verified ? verifiedIcon : '';
+
+      const toggleBtnText = user.verified ? 'Unverify' : 'Verify';
+
+      return `
+        <div class="user-item" data-uid="${user.uid}">
+          ${avatarHtml}
+          <div class="user-info">
+            <div class="user-name">${nameHtml} ${verifiedHtml}</div>
+            <div class="user-email">${user.email || 'No email'}</div>
+          </div>
+          <div class="verified-status">
+            <span class="verified-badge">${user.verified ? 'Verified' : 'Unverified'}</span>
+          </div>
+          <button class="toggle-btn" onclick="toggleVerified('${user.uid}', ${user.verified})">
+            ${toggleBtnText}
+          </button>
+        </div>
+      `;
+    }
+
+    async function loadUsers() {
       try {
-        let updates = { name, description, price, category };
-        if (image) {
-          const imageUrl = await uploadImage(image);
-          if (imageUrl) {
-            updates.imageUrl = imageUrl;
-          } else {
-            showAlert("Failed to upload new image.", false);
-            return;
-          }
-        }
-        await update(ref(db, `grocery_items/${currentItemId}`), updates);
-        showAlert(`Updated ${name}!`, true);
-        console.log(`Updated item ${currentItemId}: ${name}`);
-        closeModal('edit-item');
-      } catch (error) {
-        console.error("Error updating item:", error);
-        showAlert("Failed to update item. Please try again.", false);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    async function deleteItem(itemId) {
-      showSpinner();
-      try {
-        const itemRef = ref(db, `grocery_items/${itemId}`);
-        const snapshot = await get(itemRef);
-        if (!snapshot.exists()) {
-          showAlert("Item not found.", false);
-          return;
-        }
-        const data = snapshot.val();
-        await remove(itemRef);
-        showAlert(`Deleted ${data.name}!`, true);
-        console.log(`Deleted item ${itemId}: ${data.name}`);
-      } catch (error) {
-        console.error("Error deleting item:", error);
-        showAlert("Failed to delete item. Please try again.", false);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    async function loadInventory() {
-      const inventoryBody = document.getElementById("inventory-body");
-      if (!inventoryBody) {
-        console.error("Inventory body element not found");
-        showAlert("Failed to load inventory.", false);
-        return;
-      }
-      try {
-        const itemsRef = ref(db, "grocery_items");
-        onValue(itemsRef, (snapshot) => {
-          inventoryBody.innerHTML = "";
-          if (snapshot.exists()) {
-            const items = snapshot.val();
-            const categories = {};
-            Object.entries(items).forEach(([id, data]) => {
-              if (!categories[data.category]) {
-                categories[data.category] = [];
-              }
-              categories[data.category].push({ id, ...data });
-            });
-            Object.keys(categories).sort().forEach(category => {
-              const section = document.createElement("div");
-              section.className = "category-section";
-              section.innerHTML = `<h3>${category}</h3>`;
-              const grid = document.createElement("div");
-              grid.className = "item-grid";
-              categories[category].forEach(item => {
-                const card = document.createElement("div");
-                card.className = "item-card";
-                card.innerHTML = `
-                  <img src="${item.imageUrl}" alt="${item.name}">
-                  <p><strong>${item.name}</strong></p>
-                  <p>${item.description}</p>
-                  <p class="price">$${item.price.toFixed(2)}</p>
-                  <div>
-                    <button class="action-btn edit-btn" onclick="openEditItemModal('${item.id}')" aria-label="Edit ${item.name}">Edit</button>
-                    <button class="action-btn delete-btn" onclick="deleteItem('${item.id}')" aria-label="Delete ${item.name}">Delete</button>
-                  </div>
-                `;
-                grid.appendChild(card);
-              });
-              section.appendChild(grid);
-              inventoryBody.appendChild(section);
-            });
-            console.log("Inventory loaded");
-          } else {
-            inventoryBody.innerHTML = `<p class="text-center">No items in inventory.</p>`;
-            console.log("No inventory items found");
-          }
-        }, (error) => {
-          console.error("Error in onValue for inventory:", error);
-          showAlert("Failed to load inventory. Please try again.", false);
-        });
-      } catch (error) {
-        console.error("Error loading inventory:", error);
-        showAlert("Failed to load inventory. Please try again.", false);
-      }
-    }
-
-    async function loadOrders() {
-      const ordersBody = document.getElementById("orders-body");
-      if (!ordersBody) {
-        console.error("Orders body element not found");
-        showAlert("Failed to load orders: UI element missing.", false);
-        return;
-      }
-      try {
-        const usersRef = ref(db, "users");
-        onValue(usersRef, async (snapshot) => {
-          ordersBody.innerHTML = "";
-          let ordersFound = false;
-          const businesses = {};
-          // Fetch business names for reference
-          const [restaurantsSnapshot, shopsSnapshot] = await Promise.all([
-            get(ref(db, "restaurants")),
-            get(ref(db, "shops"))
-          ]);
-          if (restaurantsSnapshot.exists()) {
-            Object.entries(restaurantsSnapshot.val()).forEach(([id, data]) => {
-              businesses[id] = { name: data.name, type: "restaurants" };
-            });
-          }
-          if (shopsSnapshot.exists()) {
-            Object.entries(shopsSnapshot.val()).forEach(([id, data]) => {
-              businesses[id] = { name: data.name, type: "shops" };
-            });
-          }
-          if (snapshot.exists()) {
-            const users = snapshot.val();
-            Object.entries(users).forEach(([userId, userData]) => {
-              if (userData.orders && Object.keys(userData.orders).length > 0) {
-                Object.entries(userData.orders).forEach(([orderId, order]) => {
-                  ordersFound = true;
-                  const business = businesses[order.entityId] || { name: "Unknown Business", type: "unknown" };
-                  const itemsList = Object.values(order.items || {}).map(item => `${item.name} (x${item.quantity})`).join(", ");
-                  const total = order.total || 0;
-                  const row = document.createElement("tr");
-                  row.innerHTML = `
-                    <td>${orderId}</td>
-                    <td>${userData.email || "Unknown"}</td>
-                    <td>${business.name}</td>
-                    <td>${itemsList || "No items"}</td>
-                    <td>R${total.toFixed(2)}</td>
-                    <td>${order.deliveryAddress || "Not provided"}</td>
-                    <td>${order.paymentMethod ? order.paymentMethod.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : "Not provided"}</td>
-                    <td>
-                      <select onchange="updateOrderStatus('${userId}', '${orderId}', this.value)" aria-label="Order Status for ${orderId}">
-                        <option value="pending" ${order.status === "pending" ? "selected" : ""}>Pending</option>
-                        <option value="preparing" ${order.status === "preparing" ? "selected" : ""}>Preparing</option>
-                        <option value="delivered" ${order.status === "delivered" ? "selected" : ""}>Delivered</option>
-                      </select>
-                    </td>
-                    <td>${order.timestamp ? new Date(order.timestamp).toLocaleString('en-ZA', { timeZone: 'Africa/Johannesburg' }) : "Unknown"}</td>
-                    <td>
-                      <button class="action-btn delete-btn" onclick="deleteOrder('${userId}', '${orderId}')" aria-label="Delete Order ${orderId}">Delete</button>
-                    </td>
-                  `;
-                  ordersBody.appendChild(row);
-                });
-              }
-            });
-            if (!ordersFound) {
-              ordersBody.innerHTML = `<tr><td colspan="10" class="text-center">No orders found.</td></tr>`;
-            }
-            console.log("Orders loaded");
-          } else {
-            ordersBody.innerHTML = `<tr><td colspan="10" class="text-center">No orders found.</td></tr>`;
-            console.log("No orders found");
-          }
-        }, (error) => {
-          console.error("Error in onValue for orders:", error);
-          showAlert("Failed to load orders. Please try again.", false);
-        });
-      } catch (error) {
-        console.error("Error loading orders:", error);
-        showAlert("Failed to load orders. Please try again.", false);
-      }
-    }
-
-    async function updateOrderStatus(userId, orderId, status) {
-      showSpinner();
-      try {
-        await update(ref(db, `users/${userId}/orders/${orderId}`), { status });
-        showAlert(`Order ${orderId} status updated to ${status}!`, true);
-        console.log("Order status updated for order:", orderId, "to:", status);
-      } catch (error) {
-        console.error("Error updating order status:", error);
-        showAlert("Failed to update order status. Please try again.", false);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    async function deleteOrder(userId, orderId) {
-      if (!confirm(`Are you sure you want to delete order ${orderId}?`)) return;
-      showSpinner();
-      try {
-        await remove(ref(db, `users/${userId}/orders/${orderId}`));
-        showAlert("Order deleted successfully!", true);
-        console.log("Order deleted:", orderId);
-      } catch (error) {
-        console.error("Error deleting order:", error);
-        showAlert("Failed to delete order. Please try again.", false);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    async function loadPendingRegistrations() {
-      const registrationsBody = document.getElementById("registrations-body");
-      if (!registrationsBody) {
-        console.error("Registrations body element not found");
-        showAlert("Failed to load registrations table.", false);
-        return;
-      }
-      try {
-        const registrationsRef = ref(db, "pending_registrations");
-        onValue(registrationsRef, (snapshot) => {
-          registrationsBody.innerHTML = "";
-          const pendingCountEl = document.getElementById("pending-registrations");
-          const approvedCountEl = document.getElementById("approved-registrations");
-          const rejectedCountEl = document.getElementById("rejected-registrations");
-          if (!(pendingCountEl && approvedCountEl && rejectedCountEl)) {
-            console.error("Statistics elements not found");
-            return;
-          }
-          if (snapshot.exists()) {
-            const registrations = snapshot.val();
-            let pendingCount = 0, approvedCount = 0, rejectedCount = 0;
-            Object.entries(registrations).forEach(([id, data]) => {
-              if (data.status === "pending") {
-                pendingCount++;
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                  <td>${data.contactEmail || 'N/A'}</td>
-                  <td>${data.businessName || 'N/A'}</td>
-                  <td>${data.businessType ? data.businessType.charAt(0).toUpperCase() + data.businessType.slice(1) : 'N/A'}</td>
-                  <td>${data.address || 'N/A'}</td>
-                  <td>${data.contactName || 'N/A'}</td>
-                  <td>${data.contactNumber || 'N/A'}</td>
-                  <td>
-                    <button class="action-btn approve-btn" onclick="approveRegistration('${id}')" aria-label="Approve registration for ${data.businessName || 'business'}">Approve</button>
-                    <button class="action-btn decline-btn" onclick="openDeclineModal('${id}')" aria-label="Decline registration for ${data.businessName || 'business'}">Decline</button>
-                  </td>
-                `;
-                registrationsBody.appendChild(row);
-              }
-              if (data.status === "approved") approvedCount++;
-              if (data.status === "rejected") rejectedCount++;
-            });
-            pendingCountEl.textContent = pendingCount;
-            approvedCountEl.textContent = approvedCount;
-            rejectedCountEl.textContent = rejectedCount;
-            console.log("Pending registrations loaded");
-          } else {
-            registrationsBody.innerHTML = `<tr><td colspan="7" class="text-center">No pending registrations.</td></tr>`;
-            pendingCountEl.textContent = "0";
-            approvedCountEl.textContent = "0";
-            rejectedCountEl.textContent = "0";
-            console.log("No pending registrations found");
-          }
-        }, (error) => {
-          console.error("Error in onValue for registrations:", error);
-          showAlert("Failed to load registrations. Please try again.", false);
-        });
-      } catch (error) {
-        console.error("Error loading registrations:", error);
-        showAlert("Failed to load registrations. Please try again.", false);
-      }
-    }
-
-    async function loadRegisteredBusinesses() {
-      const businessesBody = document.getElementById("businesses-body");
-      if (!businessesBody) {
-        console.error("Businesses body element not found");
-        showAlert("Failed to load businesses table.", false);
-        return;
-      }
-      try {
-        const restaurantsRef = ref(db, "restaurants");
-        const shopsRef = ref(db, "shops");
-        onValue(restaurantsRef, (restaurantSnapshot) => {
-          onValue(shopsRef, (shopSnapshot) => {
-            businessesBody.innerHTML = "";
-            const totalBusinessesEl = document.getElementById("total-businesses");
-            const activeCountEl = document.getElementById("active-businesses");
-            const suspendedCountEl = document.getElementById("suspended-businesses");
-            if (!(totalBusinessesEl && activeCountEl && suspendedCountEl)) {
-              console.error("Statistics elements not found");
-              return;
-            }
-            let totalBusinesses = 0, activeCount = 0, suspendedCount = 0;
-            const businesses = [];
-
-            if (restaurantSnapshot.exists()) {
-              Object.entries(restaurantSnapshot.val()).forEach(([id, data]) => {
-                businesses.push({ id, type: "restaurant", ...data });
-                totalBusinesses++;
-                if (data.status === "active" || !data.status) activeCount++;
-                if (data.status === "suspended") suspendedCount++;
-              });
-            }
-
-            if (shopSnapshot.exists()) {
-              Object.entries(shopSnapshot.val()).forEach(([id, data]) => {
-                businesses.push({ id, type: "shop", ...data });
-                totalBusinesses++;
-                if (data.status === "active" || !data.status) activeCount++;
-                if (data.status === "suspended") suspendedCount++;
-              });
-            }
-
-            businesses.forEach(data => {
-              const row = document.createElement("tr");
-              row.innerHTML = `
-                <td>${data.name || 'N/A'}</td>
-                <td>${data.type.charAt(0).toUpperCase() + data.type.slice(1)}</td>
-                <td>${data.address || 'N/A'}</td>
-                <td>${data.contactName || 'N/A'}</td>
-                <td>${data.contactNumber || 'N/A'}</td>
-                <td>${data.status === "suspended" ? "Suspended" : "Active"}</td>
-                <td>
-                  ${data.status === "suspended" ? 
-                    `<button class="action-btn activate-btn" onclick="activateBusiness('${data.id}', '${data.type}')" aria-label="Activate ${data.name || 'business'}">Activate</button>` :
-                    `<button class="action-btn suspend-btn" onclick="openSuspendModal('${data.id}', '${data.type}')" aria-label="Suspend ${data.name || 'business'}">Suspend</button>`}
-                </td>
-              `;
-              businessesBody.appendChild(row);
-            });
-
-            if (businesses.length === 0) {
-              businessesBody.innerHTML = `<tr><td colspan="7" class="text-center">No registered businesses.</td></tr>`;
-            }
-
-            totalBusinessesEl.textContent = totalBusinesses;
-            activeCountEl.textContent = activeCount;
-            suspendedCountEl.textContent = suspendedCount;
-            console.log("Registered businesses loaded");
-          }, (error) => {
-            console.error("Error in onValue for shops:", error);
-            showAlert("Failed to load businesses. Please try again.", false);
-          });
-        }, (error) => {
-          console.error("Error in onValue for restaurants:", error);
-          showAlert("Failed to load businesses. Please try again.", false);
-        });
-      } catch (error) {
-        console.error("Error loading businesses:", error);
-        showAlert("Failed to load businesses. Please try again.", false);
-      }
-    }
-
-    async function approveRegistration(registrationId) {
-      showSpinner();
-      try {
-        const registrationRef = ref(db, `pending_registrations/${registrationId}`);
-        const snapshot = await get(registrationRef);
-        if (!snapshot.exists()) {
-          showAlert("Registration not found.", false);
-          hideSpinner();
-          return;
-        }
-        const data = snapshot.val();
-        const businessId = push(ref(db, `${data.businessType}s`)).key;
-        await set(ref(db, `${data.businessType}s/${businessId}`), {
-          ownerId: data.userId,
-          name: data.businessName,
-          type: data.businessType,
-          address: data.address,
-          contactName: data.contactName,
-          contactNumber: data.contactNumber,
-          latitude: data.latitude || null,
-          longitude: data.longitude || null,
-          createdAt: Date.now(),
-          rating: 0,
-          cloudinaryImage: data.cloudinaryImage || 'https://via.placeholder.com/300x180',
-          status: "active"
-        });
-        await set(ref(db, `users/${data.userId}/approvedBusinessId`), businessId);
-        await set(registrationRef, {
-          ...data,
-          status: "approved",
-          approvedAt: Date.now()
-        });
-        showAlert(`Approved ${data.businessName || 'business'}!`, true);
-        console.log(`Approved registration ${registrationId} for ${data.businessName || 'business'}`);
-      } catch (error) {
-        console.error("Approval failed:", error.code || error.message);
-        showAlert("Failed to approve registration. Please try again.", false);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    async function confirmDecline() {
-      showSpinner();
-      try {
-        const registrationRef = ref(db, `pending_registrations/${currentRegistrationId}`);
-        const snapshot = await get(registrationRef);
-        if (!snapshot.exists()) {
-          showAlert("Registration not found.", false);
-          closeModal('decline');
-          hideSpinner();
-          return;
-        }
-        const data = snapshot.val();
-        const rejectionReason = document.getElementById("rejection-reason")?.value.trim() || "";
-        await set(registrationRef, {
-          ...data,
-          status: "rejected",
-          rejectionReason: rejectionReason || "No reason provided",
-          rejectedAt: Date.now()
-        });
-        showAlert(`Declined ${data.businessName || 'business'}!`, true);
-        console.log(`Declined registration ${currentRegistrationId} for ${data.businessName || 'business'}`);
-        closeModal('decline');
-      } catch (error) {
-        console.error("Decline failed:", error.code || error.message);
-        showAlert("Failed to decline registration. Please try again.", false);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    async function confirmSuspend() {
-      showSpinner();
-      try {
-        const businessRef = ref(db, `${currentBusinessType}s/${currentBusinessId}`);
-        const snapshot = await get(businessRef);
-        if (!snapshot.exists()) {
-          showAlert("Business not found.", false);
-          closeModal('suspend');
-          hideSpinner();
-          return;
-        }
-        const data = snapshot.val();
-        const suspensionReason = document.getElementById("suspension-reason")?.value.trim() || "";
-        await update(businessRef, {
-          status: "suspended",
-          suspensionReason: suspensionReason || "No reason provided",
-          suspendedAt: Date.now()
-        });
-        showAlert(`Suspended ${data.name || 'business'}!`, true);
-        console.log(`Suspended business ${currentBusinessId} (${currentBusinessType})`);
-        closeModal('suspend');
-      } catch (error) {
-        console.error("Suspension failed:", error.code || error.message);
-        showAlert("Failed to suspend business. Please try again.", false);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    async function activateBusiness(businessId, businessType) {
-      showSpinner();
-      try {
-        const businessRef = ref(db, `${businessType}s/${businessId}`);
-        const snapshot = await get(businessRef);
-        if (!snapshot.exists()) {
-          showAlert("Business not found.", false);
-          hideSpinner();
-          return;
-        }
-        const data = snapshot.val();
-        await update(businessRef, {
-          status: "active",
-          suspensionReason: null,
-          suspendedAt: null
-        });
-        showAlert(`Activated ${data.name || 'business'}!`, true);
-        console.log(`Activated business ${businessId} (${businessType})`);
-      } catch (error) {
-        console.error("Activation failed:", error.code || error.message);
-        showAlert("Failed to activate business. Please try again.", false);
-      } finally {
-        hideSpinner();
-      }
-    }
-
-    async function checkAuthState() {
-      showSpinner();
-      try {
-        await setPersistence(auth, browserLocalPersistence);
-        console.log("Persistence set to browserLocalPersistence");
-        onAuthStateChanged(auth, async (user) => {
-          if (user) {
-            console.log("Authenticated user detected:", user.uid);
-            loadPendingRegistrations();
-            loadRegisteredBusinesses();
-            loadInventory();
-            loadOrders();
-          } else {
-            console.log("No authenticated user, redirecting to signup.html");
-            showAlert("Please sign in to access the dashboard.", true);
-            document.body.classList.add("fade-out");
-            setTimeout(() => {
-              window.location.href = "signup.html";
-            }, 1500);
-          }
-          hideSpinner();
-        }, (error) => {
-          console.error("Auth state error:", error);
-          showAlert("Failed to check authentication state.", false);
-          hideSpinner();
-        });
-      } catch (error) {
-        console.error("Auth state check failed:", error.code || error.message);
-        showAlert("Failed to check authentication state. Please try again.", false);
-        hideSpinner();
-      }
-    }
-
-    function switchTab(tab) {
-      const tabs = document.querySelectorAll(".sidebar-tab");
-      const sections = document.querySelectorAll(".registrations-table, .businesses-table, .statistics, .inventory-table, .orders-table");
-      if (tabs.length && sections.length) {
-        tabs.forEach(t => t.classList.remove("active"));
-        sections.forEach(c => c.classList.remove("active"));
-        const tabBtn = document.querySelector(`.sidebar-tab[onclick="switchTab('${tab}')"]`);
-        const section = document.getElementById(`${tab}-table`);
-        if (tabBtn && section) {
-          tabBtn.classList.add("active");
-          section.classList.add("active");
-          currentTab = tab;
-          showAlert(`Switched to ${tab} view`, true);
-          console.log(`Switched to ${tab} view`);
+        const usersRef = ref(db, 'users');
+        const snapshot = await get(usersRef);
+        if (snapshot.exists()) {
+          allUsers = Object.entries(snapshot.val()).map(([uid, user]) => ({ uid, ...user }));
+          const usersList = document.getElementById('users-list');
+          usersList.innerHTML = allUsers.map(renderUser).join('');
         } else {
-          console.error(`Tab or section not found for ${tab}`);
+          document.getElementById('users-list').innerHTML = '<p>No users found.</p>';
         }
+      } catch (error) {
+        console.error('Error loading users:', error);
+        showAlert('Failed to load users.', true);
+      }
+    }
+
+    window.logout = async () => {
+      try {
+        await signOut(auth);
+        window.location.href = 'login.html'; // Redirect to login
+      } catch (error) {
+        console.error('Error signing out:', error);
+        showAlert('Failed to sign out.', true);
+      }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        loadUsers();
       } else {
-        console.error("Tabs or sections not found");
+        window.location.href = 'login.html';
       }
-    }
-
-    function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      const themeIcon = document.getElementById('theme-icon');
-      if (themeIcon) {
-        themeIcon.innerHTML = newTheme === 'light'
-          ? `<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>`
-          : `<path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>`;
-      }
-      if (auth?.currentUser) {
-        set(ref(db, `users/${auth.currentUser.uid}/theme`), newTheme).catch(error => {
-          console.error("Failed to save theme:", error);
-        });
-      }
-    }
-
-    function handleSignOut() {
-      if (auth) {
-        signOut(auth).then(() => {
-          console.log("User signed out at", new Date().toLocaleString());
-          document.body.classList.add("fade-out");
-          setTimeout(() => {
-            window.location.href = "signup.html";
-          }, 1500);
-        }).catch((error) => {
-          console.error("Sign out failed:", error.code || error.message);
-          showAlert("Failed to sign out. Please try again.", false);
-        });
-      } else {
-        console.error("Auth not initialized");
-        showAlert("Authentication not initialized.", false);
-      }
-    }
-
-    // Expose functions to global scope
-    window.approveRegistration = approveRegistration;
-    window.openDeclineModal = openDeclineModal;
-    window.confirmDecline = confirmDecline;
-    window.openSuspendModal = openSuspendModal;
-    window.confirmSuspend = confirmSuspend;
-    window.activateBusiness = activateBusiness;
-    window.closeModal = closeModal;
-    window.switchTab = switchTab;
-    window.toggleTheme = toggleTheme;
-    window.handleSignOut = handleSignOut;
-    window.openEditItemModal = openEditItemModal;
-    window.confirmEditItem = confirmEditItem;
-    window.deleteItem = deleteItem;
-    window.updateOrderStatus = updateOrderStatus;
-    window.deleteOrder = deleteOrder;
-
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log("DOMContentLoaded event fired at", new Date().toLocaleString());
-      
-      // Initialize DOM elements
-      const customAlert = document.getElementById("custom-alert");
-      const registrationsTable = document.getElementById("registrations-table");
-      const businessesTable = document.getElementById("businesses-table");
-      const statistics = document.getElementById("statistics");
-      const inventoryTable = document.getElementById("inventory-table");
-      const ordersTable = document.getElementById("orders-table");
-      const declineModal = document.getElementById("decline-modal");
-      const suspendModal = document.getElementById("suspend-modal");
-      const editItemModal = document.getElementById("edit-item-modal");
-
-      if (!(customAlert && registrationsTable && businessesTable && statistics && inventoryTable && ordersTable && declineModal && suspendModal && editItemModal)) {
-        console.error("One or more critical DOM elements not found");
-        return;
-      }
-
-      const savedTheme = localStorage.getItem("theme") || "light";
-      document.documentElement.setAttribute("data-theme", savedTheme);
-      const themeIcon = document.getElementById('theme-icon');
-      if (themeIcon) {
-        themeIcon.innerHTML = savedTheme === 'light'
-          ? `<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>`
-          : `<path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>`;
-        console.log("Initial theme set to:", savedTheme);
-      }
-
-      const addItemForm = document.getElementById("add-item-form");
-      if (addItemForm) {
-        addItemForm.addEventListener('submit', addItem);
-      }
-
-      initializeFirebase();
     });
   </script>
 </body>
