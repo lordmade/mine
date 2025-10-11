@@ -154,6 +154,12 @@
     .toggle-btn:hover {
       transform: scale(1.05);
     }
+    .toggle-btn:disabled {
+      background: var(--border);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+      transform: none;
+    }
     .spinner {
       display: flex;
       justify-content: center;
@@ -278,14 +284,14 @@
       });
     }
 
-    async function toggleVerified(uid, currentVerified) {
+    async function verifyUser(uid) {
       try {
-        await update(ref(db, `users/${uid}`), { verified: !currentVerified });
-        showAlert(`User ${!currentVerified ? 'verified' : 'unverified'} successfully!`);
+        await update(ref(db, `users/${uid}`), { verified: true });
+        showAlert('User verified successfully!');
         loadUsers(); // Reload to update UI
       } catch (error) {
         console.error('Error updating verification:', error);
-        showAlert('Failed to update verification.', true);
+        showAlert('Failed to verify user.', true);
       }
     }
 
@@ -298,7 +304,19 @@
       const nameHtml = user.displayName || 'Unknown User';
       const verifiedHtml = user.verified ? verifiedIcon : '';
 
-      const toggleBtnText = user.verified ? 'Unverify' : 'Verify';
+      let actionHtml = '';
+      if (user.verified) {
+        actionHtml = `<div class="verified-status"><span class="verified-badge">Verified</span></div>`;
+      } else {
+        actionHtml = `
+          <div class="verified-status">
+            <span class="verified-badge">Unverified</span>
+          </div>
+          <button class="toggle-btn" onclick="verifyUser('${user.uid}')">
+            Verify
+          </button>
+        `;
+      }
 
       return `
         <div class="user-item" data-uid="${user.uid}">
@@ -307,12 +325,7 @@
             <div class="user-name">${nameHtml} ${verifiedHtml}</div>
             <div class="user-email">${user.email || 'No email'}</div>
           </div>
-          <div class="verified-status">
-            <span class="verified-badge">${user.verified ? 'Verified' : 'Unverified'}</span>
-          </div>
-          <button class="toggle-btn" onclick="toggleVerified('${user.uid}', ${user.verified})">
-            ${toggleBtnText}
-          </button>
+          ${actionHtml}
         </div>
       `;
     }
