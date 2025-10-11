@@ -2,13 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Verification Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-touch-fullscreen" content="yes">
+  <title>Grok's BanterBox - Verification Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #ffffff;
@@ -18,9 +22,13 @@
       --border: #e2e8f0;
       --accent: #00ff88;
       --accent-secondary: #ff00ff;
+      --grok-blue: #1d9bf0;
       --gradient: linear-gradient(135deg, #00ff88 0%, #00b7ff 50%, #ff00ff 100%);
+      --grok-gradient: linear-gradient(135deg, var(--grok-blue) 0%, #00ff88 50%, #ff00ff 100%);
+      --radial-gradient: radial-gradient(circle at 20% 20%, #00ff88 0%, transparent 50%), radial-gradient(circle at 80% 80%, #ff00ff 0%, transparent 50%);
       --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.1);
       --shadow-md: 0 20px 40px rgba(0, 0, 0, 0.1);
+      --neumorphic: 12px 12px 24px rgba(0,0,0,0.1), -12px -12px 24px rgba(255,255,255,0.7);
       --glass: rgba(255, 255, 255, 0.2);
     }
     body.dark {
@@ -29,59 +37,110 @@
       --text-primary: #ffffff;
       --text-secondary: #a0a0a0;
       --border: rgba(255, 255, 255, 0.1);
+      --accent: #00ff88;
+      --accent-secondary: #ff00ff;
+      --gradient: linear-gradient(135deg, #00ff88 0%, #00b7ff 50%, #ff00ff 100%);
+      --grok-gradient: linear-gradient(135deg, var(--grok-blue) 0%, #00ff88 50%, #ff00ff 100%);
       --glass: rgba(255, 255, 255, 0.05);
+      --neumorphic: 12px 12px 24px rgba(0,0,0,0.4), -12px -12px 24px rgba(255,255,255,0.02);
     }
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       background: var(--bg);
       color: var(--text-primary);
       margin: 0;
       padding: 0;
+      overflow-x: hidden;
       line-height: 1.6;
     }
     .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(30px);
-      padding: 16px;
+      z-index: 100;
+      padding: 12px 16px;
       border-bottom: 1px solid var(--border);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      height: 60px;
       box-shadow: var(--shadow-sm);
     }
-    body.dark .header {
-      background: rgba(15, 15, 35, 0.95);
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
-    .header h1 {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 700;
-    }
-    .logout-btn {
-      background: #ff0080;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 20px;
+    .logo {
+      font-weight: 800;
+      font-size: 20px;
+      background: var(--grok-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
       cursor: pointer;
-      font-weight: 600;
-      transition: background 0.3s;
+      transition: transform 0.3s ease;
     }
-    .logout-btn:hover {
-      background: #cc0066;
+    .logo:hover {
+      transform: scale(1.05) rotate(5deg);
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-actions button {
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 50%;
+      padding: 8px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      min-width: 40px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+    .header-actions button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--grok-gradient);
+      transition: left 0.3s ease;
+      z-index: -1;
+    }
+    .header-actions button:hover::before {
+      left: 0;
+    }
+    .header-actions button:hover {
+      border-color: transparent;
+      color: #000;
+      transform: scale(1.1) rotate(360deg);
+      box-shadow: 0 0 20px rgba(29, 155, 240, 0.5);
     }
     .main-content {
-      padding: 24px;
-      max-width: 1200px;
-      margin: 0 auto;
+      padding: 76px 16px 0;
+      min-height: calc(100vh - 76px);
     }
     .section-title {
-      font-size: 20px;
       font-weight: 700;
       margin-bottom: 16px;
       color: var(--text-primary);
+      font-size: 18px;
+      letter-spacing: 0.5px;
     }
-    .users-list {
+    .user-list {
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -90,158 +149,190 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      padding: 16px;
+      padding: 12px;
       background: var(--glass);
+      backdrop-filter: blur(25px);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 25px;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
       transition: all 0.3s ease;
-      backdrop-filter: blur(15px);
+      position: relative;
+      cursor: pointer;
     }
     .user-item:hover {
-      border-color: var(--accent);
-      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      border-color: var(--grok-blue);
     }
     .user-avatar {
-      width: 50px;
-      height: 50px;
+      width: 55px;
+      height: 55px;
       border-radius: 50%;
-      background: var(--gradient);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #000;
-      font-weight: bold;
+      object-fit: cover;
       flex-shrink: 0;
+      position: relative;
+      box-shadow: var(--shadow-sm);
     }
     .user-info {
       flex: 1;
       min-width: 0;
+      overflow: hidden;
     }
     .user-name {
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 16px;
       margin-bottom: 4px;
       color: var(--text-primary);
+      letter-spacing: 0.3px;
     }
     .user-email {
       color: var(--text-secondary);
       font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    .verified-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      background: var(--glass);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      font-size: 14px;
-    }
-    .verified-badge {
-      color: var(--accent);
-      font-weight: bold;
-    }
-    .toggle-btn {
-      background: var(--gradient);
+    .verify-toggle {
+      background: var(--grok-gradient);
       color: #000;
       border: none;
       padding: 8px 16px;
       border-radius: 20px;
-      cursor: pointer;
       font-weight: 600;
-      transition: all 0.3s;
-      min-width: 100px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(29, 155, 240, 0.3);
     }
-    .toggle-btn:hover:not(:disabled) {
+    .verify-toggle:hover {
       transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(29, 155, 240, 0.4);
     }
-    .toggle-btn:disabled {
-      background: var(--border);
-      color: var(--text-secondary);
-      cursor: not-allowed;
-      transform: none;
+    .verify-toggle.verified {
+      background: #00ff88;
+    }
+    .verified-icon {
+      width: 16px;
+      height: 16px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .spinner-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      backdrop-filter: blur(5px);
+    }
+    .spinner-overlay.active {
+      display: flex;
     }
     .spinner {
       display: flex;
-      justify-content: center;
-      padding: 40px;
+      gap: 10px;
     }
     .dot {
-      width: 12px;
-      height: 12px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
-      background: var(--accent);
-      margin: 0 4px;
+      background: var(--grok-blue);
       animation: spin 1.2s ease-in-out infinite;
     }
     .dot:nth-child(2) { animation-delay: 0.2s; }
     .dot:nth-child(3) { animation-delay: 0.4s; }
     @keyframes spin {
-      0%, 100% { transform: scale(0.8); opacity: 0.5; }
-      50% { transform: scale(1.2); opacity: 1; }
+      0%, 100% { transform: scale(0.8) rotate(0deg); opacity: 0.5; }
+      50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
     }
     .alert {
       position: fixed;
-      top: 20px;
-      right: 20px;
-      background: var(--gradient);
+      top: 76px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--grok-gradient);
       color: #000;
-      padding: 12px 20px;
-      border-radius: 20px;
-      box-shadow: var(--shadow-md);
-      z-index: 1000;
-      font-weight: 600;
-      display: none;
-    }
-    .alert.show {
-      display: block;
-      animation: slideIn 0.3s ease;
-    }
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    .search-container {
-      margin-bottom: 24px;
-      display: flex;
-      justify-content: center;
-    }
-    .search-input {
-      width: 100%;
-      max-width: 400px;
-      padding: 12px 16px;
-      border: 1px solid var(--border);
+      padding: 14px 24px;
       border-radius: 25px;
-      background: var(--glass);
-      color: var(--text-primary);
-      font-size: 16px;
+      display: none;
+      z-index: 1000;
+      box-shadow: var(--shadow-md), 0 0 30px rgba(29, 155, 240, 0.4);
+      font-weight: 600;
     }
-    .search-input::placeholder {
-      color: var(--text-secondary);
+    .alert.active {
+      display: block;
+      animation: slideDown 0.4s ease;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateX(-50%) translateY(-30px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    @media (min-width: 768px) {
+      .main-content {
+        padding: 76px 50px 0;
+      }
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f23;
+        --card-bg: rgba(255, 255, 255, 0.05);
+        --text-primary: #ffffff;
+        --text-secondary: #a0a0a0;
+        --border: rgba(255, 255, 255, 0.1);
+        --glass: rgba(255, 255, 255, 0.05);
+        --neumorphic: 12px 12px 24px rgba(0,0,0,0.4), -12px -12px 24px rgba(255,255,255,0.02);
+      }
+      body {
+        background: var(--bg);
+      }
+      .header {
+        background: rgba(15, 15, 35, 0.95);
+      }
     }
   </style>
 </head>
 <body>
   <header class="header">
-    <h1>User Verification Dashboard</h1>
-    <button class="logout-btn" onclick="logout()">Logout</button>
+    <div class="header-left">
+      <div class="logo" onclick="window.location.href='index.html'">BanterBox Verify</div>
+    </div>
+    <div class="header-right">
+      <div class="header-actions">
+        <button id="dark-mode-btn" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
+          <span class="material-icons">bedtime</span>
+        </button>
+        <button onclick="logout()" title="Logout" aria-label="Logout">
+          <span class="material-icons">logout</span>
+        </button>
+      </div>
+    </div>
   </header>
 
-  <div class="alert" id="alert"></div>
-
-  <div class="main-content">
-    <div class="search-container">
-      <input type="text" id="search-input" class="search-input" placeholder="Search users..." oninput="filterUsers()">
+  <main class="main-content">
+    <div class="section-title">User Verification Dashboard</div>
+    <div class="user-list" id="user-list">
+      <!-- Users loaded here -->
     </div>
-    <h2 class="section-title">Users</h2>
-    <div id="users-list" class="users-list">
-      <!-- Users will be loaded here -->
+  </main>
+
+  <div id="spinner-overlay" class="spinner-overlay" aria-label="Loading spinner">
+    <div class="spinner">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
     </div>
   </div>
+  <div id="alert-message" class="alert" role="alert" aria-live="polite"></div>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-    import { getDatabase, ref, get, update, onValue } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+    import { getDatabase, ref, onValue, get, set, update } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -250,123 +341,153 @@
       projectId: "fire-b-a8878",
       storageBucket: "fire-b-a8878.firebasestorage.app",
       messagingSenderId: "658673187627",
-      appId: "1:658673187627:web:6e4c29af661785f0afa36e"
+      appId: "1:658673187627:web:6e4c29af661785f0afa36e",
+      measurementId: "G-V4W97VMSKL"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+    let app, auth, db, currentUser;
 
-    let currentUser = null;
-    let allUsers = [];
+    const verifiedIcon = `<svg class="verified-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#1DA1F2"/></svg>`;
 
-    const verifiedIcon = `<span class="material-icons" style="color: #1DA1F2; font-size: 16px;">verified</span>`;
+    const showSpinner = () => {
+      document.getElementById('spinner-overlay').classList.add('active');
+    };
 
-    function showAlert(message, isError = false) {
-      const alert = document.getElementById('alert');
+    const hideSpinner = () => {
+      document.getElementById('spinner-overlay').classList.remove('active');
+    };
+
+    const showAlert = (message) => {
+      const alert = document.getElementById('alert-message');
       alert.textContent = message;
-      alert.style.background = isError ? '#ff4444' : 'var(--gradient)';
-      alert.classList.add('show');
-      setTimeout(() => alert.classList.remove('show'), 3000);
+      alert.classList.add('active');
+      setTimeout(() => alert.classList.remove('active'), 3500);
+    };
+
+    async function toggleDarkMode() {
+      if (!currentUser) return;
+      const isDark = !document.body.classList.contains('dark');
+      document.body.classList.toggle('dark', isDark);
+      const root = document.documentElement;
+      if (isDark) {
+        root.style.setProperty('--bg', '#0f0f23');
+        root.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.05)');
+        root.style.setProperty('--text-primary', '#ffffff');
+        root.style.setProperty('--text-secondary', '#a0a0a0');
+        root.style.setProperty('--border', 'rgba(255, 255, 255, 0.1)');
+        root.style.setProperty('--glass', 'rgba(255, 255, 255, 0.05)');
+      } else {
+        root.style.setProperty('--bg', '#ffffff');
+        root.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.8)');
+        root.style.setProperty('--text-primary', '#1e293b');
+        root.style.setProperty('--text-secondary', '#64748b');
+        root.style.setProperty('--border', '#e2e8f0');
+        root.style.setProperty('--glass', 'rgba(255, 255, 255, 0.2)');
+      }
+      try {
+        await update(ref(db, `users/${currentUser.uid}`), { darkMode: isDark });
+        localStorage.setItem('darkMode', isDark);
+      } catch (error) {
+        console.error('Failed to save dark mode:', error);
+      }
+      showAlert(isDark ? 'Dark mode enabled' : 'Light mode enabled');
     }
 
-    function filterUsers() {
-      const searchTerm = document.getElementById('search-input').value.toLowerCase();
-      const userItems = document.querySelectorAll('.user-item');
-      userItems.forEach(item => {
-        const name = item.querySelector('.user-name').textContent.toLowerCase();
-        const email = item.querySelector('.user-email').textContent.toLowerCase();
-        if (name.includes(searchTerm) || email.includes(searchTerm)) {
-          item.style.display = 'flex';
+    window.logout = async () => {
+      await signOut(auth);
+      window.location.href = 'login.html';
+    };
+
+    async function loadUsers() {
+      showSpinner();
+      const userList = document.getElementById('user-list');
+      userList.innerHTML = '';
+      const usersRef = ref(db, 'users');
+      const snapshot = await get(usersRef);
+      if (snapshot.exists()) {
+        const users = Object.entries(snapshot.val())
+          .map(([uid, user]) => ({ uid, ...user }))
+          .filter(user => user.uid !== currentUser.uid) // Exclude self
+          .sort((a, b) => (b.verified ? 1 : 0) - (a.verified ? 1 : 0)); // Verified last
+        if (users.length === 0) {
+          userList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 50px; font-size: 16px;">No users to verify.</p>';
         } else {
-          item.style.display = 'none';
+          for (let i = 0; i < users.length; i++) {
+            const user = users[i];
+            const initial = user.displayName ? user.displayName[0].toUpperCase() : 'U';
+            let avatarHtml;
+            if (user.photoURL) {
+              avatarHtml = `<img src="${user.photoURL}" alt="${user.displayName} avatar" class="user-avatar" loading="lazy">`;
+            } else {
+              avatarHtml = `<div class="user-avatar" style="background: var(--grok-gradient); color: #000; font-size: 22px; display: flex; align-items: center; justify-content: center; font-weight: bold;">${initial}</div>`;
+            }
+            let nameHtml = user.displayName || 'User';
+            if (user.verified) {
+              nameHtml += verifiedIcon;
+            }
+            const isVerified = user.verified || false;
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
+            userItem.style.animationDelay = `${i * 0.05}s`;
+            userItem.innerHTML = `
+              ${avatarHtml}
+              <div class="user-info">
+                <div class="user-name">${nameHtml}</div>
+                <div class="user-email">${user.email || 'No email'}</div>
+              </div>
+              <button class="verify-toggle ${isVerified ? 'verified' : ''}" onclick="toggleVerify('${user.uid}', ${isVerified})">
+                ${isVerified ? 'Revoke' : 'Verify'}
+              </button>
+            `;
+            userList.appendChild(userItem);
+          }
+        }
+      } else {
+        userList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 50px; font-size: 16px;">No users found.</p>';
+      }
+      hideSpinner();
+    }
+
+    window.toggleVerify = async (uid, isVerified) => {
+      if (!currentUser) return;
+      try {
+        showSpinner();
+        const newVerified = !isVerified;
+        await update(ref(db, `users/${uid}`), { verified: newVerified });
+        showAlert(`${newVerified ? 'Verified' : 'Revoked'} user successfully!`);
+        loadUsers(); // Reload list
+      } catch (error) {
+        console.error('Failed to update verification:', error);
+        showAlert('Failed to update verification.');
+      } finally {
+        hideSpinner();
+      }
+    };
+
+    function initializeFirebase() {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getDatabase(app);
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (user) {
+          // Check if authorized (for now, assume all logged-in users are authorized)
+          // Optionally: get user data and check for 'canVerify' field
+          loadUsers();
+          // Setup dark mode from localStorage or user pref
+          const isDark = localStorage.getItem('darkMode') === 'true';
+          if (isDark) {
+            document.body.classList.add('dark');
+          }
+        } else {
+          window.location.href = 'login.html';
         }
       });
     }
 
-    async function toggleVerified(uid, currentVerified, buttonEl) {
-      // Disable button during operation
-      const originalText = buttonEl.textContent;
-      buttonEl.disabled = true;
-      buttonEl.textContent = 'Updating...';
-
-      try {
-        await update(ref(db, `users/${uid}`), { verified: !currentVerified });
-        const newStatus = !currentVerified ? 'verified' : 'unverified';
-        showAlert(`User ${newStatus} successfully!`);
-        loadUsers(); // Reload to update UI
-      } catch (error) {
-        console.error('Error updating verification:', error);
-        showAlert('Failed to update verification. Check Firebase rules.', true);
-        // Re-enable button on error
-        buttonEl.disabled = false;
-        buttonEl.textContent = originalText;
-      }
-    }
-
-    function renderUser(user) {
-      const initial = user.displayName ? user.displayName[0].toUpperCase() : 'U';
-      const avatarHtml = user.photoURL 
-        ? `<img src="${user.photoURL}" alt="${user.displayName}" class="user-avatar" style="object-fit: cover;">`
-        : `<div class="user-avatar">${initial}</div>`;
-
-      const nameHtml = user.displayName || 'Unknown User';
-      const verifiedHtml = user.verified ? verifiedIcon : '';
-
-      const buttonText = user.verified ? 'Unverify' : 'Verify';
-      const statusText = user.verified ? 'Verified' : 'Unverified';
-
-      return `
-        <div class="user-item" data-uid="${user.uid}">
-          ${avatarHtml}
-          <div class="user-info">
-            <div class="user-name">${nameHtml} ${verifiedHtml}</div>
-            <div class="user-email">${user.email || 'No email'}</div>
-          </div>
-          <div class="verified-status">
-            <span class="verified-badge">${statusText}</span>
-          </div>
-          <button class="toggle-btn" onclick="toggleVerified('${user.uid}', ${user.verified}, this)">
-            ${buttonText}
-          </button>
-        </div>
-      `;
-    }
-
-    async function loadUsers() {
-      try {
-        const usersRef = ref(db, 'users');
-        const snapshot = await get(usersRef);
-        if (snapshot.exists()) {
-          allUsers = Object.entries(snapshot.val()).map(([uid, user]) => ({ uid, ...user }));
-          const usersList = document.getElementById('users-list');
-          usersList.innerHTML = allUsers.map(renderUser).join('');
-        } else {
-          document.getElementById('users-list').innerHTML = '<p>No users found.</p>';
-        }
-      } catch (error) {
-        console.error('Error loading users:', error);
-        showAlert('Failed to load users.', true);
-      }
-    }
-
-    window.logout = async () => {
-      try {
-        await signOut(auth);
-        window.location.href = 'login.html'; // Redirect to login
-      } catch (error) {
-        console.error('Error signing out:', error);
-        showAlert('Failed to sign out.', true);
-      }
-    };
-
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
-      if (user) {
-        loadUsers();
-      } else {
-        window.location.href = 'login.html';
-      }
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeFirebase();
+      document.getElementById('dark-mode-btn').addEventListener('click', toggleDarkMode);
     });
   </script>
 </body>
