@@ -1,493 +1,219 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-touch-fullscreen" content="yes">
-  <title>Grok's BanterBox - Verification Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexlify • Modern SaaS Platform for Teams</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
   <style>
     :root {
       --bg: #ffffff;
-      --card-bg: rgba(255, 255, 255, 0.8);
-      --text-primary: #1e293b;
+      --card-bg: rgba(255, 255, 255, 0.75);
+      --text-primary: #0f172a;
       --text-secondary: #64748b;
       --border: #e2e8f0;
-      --accent: #00ff88;
-      --accent-secondary: #ff00ff;
-      --grok-blue: #1d9bf0;
-      --gradient: linear-gradient(135deg, #00ff88 0%, #00b7ff 50%, #ff00ff 100%);
-      --grok-gradient: linear-gradient(135deg, var(--grok-blue) 0%, #00ff88 50%, #ff00ff 100%);
-      --radial-gradient: radial-gradient(circle at 20% 20%, #00ff88 0%, transparent 50%), radial-gradient(circle at 80% 80%, #ff00ff 0%, transparent 50%);
-      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.1);
-      --shadow-md: 0 20px 40px rgba(0, 0, 0, 0.1);
-      --neumorphic: 12px 12px 24px rgba(0,0,0,0.1), -12px -12px 24px rgba(255,255,255,0.7);
-      --glass: rgba(255, 255, 255, 0.2);
+      --accent: #10b981;
+      --accent-secondary: #8b5cf6;
+      --gradient: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%);
     }
+
     body.dark {
-      --bg: #0f0f23;
-      --card-bg: rgba(255, 255, 255, 0.05);
-      --text-primary: #ffffff;
-      --text-secondary: #a0a0a0;
-      --border: rgba(255, 255, 255, 0.1);
-      --accent: #00ff88;
-      --accent-secondary: #ff00ff;
-      --gradient: linear-gradient(135deg, #00ff88 0%, #00b7ff 50%, #ff00ff 100%);
-      --grok-gradient: linear-gradient(135deg, var(--grok-blue) 0%, #00ff88 50%, #ff00ff 100%);
-      --glass: rgba(255, 255, 255, 0.05);
-      --neumorphic: 12px 12px 24px rgba(0,0,0,0.4), -12px -12px 24px rgba(255,255,255,0.02);
+      --bg: #0f172a;
+      --card-bg: rgba(15, 23, 42, 0.6);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border: rgba(148, 163, 184, 0.2);
+      --card-bg: rgba(30, 41, 59, 0.5);
     }
+
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text-primary);
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-      line-height: 1.6;
+      transition: background-color 0.4s, color 0.4s;
     }
-    .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(30px);
-      z-index: 100;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 60px;
-      box-shadow: var(--shadow-sm);
+
+    .glass {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
     }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .logo {
-      font-weight: 800;
-      font-size: 20px;
-      background: var(--grok-gradient);
+
+    .gradient-text {
+      background: var(--gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      letter-spacing: -0.5px;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    .logo:hover {
-      transform: scale(1.05) rotate(5deg);
-    }
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .header-actions button {
-      background: rgba(255, 255, 255, 0.5);
-      border: 1px solid var(--border);
-      color: var(--text-primary);
-      border-radius: 50%;
-      padding: 8px;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 40px;
-      min-width: 40px;
-      box-shadow: var(--shadow-sm);
-      position: relative;
-      overflow: hidden;
-    }
-    .header-actions button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: var(--grok-gradient);
-      transition: left 0.3s ease;
-      z-index: -1;
-    }
-    .header-actions button:hover::before {
-      left: 0;
-    }
-    .header-actions button:hover {
-      border-color: transparent;
-      color: #000;
-      transform: scale(1.1) rotate(360deg);
-      box-shadow: 0 0 20px rgba(29, 155, 240, 0.5);
-    }
-    .main-content {
-      padding: 76px 16px 0;
-      min-height: calc(100vh - 76px);
-    }
-    .section-title {
-      font-weight: 700;
-      margin-bottom: 16px;
-      color: var(--text-primary);
-      font-size: 18px;
-      letter-spacing: 0.5px;
-    }
-    .user-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .user-item {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 12px;
-      background: var(--glass);
-      backdrop-filter: blur(25px);
-      border: 1px solid var(--border);
-      border-radius: 25px;
-      overflow: hidden;
-      box-shadow: var(--shadow-md);
-      transition: all 0.3s ease;
-      position: relative;
-      cursor: pointer;
-    }
-    .user-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-      border-color: var(--grok-blue);
-    }
-    .user-avatar {
-      width: 55px;
-      height: 55px;
-      border-radius: 50%;
-      object-fit: cover;
-      flex-shrink: 0;
-      position: relative;
-      box-shadow: var(--shadow-sm);
-    }
-    .user-info {
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-    }
-    .user-name {
-      font-weight: 700;
-      font-size: 16px;
-      margin-bottom: 4px;
-      color: var(--text-primary);
-      letter-spacing: 0.3px;
-    }
-    .user-email {
-      color: var(--text-secondary);
-      font-size: 14px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .verify-toggle {
-      background: var(--grok-gradient);
-      color: #000;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(29, 155, 240, 0.3);
-    }
-    .verify-toggle:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(29, 155, 240, 0.4);
-    }
-    .verify-toggle.verified {
-      background: #00ff88;
-    }
-    .verified-icon {
-      width: 16px;
-      height: 16px;
-      margin-left: 4px;
-      vertical-align: middle;
-    }
-    .spinner-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      backdrop-filter: blur(5px);
-    }
-    .spinner-overlay.active {
-      display: flex;
-    }
-    .spinner {
-      display: flex;
-      gap: 10px;
-    }
-    .dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--grok-blue);
-      animation: spin 1.2s ease-in-out infinite;
-    }
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes spin {
-      0%, 100% { transform: scale(0.8) rotate(0deg); opacity: 0.5; }
-      50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
-    }
-    .alert {
-      position: fixed;
-      top: 76px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--grok-gradient);
-      color: #000;
-      padding: 14px 24px;
-      border-radius: 25px;
-      display: none;
-      z-index: 1000;
-      box-shadow: var(--shadow-md), 0 0 30px rgba(29, 155, 240, 0.4);
-      font-weight: 600;
-    }
-    .alert.active {
-      display: block;
-      animation: slideDown 0.4s ease;
-    }
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateX(-50%) translateY(-30px); }
-      to { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-    @media (min-width: 768px) {
-      .main-content {
-        padding: 76px 50px 0;
-      }
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0f0f23;
-        --card-bg: rgba(255, 255, 255, 0.05);
-        --text-primary: #ffffff;
-        --text-secondary: #a0a0a0;
-        --border: rgba(255, 255, 255, 0.1);
-        --glass: rgba(255, 255, 255, 0.05);
-        --neumorphic: 12px 12px 24px rgba(0,0,0,0.4), -12px -12px 24px rgba(255,255,255,0.02);
-      }
-      body {
-        background: var(--bg);
-      }
-      .header {
-        background: rgba(15, 15, 35, 0.95);
-      }
     }
   </style>
 </head>
-<body>
-  <header class="header">
-    <div class="header-left">
-      <div class="logo" onclick="window.location.href='index.html'">BanterBox Verify</div>
-    </div>
-    <div class="header-right">
-      <div class="header-actions">
-        <button id="dark-mode-btn" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
-          <span class="material-icons">bedtime</span>
-        </button>
-        <button onclick="logout()" title="Logout" aria-label="Logout">
-          <span class="material-icons">logout</span>
-        </button>
+<body class="antialiased">
+
+  <!-- Header / Navbar -->
+  <header class="fixed top-0 left-0 right-0 z-50 glass transition-all duration-300">
+    <nav class="max-w-7xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between">
+      <div class="text-2xl font-extrabold gradient-text tracking-tight">
+        Nexlify
       </div>
-    </div>
+
+      <div class="hidden md:flex items-center space-x-10 text-sm font-medium">
+        <a href="#features" class="hover:text-[var(--accent)] transition-colors">Features</a>
+        <a href="#how" class="hover:text-[var(--accent)] transition-colors">How it Works</a>
+        <a href="#testimonials" class="hover:text-[var(--accent)] transition-colors">Testimonials</a>
+        <a href="#pricing" class="hover:text-[var(--accent)] transition-colors">Pricing</a>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <button id="dark-toggle" title="Toggle dark mode" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+          <span class="material-icons">dark_mode</span>
+        </button>
+        <a href="#" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-emerald-500 to-blue-600 text-white font-semibold hover:shadow-lg hover:shadow-emerald-500/30 transition-all transform hover:scale-105">
+          Get Started
+        </a>
+      </div>
+    </nav>
   </header>
 
-  <main class="main-content">
-    <div class="section-title">User Verification Dashboard</div>
-    <div class="user-list" id="user-list">
-      <!-- Users loaded here -->
+  <!-- Hero -->
+  <section class="pt-32 pb-20 md:pt-40 md:pb-32 px-6 lg:px-8 text-center">
+    <div class="max-w-5xl mx-auto">
+      <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-tight mb-6">
+        Build <span class="gradient-text">better</span>.<br/>
+        Faster. Together.
+      </h1>
+      
+      <p class="text-xl md:text-2xl text-[var(--text-secondary)] max-w-3xl mx-auto mb-10">
+        The all-in-one collaboration & productivity platform trusted by fast-growing teams.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-5 justify-center">
+        <a href="#" class="px-8 py-4 rounded-full bg-gradient-to-r from-emerald-500 to-blue-600 text-white font-semibold text-lg hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:scale-105">
+          Start Free Trial
+        </a>
+        <a href="#" class="px-8 py-4 rounded-full border-2 border-slate-300 dark:border-slate-600 font-semibold text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          Watch Demo
+        </a>
+      </div>
     </div>
-  </main>
+  </section>
 
-  <div id="spinner-overlay" class="spinner-overlay" aria-label="Loading spinner">
-    <div class="spinner">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
+  <!-- Features -->
+  <section id="features" class="py-20 px-6 lg:px-8 bg-gradient-to-b from-transparent via-slate-50/40 to-transparent dark:via-slate-900/30">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">Everything your team needs</h2>
+        <p class="text-xl text-[var(--text-secondary)] max-w-3xl mx-auto">
+          Powerful features designed for modern teams — from startups to enterprises.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 lg:gap-12">
+        <!-- Feature 1 -->
+        <div class="glass rounded-3xl p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center text-white mb-6">
+            <span class="material-icons text-3xl">speed</span>
+          </div>
+          <h3 class="text-2xl font-bold mb-3">Lightning Fast</h3>
+          <p class="text-[var(--text-secondary)]">Sub-second load times and real-time collaboration. Never wait again.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="glass rounded-3xl p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white mb-6">
+            <span class="material-icons text-3xl">shield</span>
+          </div>
+          <h3 class="text-2xl font-bold mb-3">Enterprise Security</h3>
+          <p class="text-[var(--text-secondary)]">SOC 2, GDPR, end-to-end encryption, and advanced access controls.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="glass rounded-3xl p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white mb-6">
+            <span class="material-icons text-3xl">insights</span>
+          </div>
+          <h3 class="text-2xl font-bold mb-3">Smart Insights</h3>
+          <p class="text-[var(--text-secondary)]">AI-powered analytics and suggestions that help you make better decisions.</p>
+        </div>
+      </div>
     </div>
-  </div>
-  <div id="alert-message" class="alert" role="alert" aria-live="polite"></div>
+  </section>
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-    import { getDatabase, ref, onValue, get, set, update } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+  <!-- CTA Banner -->
+  <section class="py-24 px-6 lg:px-8 text-center">
+    <div class="max-w-4xl mx-auto glass rounded-3xl p-12 md:p-16">
+      <h2 class="text-4xl md:text-5xl font-bold mb-6">Ready to transform<br/>how your team works?</h2>
+      <p class="text-xl text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto">
+        Join thousands of high-performing teams who ship faster with Nexlify.
+      </p>
+      <a href="#" class="inline-block px-10 py-5 rounded-full bg-gradient-to-r from-emerald-500 to-blue-600 text-white font-bold text-xl hover:shadow-2xl hover:shadow-emerald-500/40 transition-all transform hover:scale-105">
+        Start Your Free Trial →
+      </a>
+    </div>
+  </section>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
-      authDomain: "fire-b-a8878.firebaseapp.com",
-      databaseURL: "https://fire-b-a8878.firebaseio.com",
-      projectId: "fire-b-a8878",
-      storageBucket: "fire-b-a8878.firebasestorage.app",
-      messagingSenderId: "658673187627",
-      appId: "1:658673187627:web:6e4c29af661785f0afa36e",
-      measurementId: "G-V4W97VMSKL"
-    };
+  <!-- Footer -->
+  <footer class="border-t border-[var(--border)] py-16 px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-4 gap-12">
+      <div>
+        <div class="text-2xl font-extrabold gradient-text mb-4">Nexlify</div>
+        <p class="text-[var(--text-secondary)]">Modern collaboration platform<br/>for ambitious teams.</p>
+      </div>
 
-    let app, auth, db, currentUser;
+      <div>
+        <h4 class="font-semibold mb-4">Product</h4>
+        <ul class="space-y-3 text-[var(--text-secondary)]">
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Features</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Pricing</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Integrations</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">What's New</a></li>
+        </ul>
+      </div>
 
-    const verifiedIcon = `<svg class="verified-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#1DA1F2"/></svg>`;
+      <div>
+        <h4 class="font-semibold mb-4">Company</h4>
+        <ul class="space-y-3 text-[var(--text-secondary)]">
+          <li><a href="#" class="hover:text-[var(--accent)] transition">About</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Blog</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Careers</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Contact</a></li>
+        </ul>
+      </div>
 
-    const showSpinner = () => {
-      document.getElementById('spinner-overlay').classList.add('active');
-    };
+      <div>
+        <h4 class="font-semibold mb-4">Legal</h4>
+        <ul class="space-y-3 text-[var(--text-secondary)]">
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Privacy Policy</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Terms of Service</a></li>
+          <li><a href="#" class="hover:text-[var(--accent)] transition">Security</a></li>
+        </ul>
+      </div>
+    </div>
 
-    const hideSpinner = () => {
-      document.getElementById('spinner-overlay').classList.remove('active');
-    };
+    <div class="mt-16 pt-8 border-t border-[var(--border)] text-center text-sm text-[var(--text-secondary)]">
+      © 2026 Nexlify. All rights reserved.
+    </div>
+  </footer>
 
-    const showAlert = (message) => {
-      const alert = document.getElementById('alert-message');
-      alert.textContent = message;
-      alert.classList.add('active');
-      setTimeout(() => alert.classList.remove('active'), 3500);
-    };
+  <script>
+    // Simple dark mode toggle
+    const darkToggle = document.getElementById('dark-toggle');
+    const html = document.documentElement;
 
-    async function toggleDarkMode() {
-      if (!currentUser) return;
-      const isDark = !document.body.classList.contains('dark');
-      document.body.classList.toggle('dark', isDark);
-      const root = document.documentElement;
-      if (isDark) {
-        root.style.setProperty('--bg', '#0f0f23');
-        root.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.05)');
-        root.style.setProperty('--text-primary', '#ffffff');
-        root.style.setProperty('--text-secondary', '#a0a0a0');
-        root.style.setProperty('--border', 'rgba(255, 255, 255, 0.1)');
-        root.style.setProperty('--glass', 'rgba(255, 255, 255, 0.05)');
-      } else {
-        root.style.setProperty('--bg', '#ffffff');
-        root.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.8)');
-        root.style.setProperty('--text-primary', '#1e293b');
-        root.style.setProperty('--text-secondary', '#64748b');
-        root.style.setProperty('--border', '#e2e8f0');
-        root.style.setProperty('--glass', 'rgba(255, 255, 255, 0.2)');
-      }
-      try {
-        await update(ref(db, `users/${currentUser.uid}`), { darkMode: isDark });
-        localStorage.setItem('darkMode', isDark);
-      } catch (error) {
-        console.error('Failed to save dark mode:', error);
-      }
-      showAlert(isDark ? 'Dark mode enabled' : 'Light mode enabled');
+    // Check system preference or localStorage
+    if (localStorage.theme === 'dark' || 
+        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      html.classList.add('dark');
+    } else {
+      html.classList.remove('dark');
     }
 
-    window.logout = async () => {
-      await signOut(auth);
-      window.location.href = 'login.html';
-    };
-
-    async function loadUsers() {
-      showSpinner();
-      const userList = document.getElementById('user-list');
-      userList.innerHTML = '';
-      const usersRef = ref(db, 'users');
-      const snapshot = await get(usersRef);
-      if (snapshot.exists()) {
-        const users = Object.entries(snapshot.val())
-          .map(([uid, user]) => ({ uid, ...user }))
-          .filter(user => user.uid !== currentUser.uid) // Exclude self
-          .sort((a, b) => (b.verified ? 1 : 0) - (a.verified ? 1 : 0)); // Verified last
-        if (users.length === 0) {
-          userList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 50px; font-size: 16px;">No users to verify.</p>';
-        } else {
-          for (let i = 0; i < users.length; i++) {
-            const user = users[i];
-            const initial = user.displayName ? user.displayName[0].toUpperCase() : 'U';
-            let avatarHtml;
-            if (user.photoURL) {
-              avatarHtml = `<img src="${user.photoURL}" alt="${user.displayName} avatar" class="user-avatar" loading="lazy">`;
-            } else {
-              avatarHtml = `<div class="user-avatar" style="background: var(--grok-gradient); color: #000; font-size: 22px; display: flex; align-items: center; justify-content: center; font-weight: bold;">${initial}</div>`;
-            }
-            let nameHtml = user.displayName || 'User';
-            if (user.verified) {
-              nameHtml += verifiedIcon;
-            }
-            const isVerified = user.verified || false;
-            const userItem = document.createElement('div');
-            userItem.className = 'user-item';
-            userItem.style.animationDelay = `${i * 0.05}s`;
-            userItem.innerHTML = `
-              ${avatarHtml}
-              <div class="user-info">
-                <div class="user-name">${nameHtml}</div>
-                <div class="user-email">${user.email || 'No email'}</div>
-              </div>
-              <button class="verify-toggle ${isVerified ? 'verified' : ''}" onclick="toggleVerify('${user.uid}', ${isVerified})">
-                ${isVerified ? 'Revoke' : 'Verify'}
-              </button>
-            `;
-            userList.appendChild(userItem);
-          }
-        }
-      } else {
-        userList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 50px; font-size: 16px;">No users found.</p>';
-      }
-      hideSpinner();
-    }
-
-    window.toggleVerify = async (uid, isVerified) => {
-      if (!currentUser) return;
-      try {
-        showSpinner();
-        const newVerified = !isVerified;
-        await update(ref(db, `users/${uid}`), { verified: newVerified });
-        showAlert(`${newVerified ? 'Verified' : 'Revoked'} user successfully!`);
-        loadUsers(); // Reload list
-      } catch (error) {
-        console.error('Failed to update verification:', error);
-        showAlert('Failed to update verification.');
-      } finally {
-        hideSpinner();
-      }
-    };
-
-    function initializeFirebase() {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getDatabase(app);
-      onAuthStateChanged(auth, (user) => {
-        currentUser = user;
-        if (user) {
-          // Check if authorized (for now, assume all logged-in users are authorized)
-          // Optionally: get user data and check for 'canVerify' field
-          loadUsers();
-          // Setup dark mode from localStorage or user pref
-          const isDark = localStorage.getItem('darkMode') === 'true';
-          if (isDark) {
-            document.body.classList.add('dark');
-          }
-        } else {
-          window.location.href = 'login.html';
-        }
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      initializeFirebase();
-      document.getElementById('dark-mode-btn').addEventListener('click', toggleDarkMode);
+    darkToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
     });
   </script>
 </body>
