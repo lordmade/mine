@@ -12,7 +12,6 @@
       --success: #10b981; --bg: #f8fafc; --card-bg: #ffffff;
       --text-main: #0f172a; --gray: #64748b; --border: #e2e8f0;
       --sidebar-w: 260px; --sidebar-collapsed: 80px;
-      --danger: #ef4444;
     }
     body.dark-mode {
       --bg: #020617; --card-bg: #0f172a; --text-main: #f8fafc; --border: #1e293b; --gray: #94a3b8; --primary-light: #1e3a8a;
@@ -29,7 +28,9 @@
     }
     aside.collapsed { width: var(--sidebar-collapsed); }
     
-    aside .nav-text, aside .logo-text { white-space: nowrap; transition: opacity 0.2s; margin-left: 12px; }
+    aside .nav-text, aside .logo-text { 
+      white-space: nowrap; transition: opacity 0.2s; margin-left: 12px; 
+    }
     aside.collapsed .nav-text, aside.collapsed .logo-text { opacity: 0; pointer-events: none; display: none; }
     
     .nav-link { 
@@ -44,7 +45,9 @@
       padding: 2px 6px; border-radius: 10px; font-weight: 800; display: none;
     }
 
-    .nav-link i, aside .logo-icon { min-width: 24px; width: 24px; height: 24px; flex-shrink: 0; display: block; color: inherit; }
+    .nav-link i, aside .logo-icon { 
+        min-width: 24px; width: 24px; height: 24px; flex-shrink: 0; display: block; color: inherit;
+    }
 
     #toggleSidebar {
         position: absolute; right: -12px; top: 25px; background: var(--primary); color: white;
@@ -60,29 +63,49 @@
       display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 9999px; padding: 0.75rem 1.5rem;
     }
     button:active { transform: scale(0.96); }
-    
+    button:disabled { background: var(--gray); opacity: 0.6; cursor: not-allowed; }
     input, select { padding: .75rem 1.2rem; border-radius: 9999px; border: 1px solid var(--border); width: 100%; font-size: 14px; background: var(--bg); color: var(--text-main); }
 
-    .search-box { margin-bottom: 1.5rem; position: relative; }
-    .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray); }
-    .search-box input { padding-left: 45px; }
-
-    .countdown { font-size: 11px; font-weight: 700; color: var(--primary); display: block; margin-top: 4px; }
-    .countdown.urgent { color: var(--danger); animation: pulse 1s infinite; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-
-    .grade-badge { background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 14px; }
-    .feedback-text { font-size: 12px; color: var(--gray); font-style: italic; display: block; margin-top: 4px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--card-bg); padding: 1.5rem; border-radius: 24px; border: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
+    .stat-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
 
     #modal-overlay {
         position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4);
         display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);
     }
-    .modal-box { background: var(--card-bg); padding: 2rem; border-radius: 24px; max-width: 400px; width: 90%; text-align: center; border: 1px solid var(--border); }
+    .modal-box {
+        background: var(--card-bg); padding: 2rem; border-radius: 24px; max-width: 400px; width: 90%;
+        text-align: center; border: 1px solid var(--border); animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
+    .progress-container { width: 100%; background: var(--border); border-radius: 99px; height: 8px; margin: 15px 0; display: none; overflow: hidden; }
+    #progress-fill { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease; }
+
+    .assignment-container { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 900px) { .assignment-container { grid-template-columns: 1fr; } }
+
+    #chat-sec { height: 100%; display: none; flex-direction: column; }
+    #chat-sec.active { display: flex; }
+    #chat-window { flex: 1; background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; display: flex; flex-direction: column; overflow: hidden; margin-top: 1rem; }
+    #chat-messages { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 12px; }
+    
+    .msg { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 14px; line-height: 1.5; }
+    .msg b { display: block; font-size: 11px; margin-bottom: 4px; opacity: 0.7; }
+    .msg.sent { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
+    .msg.received { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .msg small { display: block; font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right; }
+
+    .theme-switch { display: flex; align-items: center; padding: 10px; margin: 10px 12px; border-radius: 9999px; cursor: pointer; color: var(--gray); }
+    .theme-switch:hover { background: var(--bg); }
+
+    .module-card { background: linear-gradient(135deg, var(--primary), #1d4ed8); color: white; padding: 1.8rem; border-radius: 24px; }
     .content-section { display: none; animation: fadeIn .3s ease; }
     .content-section.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    #auth-screen { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--bg); }
 
     .status-done { background: var(--success); color: white; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
     .status-pending { background: #fff7ed; color: #f97316; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid #ffedd5; }
@@ -90,24 +113,22 @@
     @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
-<body>
+<body class="">
 
 <div id="modal-overlay">
     <div class="modal-box">
         <div id="modal-icon" style="margin-bottom: 1rem;"></div>
-        <h3 id="modal-title">Notification</h3>
-        <p id="modal-text"></p>
-        <div id="modal-progress" style="width: 100%; background: var(--border); border-radius: 99px; height: 8px; margin: 15px 0; display: none; overflow: hidden;">
-            <div id="progress-fill" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease;"></div>
-        </div>
-        <button onclick="closeModal()" style="width: 100%;">Got it</button>
+        <h3 id="modal-title" style="margin: 0 0 0.5rem 0;">Notification</h3>
+        <p id="modal-text" style="color: var(--gray); font-size: 14px; margin-bottom: 1rem;"></p>
+        <div class="progress-container" id="modal-progress"><div id="progress-fill"></div></div>
+        <button id="modal-close-btn" onclick="closeModal()" style="width: 100%;">Got it</button>
     </div>
 </div>
 
-<div id="auth-screen" style="display:flex; align-items:center; justify-content:center; height:100vh;">
+<div id="auth-screen">
   <div class="card" style="max-width: 400px; width: 90%; text-align: center; padding: 3rem 2rem;">
     <i data-lucide="graduation-cap" style="width: 64px; height: 64px; color: var(--primary); margin: 0 auto 1.5rem;"></i>
-    <h2>Learner Portal</h2>
+    <h2 style="margin-bottom: 2rem;">Learner Portal</h2>
     <button id="loginBtn" style="width:100%"><i data-lucide="log-in"></i> Student Login</button>
   </div>
 </div>
@@ -118,57 +139,125 @@
     <div style="padding: 0 1.5rem 1.5rem; font-weight: 800; color: var(--primary); font-size: 1.25rem; display: flex; align-items: center;">
         <i data-lucide="layers" class="logo-icon"></i> <span class="logo-text">LMS Learner</span>
     </div>
+
     <nav>
       <a class="nav-link active" data-target="home-sec"><i data-lucide="home"></i> <span class="nav-text">Dashboard</span></a>
-      <a class="nav-link" data-target="course-sec"><i data-lucide="book-open"></i> <span class="nav-text">Materials</span></a>
-      <a class="nav-link" data-target="task-sec"><i data-lucide="file-check"></i> <span class="nav-text">Assignments</span></a>
-      <a class="nav-link" data-target="chat-sec"><i data-lucide="message-square"></i> <span class="nav-text">Chatbox</span><span id="unread-count" class="unread-badge">0</span></a>
+      <a class="nav-link" data-target="course-sec">
+        <i data-lucide="book-open"></i> <span class="nav-text">Materials</span>
+        <span id="badge-materials" class="unread-badge">!</span>
+      </a>
+      <a class="nav-link" data-target="task-sec">
+        <i data-lucide="file-check"></i> <span class="nav-text">Assignments</span>
+        <span id="badge-assignments" class="unread-badge">!</span>
+      </a>
+      <a class="nav-link" data-target="chat-sec">
+          <i data-lucide="message-square"></i> <span class="nav-text">Chatbox</span>
+          <span id="unread-count" class="unread-badge">0</span>
+      </a>
+      <a class="nav-link" data-target="time-sec"><i data-lucide="calendar"></i> <span class="nav-text">Schedule</span></a>
     </nav>
-    <div class="theme-switch" id="themeToggle" style="margin-top:auto; padding:15px; cursor:pointer;"><i data-lucide="moon"></i> <span class="nav-text">Dark Mode</span></div>
-    <button id="logoutBtn" style="margin:10px; background:transparent; color:var(--gray); border:1px solid var(--border);"><i data-lucide="log-out"></i> <span class="nav-text">Sign Out</span></button>
+
+    <div class="theme-switch" id="themeToggle">
+        <i data-lucide="moon"></i> <span class="nav-text" style="font-size:14px; font-weight:500">Dark Mode</span>
+    </div>
+
+    <div style="margin-top: auto; padding: 1rem;">
+        <button id="logoutBtn" style="background: transparent; color: var(--gray); border: 1px solid var(--border); width: 100%; padding: 0.8rem;">
+            <i data-lucide="log-out"></i> <span class="nav-text">Sign Out</span>
+        </button>
+    </div>
   </aside>
 
   <main>
-    <header style="margin-bottom: 2rem;"><h1 id="welcome-msg">Hello!</h1><div id="student-qual" style="color:var(--primary); font-weight:600;">Identifying enrollment...</div></header>
+    <header style="margin-bottom: 2rem;">
+        <h1 id="welcome-msg" style="margin: 0; font-weight: 800;">Hello!</h1>
+        <div id="student-qual" style="color: var(--primary); font-weight: 600; margin-top: 5px;">Identifying enrollment...</div>
+    </header>
 
     <section id="home-sec" class="content-section active">
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-bottom:2rem;">
-          <div class="card"><b>Modules</b><div id="stat-mods" style="font-size:24px; font-weight:800;">0</div></div>
-          <div class="card"><b>Pending Tasks</b><div id="stat-tasks" style="font-size:24px; font-weight:800; color:var(--danger)">0</div></div>
+      <div class="stat-grid">
+          <div class="stat-card">
+              <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);"><i data-lucide="book"></i></div>
+              <div><small style="color:var(--gray)">Modules</small><div id="stat-mods" style="font-weight:700">0</div></div>
+          </div>
+          <div class="stat-card">
+              <div class="stat-icon" style="background: #fff7ed; color: #f97316;"><i data-lucide="clock"></i></div>
+              <div><small style="color:var(--gray)">Pending Tasks</small><div id="stat-tasks" style="font-weight:700">0</div></div>
+          </div>
+          <div class="stat-card">
+              <div class="stat-icon" style="background: var(--success); color: white; opacity: 0.1;"><i data-lucide="message-circle" style="color:var(--success)"></i></div>
+              <div><small style="color:var(--gray)">Total Messages</small><div id="stat-chats" style="font-weight:700">0</div></div>
+          </div>
       </div>
-      <div id="module-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;"></div>
+
+      <h3 style="margin-bottom:1rem">Registered Modules</h3>
+      <div class="module-grid" id="module-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom:2rem;"></div>
+
+      <div class="card">
+          <h3 style="margin-top:0"><i data-lucide="megaphone" style="vertical-align:middle; margin-right:8px"></i> Latest Announcements</h3>
+          <p style="color:var(--gray); font-size:14px">Welcome to the 2026 Academic Year! Please ensure all your PDF submissions are uploaded via the Assignments tab.</p>
+      </div>
+    </section>
+
+    <section id="course-sec" class="content-section">
+      <div class="card">
+        <h3>Study Materials</h3>
+        <table style="width:100%; border-collapse:collapse"><tbody id="materials-list"></tbody></table>
+      </div>
     </section>
 
     <section id="task-sec" class="content-section">
-      <div class="search-box"><i data-lucide="search"></i><input type="text" id="search-assignments" placeholder="Search assignments..."></div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
-          <div id="assignments-list"></div>
-          <div class="card">
-            <h3>Upload PDF Submission</h3>
-            <select id="submit-task-name" style="margin-bottom:1rem;"></select>
-            <input type="file" id="pdfFile" accept="application/pdf" style="margin-bottom:1rem;">
-            <button id="btnSubmitWork" style="width:100%; background:var(--success)">Upload & Submit</button>
+      <div class="assignment-container">
+          <div id="assignments-column">
+              <h3 style="margin-bottom: 1.5rem;">Assignments Posted by Lecturer</h3>
+              <div id="assignments-list"></div>
+          </div>
+          <div class="card" id="submission-column">
+            <h3>Submit Your Work (PDF)</h3>
+            <select id="submit-task-name" style="margin-bottom: 1rem;"></select>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <input type="file" id="pdfFile" accept="application/pdf" style="display: none;">
+              <button id="btnBrowse" style="background: var(--bg); color: var(--text-main); border: 1px dashed var(--border);"><i data-lucide="upload-cloud"></i> <span id="fileName">Browse PDF File</span></button>
+              <button id="btnSubmitWork" style="background: var(--success); width: 100%;">Upload & Submit</button>
+            </div>
           </div>
       </div>
-      <div class="card" style="margin-top:2rem;">
-          <h3>Grades & Feedback</h3>
-          <table style="width:100%; border-collapse:collapse; text-align:left;">
-              <thead><tr style="color:var(--gray); font-size:12px;"><th style="padding:10px">Assignment</th><th style="padding:10px">Status</th><th style="padding:10px">Grade</th><th style="padding:10px">Lecturer Feedback</th></tr></thead>
+      
+      <div class="card" style="margin-top: 2rem;">
+          <h3>Recent Submissions</h3>
+          <table style="width:100%; border-collapse:collapse">
+              <thead><tr style="text-align:left; color:var(--gray); font-size:12px;"><th style="padding:10px">Assignment Name</th><th style="padding:10px">Date Submitted</th><th style="padding:10px">Status</th></tr></thead>
               <tbody id="recent-submissions-list"></tbody>
           </table>
       </div>
     </section>
 
-    <section id="course-sec" class="content-section"><div class="card"><h3>Study Materials</h3><table style="width:100%" id="materials-list"></table></div></section>
-    <section id="chat-sec" class="content-section"><div id="chat-messages" style="height:300px; overflow-y:auto;" class="card"></div><div style="display:flex; gap:10px"><input id="chatInput" placeholder="Message..."><button id="btnSendChat">Send</button></div></section>
+    <section id="chat-sec" class="content-section">
+        <h3>Campus Broadcast Chat</h3>
+        <div id="chat-window">
+            <div id="chat-messages"></div>
+            <div style="padding: 1rem; background: var(--bg); display: flex; gap: 10px; border-top: 1px solid var(--border)">
+                <input type="text" id="chatInput" placeholder="Write a message..."><button id="btnSendChat"><i data-lucide="send"></i></button>
+            </div>
+        </div>
+    </section>
 
+    <section id="time-sec" class="content-section">
+        <div class="card">
+          <h3>Your Timetable</h3>
+          <table style="width:100%; border-collapse:collapse">
+              <thead><tr style="text-align:left; color:var(--gray); font-size:12px;"><th style="padding:10px">Day</th><th style="padding:10px">Time</th><th style="padding:10px">Module</th></tr></thead>
+              <tbody id="timetable-list"></tbody>
+          </table>
+        </div>
+    </section>
   </main>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-  import { getDatabase, ref, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+  import { getDatabase, ref, onValue, push, serverTimestamp, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
   const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dv5bsbydu/upload";
   const CLOUDINARY_PRESET = "admin_tlaka";
@@ -179,6 +268,7 @@
     databaseURL: "https://learnermanagementsystem-f3b6a-default-rtdb.firebaseio.com",
     projectId: "learnermanagementsystem-f3b6a",
     storageBucket: "learnermanagementsystem-f3b6a.firebasestorage.app",
+    messagingSenderId: "173549259244",
     appId: "1:173549259244:web:f8722018a989c484a7d8c9"
   };
 
@@ -187,111 +277,239 @@
   const db = getDatabase(app);
   lucide.createIcons();
 
+  const savedTheme = localStorage.getItem('lms-theme');
+  if (savedTheme === 'dark') document.body.classList.add('dark-mode');
+
+  document.getElementById('themeToggle').onclick = () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('lms-theme', isDark ? 'dark' : 'light');
+  };
+
   let currentQual = null;
+  let counts = { chat: 0, assign: 0, material: 0 };
+  let activeTab = 'home-sec';
   let studentSubmissions = [];
-  let allAssignments = [];
+
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('toggleSidebar');
+  const toggleIcon = document.getElementById('toggleIcon');
+  toggleBtn.onclick = () => {
+      sidebar.classList.toggle('collapsed');
+      const isCollapsed = sidebar.classList.contains('collapsed');
+      toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
+      lucide.createIcons();
+  };
+
+  window.showModal = (title, text, type = 'success', showProgress = false) => {
+      const overlay = document.getElementById('modal-overlay');
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-text').textContent = text;
+      document.getElementById('modal-progress').style.display = showProgress ? 'block' : 'none';
+      document.getElementById('modal-close-btn').style.display = showProgress ? 'none' : 'block';
+      document.getElementById('modal-icon').innerHTML = type === 'success' ? '<i data-lucide="check-circle" style="color:var(--success); width:48px; height:48px;"></i>' : type === 'loading' ? '<i data-lucide="loader" style="color:var(--primary); width:48px; height:48px; animation: spin 1s linear infinite;"></i>' : '<i data-lucide="alert-circle" style="color:#ef4444; width:48px; height:48px;"></i>';
+      overlay.style.display = 'flex';
+      lucide.createIcons();
+  }
+  window.closeModal = () => document.getElementById('modal-overlay').style.display = 'none';
 
   onAuthStateChanged(auth, user => {
     document.getElementById('auth-screen').style.display = user ? 'none' : 'flex';
     document.getElementById('main-app').style.display = user ? 'flex' : 'none';
-    if(user) {
-        document.getElementById('welcome-msg').textContent = `Hi, ${user.displayName}`;
-        syncLearner(user);
-    }
+    if(user) syncLearner(user);
   });
 
   function syncLearner(user) {
+    document.getElementById('welcome-msg').textContent = `Hi, ${user.displayName.split(' ')[0]}`;
+    
     onValue(ref(db, 'submissions'), snap => {
         studentSubmissions = [];
-        const list = document.getElementById('recent-submissions-list');
-        list.innerHTML = '';
+        const recentList = document.getElementById('recent-submissions-list');
+        recentList.innerHTML = '';
         snap.forEach(c => {
             const data = c.val();
             if(data.studentEmail === user.email) {
                 studentSubmissions.push(data.assignmentTitle);
-                const grade = data.grade ? `<span class="grade-badge">${data.grade}%</span>` : `<span style="color:var(--gray)">Ungraded</span>`;
-                const fb = data.feedback || "No feedback yet.";
-                list.innerHTML += `<tr>
-                    <td style="padding:12px; border-bottom:1px solid var(--border)"><b>${data.assignmentTitle}</b></td>
-                    <td style="padding:12px; border-bottom:1px solid var(--border)"><span class="status-done">Submitted</span></td>
-                    <td style="padding:12px; border-bottom:1px solid var(--border)">${grade}</td>
-                    <td style="padding:12px; border-bottom:1px solid var(--border)"><small class="feedback-text">${fb}</small></td>
-                </tr>`;
+                const date = data.timestamp ? new Date(data.timestamp).toLocaleDateString() : 'Just now';
+                recentList.innerHTML += `<tr><td style="padding:12px; border-bottom:1px solid var(--border)"><b>${data.assignmentTitle}</b></td><td style="padding:12px; border-bottom:1px solid var(--border)">${date}</td><td style="padding:12px; border-bottom:1px solid var(--border)"><span class="status-done">Submitted</span></td></tr>`;
             }
         });
+        if(currentQual) loadContent(currentQual);
     });
 
+    onValue(ref(db, 'chats'), snap => {
+        const box = document.getElementById('chat-messages'); box.innerHTML = '';
+        let total = 0;
+        snap.forEach(c => {
+            total++;
+            const d = c.val(); 
+            const isMe = d.uid === user.uid;
+            box.innerHTML += `<div class="msg ${isMe ? 'sent' : 'received'}"><b>${d.user || "Anonymous"}</b>${d.text}</div>`;
+        });
+        if (total > counts.chat && counts.chat !== 0 && activeTab !== 'chat-sec') {
+            showModal("New Message", "Someone posted in the group chat.", "success");
+            document.getElementById('unread-count').style.display = 'block';
+        }
+        counts.chat = total;
+        document.getElementById('stat-chats').textContent = total;
+        box.scrollTop = box.scrollHeight;
+    });
+
+    // SEARCHING FIREBASE FOR THE LEARNER'S ASSIGNED QUALIFICATION
     onValue(ref(db, 'learners'), snap => {
+      let found = false;
       snap.forEach(c => { 
         if(c.val().email.toLowerCase() === user.email.toLowerCase()) {
           currentQual = c.val().assignedQual;
           document.getElementById('student-qual').textContent = `Enrolled: ${currentQual}`;
-          loadData(currentQual);
+          loadContent(currentQual);
+          found = true;
         }
       });
+      if(!found) document.getElementById('student-qual').textContent = "Enrollment not found. Contact Admin.";
     });
   }
 
-  function loadData(qual) {
+  function loadContent(qual) {
+    const curriculum = {
+        "BCom Accounting": ["Financial Accounting 101", "Business Management", "Commercial Law"],
+        "BSc Computer Science": ["Intro to Programming", "Calculus 1", "Data Structures"],
+        "LLB Law": ["Family Law", "Legal Foundations", "Criminal Law"],
+        "Diploma in Engineering": ["Engineering Physics", "Technical Drawing", "Mechanics"]
+    };
+    const mods = curriculum[qual] || [];
+    document.getElementById('stat-mods').textContent = mods.length;
+    document.getElementById('module-grid').innerHTML = mods.map(m => `<div class="module-card"><h3>${m}</h3><p>2026 Core Module</p></div>`).join('');
+
+    // SEARCHING FIREBASE FOR MATERIALS MATCHING THE LEARNER'S QUAL
+    onValue(ref(db, 'materials'), snap => {
+      const list = document.getElementById('materials-list'); list.innerHTML = '';
+      let total = 0;
+      snap.forEach(c => { 
+        if(c.val().qual === qual) {
+          total++;
+          list.innerHTML += `<tr><td style="padding:15px; border-bottom:1px solid var(--border)"><b>${c.val().title}</b></td><td style="text-align:right"><a href="${c.val().link}" target="_blank" style="text-decoration:none; color:var(--primary); font-weight:600">Download</a></td></tr>`; 
+        }
+      });
+      if (total > counts.material && counts.material !== 0 && activeTab !== 'course-sec') {
+          showModal("New Material", "Lecturer uploaded new learning materials.", "success");
+          document.getElementById('badge-materials').style.display = 'block';
+      }
+      counts.material = total;
+      if(total === 0) list.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:var(--gray)">No materials available for this course yet.</td></tr>';
+    });
+
+    // SEARCHING FIREBASE FOR ASSIGNMENTS MATCHING THE LEARNER'S QUAL
     onValue(ref(db, 'assignments'), snap => {
-        allAssignments = [];
-        const sel = document.getElementById('submit-task-name');
-        sel.innerHTML = '<option value="">Select Assignment</option>';
-        let pending = 0;
-        snap.forEach(c => {
-            if(c.val().qual === qual) {
-                const title = c.val().title;
-                if(!studentSubmissions.includes(title)) {
-                    pending++;
-                    allAssignments.push(c.val());
-                    sel.innerHTML += `<option value="${title}">${title}</option>`;
-                }
+      const list = document.getElementById('assignments-list'); 
+      const sel = document.getElementById('submit-task-name');
+      list.innerHTML = ''; 
+      sel.innerHTML = '<option value="">Select Assignment</option>';
+      let pendingTotal = 0;
+      let availableTotal = 0;
+
+      snap.forEach(c => { 
+        if(c.val().qual === qual) {
+            availableTotal++;
+            const title = c.val().title;
+            if(!studentSubmissions.includes(title)) {
+                pendingTotal++;
+                list.innerHTML += `
+                  <div class="card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                    <div><b>${title}</b><br><small style="color:var(--gray)">Due: ${c.val().dueDate}</small></div>
+                    <div style="display:flex; align-items:center; gap:16px;">
+                      <a href="${c.val().fileUrl || '#'}" target="_blank" style="color:var(--primary); font-size:11px; font-weight:800; text-decoration:none; border: 1px solid var(--primary); padding: 4px 10px; border-radius: 6px;">VIEW TASK</a>
+                      <span class="status-pending">Pending</span>
+                    </div>
+                  </div>`;
+                sel.innerHTML += `<option value="${title}">${title}</option>`;
+            }
+        }
+      });
+
+      if (availableTotal > counts.assign && counts.assign !== 0 && activeTab !== 'task-sec') {
+          showModal("New Assignment", "A new assignment has been posted by your lecturer.", "success");
+          document.getElementById('badge-assignments').style.display = 'block';
+      }
+      counts.assign = availableTotal;
+      document.getElementById('stat-tasks').textContent = pendingTotal;
+      if(pendingTotal === 0) list.innerHTML = '<p style="color:var(--gray); text-align:center; padding:20px;">All assignments completed!</p>';
+    });
+
+    onValue(ref(db, 'timetable'), snap => {
+        const list = document.getElementById('timetable-list'); list.innerHTML = '';
+        snap.forEach(c => { 
+            if(c.val().qual === qual || !c.val().qual) {
+                list.innerHTML += `<tr><td style="padding:12px; border-bottom:1px solid var(--border)"><b>${c.val().day}</b></td><td style="padding:12px; border-bottom:1px solid var(--border)">${c.val().time}</td><td style="padding:12px; border-bottom:1px solid var(--border)">${c.val().subject}</td></tr>`; 
             }
         });
-        document.getElementById('stat-tasks').textContent = pending;
-        renderAssignments(allAssignments);
     });
   }
 
-  function renderAssignments(data) {
-    const list = document.getElementById('assignments-list'); list.innerHTML = '';
-    data.forEach(item => {
-        list.innerHTML += `<div class="card"><b>${item.title}</b><br><small>Due: ${item.dueDate}</small></div>`;
-    });
-  }
+  const fileInput = document.getElementById('pdfFile');
+  document.getElementById('btnBrowse').onclick = () => fileInput.click();
+  fileInput.onchange = () => { 
+    if(fileInput.files[0]) document.getElementById('fileName').textContent = fileInput.files[0].name; 
+  };
 
   document.getElementById('btnSubmitWork').onclick = async () => {
     const task = document.getElementById('submit-task-name').value;
-    const file = document.getElementById('pdfFile').files[0];
-    if(!task || !file) return alert("Select task and file");
+    const file = fileInput.files[0];
+    if(!task || !file) return showModal("Wait!", "Please select an assignment and a PDF file.", "error");
+
+    showModal("Uploading", "Sending your PDF...", "loading", true);
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", CLOUDINARY_PRESET);
 
-    const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
-    const data = await res.json();
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", CLOUDINARY_URL, true);
+    xhr.upload.onprogress = (e) => { 
+      if (e.lengthComputable) document.getElementById('progress-fill').style.width = (e.loaded / e.total) * 100 + '%'; 
+    };
+    xhr.onload = async () => {
+        const data = JSON.parse(xhr.responseText);
+        if(data.secure_url) {
+            await push(ref(db, 'submissions'), { 
+              studentName: auth.currentUser.displayName, 
+              studentEmail: auth.currentUser.email, 
+              assignmentTitle: task, 
+              link: data.secure_url, 
+              timestamp: serverTimestamp() 
+            });
+            showModal("Success!", "Assignment Submitted Successfully!");
+            fileInput.value = ""; 
+            document.getElementById('fileName').textContent = "Browse PDF File";
+        } else { showModal("Error", "Server rejected the file.", "error"); }
+    };
+    xhr.send(formData);
+  };
 
-    if(data.secure_url) {
-        await push(ref(db, 'submissions'), {
-            studentName: auth.currentUser.displayName,
-            studentEmail: auth.currentUser.email,
-            assignmentTitle: task,
-            link: data.secure_url,
-            grade: null,
-            feedback: null,
-            timestamp: serverTimestamp()
+  document.getElementById('btnSendChat').onclick = async () => {
+    const input = document.getElementById('chatInput');
+    if(input.value.trim()) {
+        await push(ref(db, 'chats'), { 
+          user: auth.currentUser.displayName, 
+          uid: auth.currentUser.uid, 
+          text: input.value, 
+          ts: serverTimestamp() 
         });
-        alert("Submitted!");
+        input.value = '';
     }
   };
 
-  // Basic Navigation
   document.querySelectorAll('.nav-link').forEach(link => {
     link.onclick = () => {
-        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-        document.getElementById(link.dataset.target).classList.add('active');
-    }
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      
+      activeTab = link.dataset.target;
+      document.getElementById(activeTab).classList.add('active');
+      const badge = link.querySelector('.unread-badge');
+      if (badge) badge.style.display = 'none';
+    };
   });
 
   document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
