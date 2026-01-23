@@ -109,9 +109,11 @@
 
     .status-done { background: var(--success); color: white; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
     .status-pending { background: #fff7ed; color: #f97316; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid #ffedd5; }
+    
+    @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
-<body>
+<body class="">
 
 <div id="modal-overlay">
     <div class="modal-box">
@@ -140,8 +142,14 @@
 
     <nav>
       <a class="nav-link active" data-target="home-sec"><i data-lucide="home"></i> <span class="nav-text">Dashboard</span></a>
-      <a class="nav-link" data-target="course-sec"><i data-lucide="book-open"></i> <span class="nav-text">Materials</span></a>
-      <a class="nav-link" data-target="task-sec"><i data-lucide="file-check"></i> <span class="nav-text">Assignments</span></a>
+      <a class="nav-link" data-target="course-sec">
+        <i data-lucide="book-open"></i> <span class="nav-text">Materials</span>
+        <span id="badge-materials" class="unread-badge">!</span>
+      </a>
+      <a class="nav-link" data-target="task-sec">
+        <i data-lucide="file-check"></i> <span class="nav-text">Assignments</span>
+        <span id="badge-assignments" class="unread-badge">!</span>
+      </a>
       <a class="nav-link" data-target="chat-sec">
           <i data-lucide="message-square"></i> <span class="nav-text">Chatbox</span>
           <span id="unread-count" class="unread-badge">0</span>
@@ -241,10 +249,10 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-  import { getDatabase, ref, onValue, push, serverTimestamp, limitToLast, query } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+  import { getDatabase, ref, onValue, push, serverTimestamp, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
   const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dv5bsbydu/upload";
-  const CLOUDINARY_PRESET = "admin_tlaka";
+  const CLOUDINARY_PRESET = "dv5bsbydu";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDLvkRwSpd-hbPaDP31pV1H-4N5_Re-_xc",
@@ -261,9 +269,19 @@
   const db = getDatabase(app);
   lucide.createIcons();
 
+  // Theme Persistence Logic
+  const savedTheme = localStorage.getItem('lms-theme');
+  if (savedTheme === 'dark') document.body.classList.add('dark-mode');
+
+  document.getElementById('themeToggle').onclick = () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('lms-theme', isDark ? 'dark' : 'light');
+  };
+
   let currentQual = null;
-  let lastSeenMessageCount = 0;
-  let chatActive = false;
+  let counts = { chat: 0, assign: 0, material: 0 };
+  let activeTab = 'home-sec';
 
   const sidebar = document.getElementById('sidebar');
   const toggleBtn = document.getElementById('toggleSidebar');
@@ -287,8 +305,6 @@
   }
   window.closeModal = () => document.getElementById('modal-overlay').style.display = 'none';
 
-  document.getElementById('themeToggle').onclick = () => document.body.classList.toggle('dark-mode');
-
   onAuthStateChanged(auth, user => {
     document.getElementById('auth-screen').style.display = user ? 'none' : 'flex';
     document.getElementById('main-app').style.display = user ? 'flex' : 'none';
@@ -298,44 +314,25 @@
   function syncLearner(user) {
     document.getElementById('welcome-msg').textContent = `Hi, ${user.displayName.split(' ')[0]}`;
     
-    // Real-time Chat Sync & Notification Logic
+    // Chat Monitor
     onValue(ref(db, 'chats'), snap => {
         const box = document.getElementById('chat-messages'); box.innerHTML = '';
-        let totalCount = 0;
+        let total = 0;
         snap.forEach(c => {
-            totalCount++;
+            total++;
             const d = c.val(); 
             const isMe = d.uid === user.uid;
-            const time = d.ts ? new Date(d.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
-            box.innerHTML += `
-              <div class="msg ${isMe ? 'sent' : 'received'}">
-                <b>${d.user || "Anonymous"}</b>
-                ${d.text}
-                <small>${time}</small>
-              </div>`;
+            box.innerHTML += `<div class="msg ${isMe ? 'sent' : 'received'}"><b>${d.user || "Anonymous"}</b>${d.text}</div>`;
         });
-
-        // Show pop up if new message arrives and user isn't in chat
-        if (totalCount > lastSeenMessageCount && lastSeenMessageCount !== 0 && !chatActive) {
-            showModal("New Message", "You have received a new message in the Campus Broadcast Chat.", "success");
+        if (total > counts.chat && counts.chat !== 0 && activeTab !== 'chat-sec') {
+            showModal("New Message", "Someone posted in the group chat.", "success");
+            document.getElementById('unread-count').style.display = 'block';
         }
-
-        if (!chatActive) {
-            const unread = totalCount - lastSeenMessageCount;
-            const badge = document.getElementById('unread-count');
-            if (unread > 0) {
-                badge.textContent = unread;
-                badge.style.display = 'block';
-            }
-        } else {
-            lastSeenMessageCount = totalCount;
-        }
-
-        document.getElementById('stat-chats').textContent = totalCount;
+        counts.chat = total;
+        document.getElementById('stat-chats').textContent = total;
         box.scrollTop = box.scrollHeight;
     });
 
-    // Sync Learner Enrollment
     onValue(ref(db, 'learners'), snap => {
       snap.forEach(c => { 
         if(c.val().email.toLowerCase() === user.email.toLowerCase()) {
@@ -358,39 +355,51 @@
     document.getElementById('stat-mods').textContent = mods.length;
     document.getElementById('module-grid').innerHTML = mods.map(m => `<div class="module-card"><h3>${m}</h3><p>2026 Core Module</p></div>`).join('');
 
+    // Materials Monitor
     onValue(ref(db, 'materials'), snap => {
       const list = document.getElementById('materials-list'); list.innerHTML = '';
-      snap.forEach(c => { if(c.val().qual === qual) list.innerHTML += `<tr><td style="padding:15px; border-bottom:1px solid var(--border)"><b>${c.val().title}</b></td><td style="text-align:right"><a href="${c.val().link}" target="_blank" style="text-decoration:none; color:var(--primary); font-weight:600">Download</a></td></tr>`; });
+      let total = 0;
+      snap.forEach(c => { 
+        if(c.val().qual === qual) {
+          total++;
+          list.innerHTML += `<tr><td style="padding:15px; border-bottom:1px solid var(--border)"><b>${c.val().title}</b></td><td style="text-align:right"><a href="${c.val().link}" target="_blank" style="text-decoration:none; color:var(--primary); font-weight:600">Download</a></td></tr>`; 
+        }
+      });
+      if (total > counts.material && counts.material !== 0 && activeTab !== 'course-sec') {
+          showModal("New Material", "Lecturer uploaded new learning materials.", "success");
+          document.getElementById('badge-materials').style.display = 'block';
+      }
+      counts.material = total;
     });
 
+    // Assignment Monitor
     onValue(ref(db, 'assignments'), snap => {
       const list = document.getElementById('assignments-list'); 
       const sel = document.getElementById('submit-task-name');
       list.innerHTML = ''; 
       sel.innerHTML = '<option value="">Select Assignment</option>';
-      let count = 0;
+      let total = 0;
       snap.forEach(c => { 
         if(c.val().qual === qual) {
-            count++;
+            total++;
             const title = c.val().title;
-            const due = c.val().dueDate;
-            const fileUrl = c.val().fileUrl || '#';
             list.innerHTML += `
               <div class="card" id="assign-${title.replace(/\s+/g,'-')}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-                <div>
-                  <b style="font-size:15px">${title}</b><br>
-                  <small style="color:var(--gray)">Due: ${due}</small>
-                </div>
+                <div><b>${title}</b><br><small style="color:var(--gray)">Due: ${c.val().dueDate}</small></div>
                 <div style="display:flex; align-items:center; gap:16px;">
-                  <a href="${fileUrl}" target="_blank" style="color:var(--primary); font-size:11px; font-weight:800; text-decoration:none; border: 1px solid var(--primary); padding: 4px 10px; border-radius: 6px;">VIEW TASK</a>
+                  <a href="${c.val().fileUrl || '#'}" target="_blank" style="color:var(--primary); font-size:11px; font-weight:800; text-decoration:none; border: 1px solid var(--primary); padding: 4px 10px; border-radius: 6px;">VIEW TASK</a>
                   <span class="status-pending">Pending</span>
                 </div>
               </div>`;
             sel.innerHTML += `<option value="${title}">${title}</option>`;
         }
       });
-      document.getElementById('stat-tasks').textContent = count;
-      lucide.createIcons();
+      if (total > counts.assign && counts.assign !== 0 && activeTab !== 'task-sec') {
+          showModal("New Assignment", "A new assignment has been posted by your lecturer.", "success");
+          document.getElementById('badge-assignments').style.display = 'block';
+      }
+      counts.assign = total;
+      document.getElementById('stat-tasks').textContent = total;
     });
 
     onValue(ref(db, 'timetable'), snap => {
@@ -435,17 +444,10 @@
               link: data.secure_url, 
               timestamp: serverTimestamp() 
             });
-
-            const safeId = task.replace(/\s+/g, '-');
-            const el = document.getElementById(`assign-${safeId}`);
-            if (el) { el.querySelector('.status-pending').outerHTML = '<span class="status-done">Done</span>'; }
-
             showModal("Success!", "Assignment Submitted Successfully!");
             fileInput.value = ""; 
             document.getElementById('fileName').textContent = "Browse PDF File";
-        } else { 
-          showModal("Error", "Server rejected the file.", "error"); 
-        }
+        } else { showModal("Error", "Server rejected the file.", "error"); }
     };
     xhr.send(formData);
   };
@@ -469,29 +471,17 @@
       link.classList.add('active');
       document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
       
-      const target = link.dataset.target;
-      document.getElementById(target).classList.add('active');
+      activeTab = link.dataset.target;
+      document.getElementById(activeTab).classList.add('active');
 
-      if (target === 'chat-sec') {
-          chatActive = true;
-          const badge = document.getElementById('unread-count');
-          badge.style.display = 'none';
-          badge.textContent = '0';
-          // Reset last seen count to current total
-          const currentTotal = parseInt(document.getElementById('stat-chats').textContent) || 0;
-          lastSeenMessageCount = currentTotal;
-      } else {
-          chatActive = false;
-      }
+      // Clear badges when clicking the tab
+      const badge = link.querySelector('.unread-badge');
+      if (badge) badge.style.display = 'none';
     };
   });
 
   document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
   document.getElementById('logoutBtn').onclick = () => signOut(auth);
 </script>
-
-<style>
-@keyframes spin { 100% { transform: rotate(360deg); } }
-</style>
 </body>
 </html>
