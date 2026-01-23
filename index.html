@@ -128,10 +128,15 @@
     }
     body.dark-mode #chat-input-container { background: rgba(15, 23, 42, 0.8); }
     
-    .msg { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 14px; line-height: 1.5; }
+    .msg { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 14px; line-height: 1.5; position: relative; }
     .msg b { display: block; font-size: 11px; margin-bottom: 4px; opacity: 0.7; }
     .msg.sent { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
     .msg.received { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    
+    .msg-time { font-size: 10px; opacity: 0.6; margin-top: 4px; display: block; text-align: right; }
+    .msg-actions { display: flex; gap: 8px; margin-top: 4px; justify-content: flex-end; }
+    .msg-actions i { cursor: pointer; width: 14px; height: 14px; opacity: 0.8; transition: opacity 0.2s; }
+    .msg-actions i:hover { opacity: 1; color: #ef4444; }
 
     .theme-switch { display: flex; align-items: center; padding: 10px; margin: 10px 12px; border-radius: 9999px; cursor: pointer; color: var(--gray); }
     .theme-switch:hover { background: var(--bg); }
@@ -167,7 +172,6 @@
     
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    /* HEADER CLOCK STYLES */
     .header-content { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
     .live-clock-container { text-align: right; }
     #header-time { font-size: 1.5rem; font-weight: 800; color: var(--text-main); line-height: 1; }
@@ -180,9 +184,15 @@
     <div class="modal-box">
         <div id="modal-icon" style="margin-bottom: 1rem;"></div>
         <h3 id="modal-title" style="margin: 0 0 0.5rem 0;">Notification</h3>
+        <div id="edit-chat-area" style="display:none; margin: 15px 0;">
+            <input type="text" id="edit-chat-input" placeholder="Edit message...">
+        </div>
         <p id="modal-text" style="color: var(--gray); font-size: 14px; margin-bottom: 1rem;"></p>
         <div class="progress-container" id="modal-progress"><div id="progress-fill"></div></div>
-        <button id="modal-close-btn" onclick="closeModal()" style="width: 100%;">Got it</button>
+        <div style="display:flex; gap: 10px;">
+            <button id="modal-close-btn" onclick="closeModal()" style="width: 100%;">Got it</button>
+            <button id="modal-confirm-btn" style="width: 100%; display:none; background: var(--success);">Save Changes</button>
+        </div>
     </div>
 </div>
 
@@ -197,12 +207,6 @@
       <button id="loginBtn" style="width:100%; padding: 1rem; font-size: 16px; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);">
         <i data-lucide="log-in"></i> Sign in with Student Email
       </button>
-      <p style="font-size: 12px; color: var(--gray); margin-top: 2rem;">By signing in, you agree to the Institutional Terms of Service.</p>
-    </div>
-    <div class="feature-grid">
-      <div class="feature-item"><i data-lucide="book-open"></i><h4 style="margin: 5px 0;">Digital Library</h4><small style="color: var(--gray)">Access all your module materials 24/7.</small></div>
-      <div class="feature-item"><i data-lucide="message-square"></i><h4 style="margin: 5px 0;">Instant Support</h4><small style="color: var(--gray)">Connect with lecturers and peers via broadcast.</small></div>
-      <div class="feature-item"><i data-lucide="file-check"></i><h4 style="margin: 5px 0;">Easy Submission</h4><small style="color: var(--gray)">Securely upload assignments and track status.</small></div>
     </div>
   </div>
 </div>
@@ -235,7 +239,7 @@
             </div>
             <div class="live-clock-container">
                 <div id="header-time">00:00:00</div>
-                <div id="header-date">Friday, 23 Jan 2026</div>
+                <div id="header-date">...</div>
             </div>
         </div>
     </header>
@@ -256,30 +260,28 @@
           </div>
       </div>
 
+      <h3 style="margin-bottom:1rem">My Modules</h3>
+      <div class="module-grid" id="module-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom:2rem;"></div>
+
       <div class="assignment-container">
-        <div>
-            <h3 style="margin-bottom:1rem">Registered Modules</h3>
-            <div class="module-grid" id="module-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom:2rem;"></div>
-        </div>
         <div class="card">
             <h3 style="margin-top:0"><i data-lucide="user" style="vertical-align:middle; margin-right:8px"></i> My Profile</h3>
             <div style="display:flex; flex-direction:column; gap:12px;">
                 <div>
                     <label style="font-size:12px; color:var(--gray); margin-bottom:5px; display:block;">Full Name</label>
-                    <input type="text" id="profile-name" placeholder="Your Name">
+                    <input type="text" id="profile-name">
                 </div>
                 <div>
                     <label style="font-size:12px; color:var(--gray); margin-bottom:5px; display:block;">Contact Number</label>
-                    <input type="text" id="profile-phone" placeholder="Contact Number">
+                    <input type="text" id="profile-phone">
                 </div>
                 <button id="btnUpdateProfile" style="width:100%; margin-top:10px;"><i data-lucide="save"></i> Update Profile</button>
             </div>
         </div>
-      </div>
-
-      <div class="card">
+        <div class="card">
           <h3 style="margin-top:0"><i data-lucide="megaphone" style="vertical-align:middle; margin-right:8px"></i> Latest Announcements</h3>
           <p style="color:var(--gray); font-size:14px">Welcome to the 2026 Academic Year! Please ensure all your PDF submissions are uploaded via the Assignments tab.</p>
+        </div>
       </div>
     </section>
 
@@ -289,15 +291,13 @@
 
     <section id="task-sec" class="content-section">
       <div class="assignment-container">
-          <div id="assignments-column"><h3 style="margin-bottom: 1.5rem;">Assignments Posted by Lecturer</h3><div id="assignments-list"></div></div>
+          <div id="assignments-column"><h3 style="margin-bottom: 1.5rem;">Assignments Posted</h3><div id="assignments-list"></div></div>
           <div class="card" id="submission-column">
             <h3>Submit Your Work (PDF)</h3>
             <select id="submit-task-name" style="margin-bottom: 1rem;"></select>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-              <input type="file" id="pdfFile" accept="application/pdf" style="display: none;">
-              <button id="btnBrowse" style="background: var(--bg); color: var(--text-main); border: 1px dashed var(--border);"><i data-lucide="upload-cloud"></i> <span id="fileName">Browse PDF File</span></button>
-              <button id="btnSubmitWork" style="background: var(--success); width: 100%;">Upload & Submit</button>
-            </div>
+            <input type="file" id="pdfFile" accept="application/pdf" style="display: none;">
+            <button id="btnBrowse" style="background: var(--bg); color: var(--text-main); border: 1px dashed var(--border); width: 100%; margin-bottom:10px;"><i data-lucide="upload-cloud"></i> <span id="fileName">Browse PDF</span></button>
+            <button id="btnSubmitWork" style="background: var(--success); width: 100%;">Upload & Submit</button>
           </div>
       </div>
       <div class="card" style="margin-top: 2rem;">
@@ -335,7 +335,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-  import { getDatabase, ref, onValue, push, get, set, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+  import { getDatabase, ref, onValue, push, get, set, update, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
   const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dv5bsbydu/upload";
   const CLOUDINARY_PRESET = "admin_tlaka";
@@ -355,81 +355,45 @@
   const db = getDatabase(app);
   lucide.createIcons();
 
-  // CLOCK LOGIC
   function updateClock() {
       const now = new Date();
-      const timeStr = now.toLocaleTimeString('en-GB', { hour12: false });
-      const dateStr = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
-      document.getElementById('header-time').textContent = timeStr;
-      document.getElementById('header-date').textContent = dateStr;
+      document.getElementById('header-time').textContent = now.toLocaleTimeString('en-GB', { hour12: false });
+      document.getElementById('header-date').textContent = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
   }
-  setInterval(updateClock, 1000);
-  updateClock();
+  setInterval(updateClock, 1000); updateClock();
 
   const savedTheme = localStorage.getItem('lms-theme');
   if (savedTheme === 'dark') document.body.classList.add('dark-mode');
-
   document.getElementById('themeToggle').onclick = () => {
     document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('lms-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('lms-theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
   };
 
-  let currentQual = null;
-  let learnerId = null;
-  let counts = { chat: 0, assign: 0, material: 0 };
-  let activeTab = 'home-sec';
-  let studentSubmissions = [];
-
-  const sidebar = document.getElementById('sidebar');
-  const toggleBtn = document.getElementById('toggleSidebar');
-  const toggleIcon = document.getElementById('toggleIcon');
-
-  toggleBtn.onclick = () => {
-      sidebar.classList.toggle('collapsed');
-      const isCollapsed = sidebar.classList.contains('collapsed');
-      toggleIcon.setAttribute('data-lucide', isCollapsed ? 'panel-left-open' : 'panel-left-close');
-      toggleIcon.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
-      lucide.createIcons();
-  };
+  let currentQual = null; let learnerId = null; let activeTab = 'home-sec'; let studentSubmissions = [];
 
   window.showModal = (title, text, type = 'success', showProgress = false) => {
       const overlay = document.getElementById('modal-overlay');
       document.getElementById('modal-title').textContent = title;
       document.getElementById('modal-text').textContent = text;
       document.getElementById('modal-progress').style.display = showProgress ? 'block' : 'none';
+      document.getElementById('edit-chat-area').style.display = 'none';
+      document.getElementById('modal-confirm-btn').style.display = 'none';
       document.getElementById('modal-close-btn').style.display = showProgress ? 'none' : 'block';
       document.getElementById('modal-icon').innerHTML = type === 'success' ? '<i data-lucide="check-circle" style="color:var(--success); width:48px; height:48px;"></i>' : type === 'loading' ? '<i data-lucide="loader" style="color:var(--primary); width:48px; height:48px; animation: spin 1s linear infinite;"></i>' : '<i data-lucide="alert-circle" style="color:#ef4444; width:48px; height:48px;"></i>';
-      overlay.style.display = 'flex';
-      lucide.createIcons();
+      overlay.style.display = 'flex'; lucide.createIcons();
   }
   window.closeModal = () => document.getElementById('modal-overlay').style.display = 'none';
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-        const learnersRef = ref(db, 'learners');
-        const snapshot = await get(learnersRef);
-        let isRegistered = false;
-
-        snapshot.forEach(child => {
-            if (child.val().email.toLowerCase() === user.email.toLowerCase()) {
-                isRegistered = true;
-                learnerId = child.key;
-            }
-        });
-
-        if (isRegistered) {
+        const snapshot = await get(ref(db, 'learners'));
+        snapshot.forEach(child => { if (child.val().email.toLowerCase() === user.email.toLowerCase()) learnerId = child.key; });
+        if (learnerId) {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'flex';
             syncLearner(user);
-        } else {
-            await signOut(auth);
-            showModal("Access Denied", "Your email is not registered in our system. Please contact the administrator.", "error");
-        }
-    } else {
-        document.getElementById('auth-screen').style.display = 'flex';
-        document.getElementById('main-app').style.display = 'none';
-    }
+        } else { await signOut(auth); showModal("Access Denied", "Email not registered.", "error"); }
+    } else { document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('main-app').style.display = 'none'; }
   });
 
   function syncLearner(user) {
@@ -437,20 +401,17 @@
     document.getElementById('profile-name').value = user.displayName;
 
     onValue(ref(db, `learners/${learnerId}`), (snap) => {
-        const data = snap.val();
-        if(data && data.phone) document.getElementById('profile-phone').value = data.phone;
+        const data = snap.val(); if(data && data.phone) document.getElementById('profile-phone').value = data.phone;
     });
 
     onValue(ref(db, 'submissions'), snap => {
         studentSubmissions = [];
-        const recentList = document.getElementById('recent-submissions-list');
-        recentList.innerHTML = '';
+        const recentList = document.getElementById('recent-submissions-list'); recentList.innerHTML = '';
         snap.forEach(c => {
             const data = c.val();
             if(data.studentEmail === user.email) {
                 studentSubmissions.push(data.assignmentTitle);
-                const date = data.timestamp ? new Date(data.timestamp).toLocaleDateString() : 'Just now';
-                recentList.innerHTML += `<tr><td style="padding:12px; border-bottom:1px solid var(--border)"><b>${data.assignmentTitle}</b></td><td style="padding:12px; border-bottom:1px solid var(--border)">${date}</td><td style="padding:12px; border-bottom:1px solid var(--border)"><span class="status-done">Submitted</span></td></tr>`;
+                recentList.innerHTML += `<tr><td style="padding:12px; border-bottom:1px solid var(--border)"><b>${data.assignmentTitle}</b></td><td style="padding:12px; border-bottom:1px solid var(--border)">${data.timestamp ? new Date(data.timestamp).toLocaleDateString() : 'Just now'}</td><td style="padding:12px; border-bottom:1px solid var(--border)"><span class="status-done">Submitted</span></td></tr>`;
             }
         });
         if(currentQual) loadContent(currentQual);
@@ -461,46 +422,48 @@
         let total = 0;
         snap.forEach(c => {
             total++;
-            const d = c.val(); 
+            const d = c.val(); const key = c.key;
             const isMe = d.uid === user.uid;
-            box.innerHTML += `<div class="msg ${isMe ? 'sent' : 'received'}"><b>${d.user || "Anonymous"}</b>${d.text}</div>`;
+            const time = d.ts ? new Date(d.ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+            
+            let actions = isMe ? `<div class="msg-actions"><i data-lucide="edit-3" onclick="editChat('${key}', '${d.text}')"></i><i data-lucide="trash-2" onclick="deleteChat('${key}')"></i></div>` : '';
+            
+            box.innerHTML += `<div class="msg ${isMe ? 'sent' : 'received'}">
+                <b>${d.user || "User"}</b>
+                <span>${d.text}</span>
+                <span class="msg-time">${time}</span>
+                ${actions}
+            </div>`;
         });
-        if (total > counts.chat && counts.chat !== 0 && activeTab !== 'chat-sec') {
-            showModal("New Message", "Someone posted in the group chat.", "success");
-            document.getElementById('unread-count').style.display = 'block';
-        }
-        counts.chat = total;
         document.getElementById('stat-chats').textContent = total;
-        box.scrollTop = box.scrollHeight;
+        box.scrollTop = box.scrollHeight; lucide.createIcons();
     });
 
-    onValue(ref(db, 'learners'), snap => {
-      snap.forEach(c => { 
-        if(c.val().email.toLowerCase() === user.email.toLowerCase()) {
-          currentQual = c.val().assignedQual;
-          document.getElementById('student-qual').textContent = `Enrolled: ${currentQual}`;
-          loadContent(currentQual);
-        }
-      });
+    onValue(ref(db, `learners/${learnerId}`), snap => {
+        currentQual = snap.val().assignedQual;
+        document.getElementById('student-qual').textContent = `Enrolled: ${currentQual}`;
+        loadContent(currentQual);
     });
   }
 
-  document.getElementById('btnUpdateProfile').onclick = async () => {
-    const newName = document.getElementById('profile-name').value;
-    const newPhone = document.getElementById('profile-phone').value;
-    if(!newName) return showModal("Wait!", "Name cannot be empty.", "error");
+  window.editChat = (key, currentText) => {
+    const overlay = document.getElementById('modal-overlay');
+    const input = document.getElementById('edit-chat-input');
+    const btn = document.getElementById('modal-confirm-btn');
+    showModal("Edit Message", "Modify your message below:", "success");
+    document.getElementById('edit-chat-area').style.display = 'block';
+    input.value = currentText;
+    btn.style.display = 'block';
+    btn.onclick = async () => {
+        if(input.value.trim()){
+            await update(ref(db, `chats/${key}`), { text: input.value });
+            closeModal();
+        }
+    };
+  };
 
-    try {
-        await updateProfile(auth.currentUser, { displayName: newName });
-        await update(ref(db, `learners/${learnerId}`), { 
-            name: newName,
-            phone: newPhone
-        });
-        showModal("Profile Updated", "Your details have been successfully saved.");
-        document.getElementById('welcome-msg').textContent = `Hi, ${newName.split(' ')[0]}`;
-    } catch (err) {
-        showModal("Error", "Could not update profile.", "error");
-    }
+  window.deleteChat = async (key) => {
+    if(confirm("Delete this message?")) await remove(ref(db, `chats/${key}`));
   };
 
   function loadContent(qual) {
@@ -516,83 +479,42 @@
 
     onValue(ref(db, 'materials'), snap => {
       const list = document.getElementById('materials-list'); list.innerHTML = '';
-      let total = 0;
       snap.forEach(c => { 
-        if(c.val().qual === qual) {
-          total++;
-          list.innerHTML += `<tr><td style="padding:15px; border-bottom:1px solid var(--border)"><b>${c.val().title}</b></td><td style="text-align:right"><a href="${c.val().link}" target="_blank" style="text-decoration:none; color:var(--primary); font-weight:600">Download</a></td></tr>`; 
-        }
+        if(c.val().qual === qual) list.innerHTML += `<tr><td style="padding:15px; border-bottom:1px solid var(--border)"><b>${c.val().title}</b></td><td style="text-align:right"><a href="${c.val().link}" target="_blank" style="color:var(--primary); font-weight:600">Download</a></td></tr>`; 
       });
-      if (total > counts.material && counts.material !== 0 && activeTab !== 'course-sec') {
-          showModal("New Material", "Lecturer uploaded new learning materials.", "success");
-          document.getElementById('badge-materials').style.display = 'block';
-      }
-      counts.material = total;
-      if(total === 0) list.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:var(--gray)">No materials available.</td></tr>';
     });
 
     onValue(ref(db, 'assignments'), snap => {
-      const list = document.getElementById('assignments-list'); 
-      const sel = document.getElementById('submit-task-name');
-      list.innerHTML = ''; 
-      sel.innerHTML = '<option value="">Select Assignment</option>';
-      let pendingTotal = 0;
-      let availableTotal = 0;
-
+      const list = document.getElementById('assignments-list'); const sel = document.getElementById('submit-task-name');
+      list.innerHTML = ''; sel.innerHTML = '<option value="">Select Assignment</option>';
+      let pending = 0;
       snap.forEach(c => { 
         if(c.val().qual === qual) {
-            availableTotal++;
             const title = c.val().title;
             if(!studentSubmissions.includes(title)) {
-                pendingTotal++;
-                list.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;"><div><b>${title}</b><br><small style="color:var(--gray)">Due: ${c.val().dueDate}</small></div><div style="display:flex; align-items:center; gap:16px;"><a href="${c.val().fileUrl || '#'}" target="_blank" style="color:var(--primary); font-size:11px; font-weight:800; text-decoration:none; border: 1px solid var(--primary); padding: 4px 10px; border-radius: 6px;">VIEW TASK</a><span class="status-pending">Pending</span></div></div>`;
+                pending++;
+                list.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;"><div><b>${title}</b><br><small style="color:var(--gray)">Due: ${c.val().dueDate}</small></div><span class="status-pending">Pending</span></div>`;
                 sel.innerHTML += `<option value="${title}">${title}</option>`;
             }
         }
       });
-      if (availableTotal > counts.assign && counts.assign !== 0 && activeTab !== 'task-sec') {
-          showModal("New Assignment", "A new assignment has been posted.", "success");
-          document.getElementById('badge-assignments').style.display = 'block';
-      }
-      counts.assign = availableTotal;
-      document.getElementById('stat-tasks').textContent = pendingTotal;
-      if(pendingTotal === 0) list.innerHTML = '<p style="color:var(--gray); text-align:center; padding:20px;">All assignments completed!</p>';
+      document.getElementById('stat-tasks').textContent = pending;
     });
 
     onValue(ref(db, 'timetable'), snap => {
         const list = document.getElementById('timetable-list'); list.innerHTML = '';
-        snap.forEach(c => { 
-            if(c.val().qual === qual || !c.val().qual) {
-                list.innerHTML += `<tr><td style="padding:12px; border-bottom:1px solid var(--border)"><b>${c.val().day}</b></td><td style="padding:12px; border-bottom:1px solid var(--border)">${c.val().time}</td><td style="padding:12px; border-bottom:1px solid var(--border)">${c.val().subject}</td></tr>`; 
-            }
-        });
+        snap.forEach(c => { if(c.val().qual === qual) list.innerHTML += `<tr><td style="padding:12px; border-bottom:1px solid var(--border)"><b>${c.val().day}</b></td><td style="padding:12px; border-bottom:1px solid var(--border)">${c.val().time}</td><td style="padding:12px; border-bottom:1px solid var(--border)">${c.val().subject}</td></tr>`; });
     });
   }
 
-  const fileInput = document.getElementById('pdfFile');
-  document.getElementById('btnBrowse').onclick = () => fileInput.click();
-  fileInput.onchange = () => { if(fileInput.files[0]) document.getElementById('fileName').textContent = fileInput.files[0].name; };
-
-  document.getElementById('btnSubmitWork').onclick = async () => {
-    const task = document.getElementById('submit-task-name').value;
-    const file = fileInput.files[0];
-    if(!task || !file) return showModal("Wait!", "Please select an assignment and a PDF file.", "error");
-    showModal("Uploading", "Sending your PDF...", "loading", true);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", CLOUDINARY_PRESET);
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", CLOUDINARY_URL, true);
-    xhr.upload.onprogress = (e) => { if (e.lengthComputable) document.getElementById('progress-fill').style.width = (e.loaded / e.total) * 100 + '%'; };
-    xhr.onload = async () => {
-        const data = JSON.parse(xhr.responseText);
-        if(data.secure_url) {
-            await push(ref(db, 'submissions'), { studentName: auth.currentUser.displayName, studentEmail: auth.currentUser.email, assignmentTitle: task, link: data.secure_url, timestamp: serverTimestamp() });
-            showModal("Success!", "Assignment Submitted Successfully!");
-            fileInput.value = ""; document.getElementById('fileName').textContent = "Browse PDF File";
-        } else { showModal("Error", "Server rejected the file.", "error"); }
-    };
-    xhr.send(formData);
+  document.getElementById('btnUpdateProfile').onclick = async () => {
+    const newName = document.getElementById('profile-name').value;
+    const newPhone = document.getElementById('profile-phone').value;
+    if(newName) {
+        await updateProfile(auth.currentUser, { displayName: newName });
+        await update(ref(db, `learners/${learnerId}`), { name: newName, phone: newPhone });
+        showModal("Success", "Profile updated.");
+    }
   };
 
   document.getElementById('btnSendChat').onclick = async () => {
@@ -603,6 +525,23 @@
     }
   };
 
+  document.getElementById('btnBrowse').onclick = () => document.getElementById('pdfFile').click();
+  document.getElementById('pdfFile').onchange = (e) => { if(e.target.files[0]) document.getElementById('fileName').textContent = e.target.files[0].name; };
+
+  document.getElementById('btnSubmitWork').onclick = async () => {
+    const task = document.getElementById('submit-task-name').value;
+    const file = document.getElementById('pdfFile').files[0];
+    if(!task || !file) return showModal("Wait!", "Select assignment and PDF.", "error");
+    showModal("Uploading", "Please wait...", "loading", true);
+    const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", CLOUDINARY_PRESET);
+    const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
+    const data = await res.json();
+    if(data.secure_url) {
+        await push(ref(db, 'submissions'), { studentName: auth.currentUser.displayName, studentEmail: auth.currentUser.email, assignmentTitle: task, link: data.secure_url, timestamp: serverTimestamp() });
+        showModal("Success", "Work submitted!");
+    }
+  };
+
   document.querySelectorAll('.nav-link').forEach(link => {
     link.onclick = () => {
       document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -610,10 +549,14 @@
       document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
       activeTab = link.dataset.target;
       document.getElementById(activeTab).classList.add('active');
-      const badge = link.querySelector('.unread-badge');
-      if (badge) badge.style.display = 'none';
     };
   });
+
+  document.getElementById('toggleSidebar').onclick = () => {
+      sidebar.classList.toggle('collapsed');
+      document.getElementById('toggleIcon').setAttribute('data-lucide', sidebar.classList.contains('collapsed') ? 'panel-left-open' : 'panel-left-close');
+      lucide.createIcons();
+  };
 
   document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
   document.getElementById('logoutBtn').onclick = () => signOut(auth);
