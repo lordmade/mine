@@ -315,7 +315,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-  import { getDatabase, ref, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+  import { getDatabase, ref, onValue, push, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
   const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dv5bsbydu/upload";
   const CLOUDINARY_PRESET = "admin_tlaka";
@@ -384,10 +384,30 @@
   }
   window.closeModal = () => document.getElementById('modal-overlay').style.display = 'none';
 
-  onAuthStateChanged(auth, user => {
-    document.getElementById('auth-screen').style.display = user ? 'none' : 'flex';
-    document.getElementById('main-app').style.display = user ? 'flex' : 'none';
-    if(user) syncLearner(user);
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const learnersRef = ref(db, 'learners');
+        const snapshot = await get(learnersRef);
+        let isRegistered = false;
+
+        snapshot.forEach(child => {
+            if (child.val().email.toLowerCase() === user.email.toLowerCase()) {
+                isRegistered = true;
+            }
+        });
+
+        if (isRegistered) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
+            syncLearner(user);
+        } else {
+            await signOut(auth);
+            showModal("Access Denied", "Your email is not registered in our system. Please contact the administrator.", "error");
+        }
+    } else {
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('main-app').style.display = 'none';
+    }
   });
 
   function syncLearner(user) {
@@ -426,16 +446,13 @@
     });
 
     onValue(ref(db, 'learners'), snap => {
-      let found = false;
       snap.forEach(c => { 
         if(c.val().email.toLowerCase() === user.email.toLowerCase()) {
           currentQual = c.val().assignedQual;
           document.getElementById('student-qual').textContent = `Enrolled: ${currentQual}`;
           loadContent(currentQual);
-          found = true;
         }
       });
-      if(!found) document.getElementById('student-qual').textContent = "Enrollment not found. Contact Admin.";
     });
   }
 
