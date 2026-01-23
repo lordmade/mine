@@ -95,7 +95,6 @@
     .msg b { display: block; font-size: 11px; margin-bottom: 4px; opacity: 0.7; }
     .msg.sent { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
     .msg.received { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
-    .msg small { display: block; font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right; }
 
     .theme-switch { display: flex; align-items: center; padding: 10px; margin: 10px 12px; border-radius: 9999px; cursor: pointer; color: var(--gray); }
     .theme-switch:hover { background: var(--bg); }
@@ -257,7 +256,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-  import { getDatabase, ref, onValue, push, serverTimestamp, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+  import { getDatabase, ref, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
   const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dv5bsbydu/upload";
   const CLOUDINARY_PRESET = "admin_tlaka";
@@ -322,6 +321,7 @@
   function syncLearner(user) {
     document.getElementById('welcome-msg').textContent = `Hi, ${user.displayName.split(' ')[0]}`;
     
+    // Listen to personal submissions
     onValue(ref(db, 'submissions'), snap => {
         studentSubmissions = [];
         const recentList = document.getElementById('recent-submissions-list');
@@ -355,8 +355,8 @@
         box.scrollTop = box.scrollHeight;
     });
 
-    // SEARCHING FIREBASE FOR THE LEARNER'S ASSIGNED QUALIFICATION
-    onValue(ref(db, 'assignments'), snap => {
+    // FIND LEARNER'S QUALIFICATION IN THE 'learners' NODE
+    onValue(ref(db, 'learners'), snap => {
       let found = false;
       snap.forEach(c => { 
         if(c.val().email.toLowerCase() === user.email.toLowerCase()) {
@@ -381,7 +381,7 @@
     document.getElementById('stat-mods').textContent = mods.length;
     document.getElementById('module-grid').innerHTML = mods.map(m => `<div class="module-card"><h3>${m}</h3><p>2026 Core Module</p></div>`).join('');
 
-    // SEARCHING FIREBASE FOR MATERIALS MATCHING THE LEARNER'S QUAL
+    // Load Materials
     onValue(ref(db, 'materials'), snap => {
       const list = document.getElementById('materials-list'); list.innerHTML = '';
       let total = 0;
@@ -396,10 +396,10 @@
           document.getElementById('badge-materials').style.display = 'block';
       }
       counts.material = total;
-      if(total === 0) list.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:var(--gray)">No materials available for this course yet.</td></tr>';
+      if(total === 0) list.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:var(--gray)">No materials available.</td></tr>';
     });
 
-    // SEARCHING FIREBASE FOR ASSIGNMENTS MATCHING THE LEARNER'S QUAL
+    // Load Assignments
     onValue(ref(db, 'assignments'), snap => {
       const list = document.getElementById('assignments-list'); 
       const sel = document.getElementById('submit-task-name');
@@ -412,6 +412,7 @@
         if(c.val().qual === qual) {
             availableTotal++;
             const title = c.val().title;
+            // Only show in "Posted by Lecturer" if not yet submitted
             if(!studentSubmissions.includes(title)) {
                 pendingTotal++;
                 list.innerHTML += `
@@ -428,7 +429,7 @@
       });
 
       if (availableTotal > counts.assign && counts.assign !== 0 && activeTab !== 'task-sec') {
-          showModal("New Assignment", "A new assignment has been posted by your lecturer.", "success");
+          showModal("New Assignment", "A new assignment has been posted.", "success");
           document.getElementById('badge-assignments').style.display = 'block';
       }
       counts.assign = availableTotal;
@@ -436,6 +437,7 @@
       if(pendingTotal === 0) list.innerHTML = '<p style="color:var(--gray); text-align:center; padding:20px;">All assignments completed!</p>';
     });
 
+    // Load Timetable
     onValue(ref(db, 'timetable'), snap => {
         const list = document.getElementById('timetable-list'); list.innerHTML = '';
         snap.forEach(c => { 
