@@ -356,7 +356,7 @@
     });
 
     // SEARCHING FIREBASE FOR THE LEARNER'S ASSIGNED QUALIFICATION
-    onValue(ref(db, 'learners'), snap => {
+    onValue(ref(db, 'assignments'), snap => {
       let found = false;
       snap.forEach(c => { 
         if(c.val().email.toLowerCase() === user.email.toLowerCase()) {
