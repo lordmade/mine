@@ -222,6 +222,14 @@
             </div>
           </div>
       </div>
+      
+      <div class="card" style="margin-top: 2rem;">
+          <h3>Recent Submissions</h3>
+          <table style="width:100%; border-collapse:collapse">
+              <thead><tr style="text-align:left; color:var(--gray); font-size:12px;"><th style="padding:10px">Assignment Name</th><th style="padding:10px">Date Submitted</th><th style="padding:10px">Status</th></tr></thead>
+              <tbody id="recent-submissions-list"></tbody>
+          </table>
+      </div>
     </section>
 
     <section id="chat-sec" class="content-section">
@@ -269,7 +277,6 @@
   const db = getDatabase(app);
   lucide.createIcons();
 
-  // Theme Persistence Logic
   const savedTheme = localStorage.getItem('lms-theme');
   if (savedTheme === 'dark') document.body.classList.add('dark-mode');
 
@@ -282,6 +289,7 @@
   let currentQual = null;
   let counts = { chat: 0, assign: 0, material: 0 };
   let activeTab = 'home-sec';
+  let studentSubmissions = []; // Global store for filtering
 
   const sidebar = document.getElementById('sidebar');
   const toggleBtn = document.getElementById('toggleSidebar');
@@ -314,7 +322,22 @@
   function syncLearner(user) {
     document.getElementById('welcome-msg').textContent = `Hi, ${user.displayName.split(' ')[0]}`;
     
-    // Chat Monitor
+    // Monitor Submissions first to filter assignments
+    onValue(ref(db, 'submissions'), snap => {
+        studentSubmissions = [];
+        const recentList = document.getElementById('recent-submissions-list');
+        recentList.innerHTML = '';
+        snap.forEach(c => {
+            const data = c.val();
+            if(data.studentEmail === user.email) {
+                studentSubmissions.push(data.assignmentTitle);
+                const date = data.timestamp ? new Date(data.timestamp).toLocaleDateString() : 'Just now';
+                recentList.innerHTML += `<tr><td style="padding:12px; border-bottom:1px solid var(--border)"><b>${data.assignmentTitle}</b></td><td style="padding:12px; border-bottom:1px solid var(--border)">${date}</td><td style="padding:12px; border-bottom:1px solid var(--border)"><span class="status-done">Submitted</span></td></tr>`;
+            }
+        });
+        if(currentQual) loadContent(currentQual); // Reload assignments with filter
+    });
+
     onValue(ref(db, 'chats'), snap => {
         const box = document.getElementById('chat-messages'); box.innerHTML = '';
         let total = 0;
@@ -355,7 +378,6 @@
     document.getElementById('stat-mods').textContent = mods.length;
     document.getElementById('module-grid').innerHTML = mods.map(m => `<div class="module-card"><h3>${m}</h3><p>2026 Core Module</p></div>`).join('');
 
-    // Materials Monitor
     onValue(ref(db, 'materials'), snap => {
       const list = document.getElementById('materials-list'); list.innerHTML = '';
       let total = 0;
@@ -372,34 +394,42 @@
       counts.material = total;
     });
 
-    // Assignment Monitor
     onValue(ref(db, 'assignments'), snap => {
       const list = document.getElementById('assignments-list'); 
       const sel = document.getElementById('submit-task-name');
       list.innerHTML = ''; 
       sel.innerHTML = '<option value="">Select Assignment</option>';
-      let total = 0;
+      let pendingTotal = 0;
+      let availableTotal = 0;
+
       snap.forEach(c => { 
         if(c.val().qual === qual) {
-            total++;
+            availableTotal++;
             const title = c.val().title;
-            list.innerHTML += `
-              <div class="card" id="assign-${title.replace(/\s+/g,'-')}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-                <div><b>${title}</b><br><small style="color:var(--gray)">Due: ${c.val().dueDate}</small></div>
-                <div style="display:flex; align-items:center; gap:16px;">
-                  <a href="${c.val().fileUrl || '#'}" target="_blank" style="color:var(--primary); font-size:11px; font-weight:800; text-decoration:none; border: 1px solid var(--primary); padding: 4px 10px; border-radius: 6px;">VIEW TASK</a>
-                  <span class="status-pending">Pending</span>
-                </div>
-              </div>`;
-            sel.innerHTML += `<option value="${title}">${title}</option>`;
+            
+            // FILTER: Only show assignments the student hasn't submitted yet
+            if(!studentSubmissions.includes(title)) {
+                pendingTotal++;
+                list.innerHTML += `
+                  <div class="card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                    <div><b>${title}</b><br><small style="color:var(--gray)">Due: ${c.val().dueDate}</small></div>
+                    <div style="display:flex; align-items:center; gap:16px;">
+                      <a href="${c.val().fileUrl || '#'}" target="_blank" style="color:var(--primary); font-size:11px; font-weight:800; text-decoration:none; border: 1px solid var(--primary); padding: 4px 10px; border-radius: 6px;">VIEW TASK</a>
+                      <span class="status-pending">Pending</span>
+                    </div>
+                  </div>`;
+                sel.innerHTML += `<option value="${title}">${title}</option>`;
+            }
         }
       });
-      if (total > counts.assign && counts.assign !== 0 && activeTab !== 'task-sec') {
+
+      if (availableTotal > counts.assign && counts.assign !== 0 && activeTab !== 'task-sec') {
           showModal("New Assignment", "A new assignment has been posted by your lecturer.", "success");
           document.getElementById('badge-assignments').style.display = 'block';
       }
-      counts.assign = total;
-      document.getElementById('stat-tasks').textContent = total;
+      counts.assign = availableTotal;
+      document.getElementById('stat-tasks').textContent = pendingTotal;
+      if(pendingTotal === 0) list.innerHTML = '<p style="color:var(--gray); text-align:center; padding:20px;">All assignments completed!</p>';
     });
 
     onValue(ref(db, 'timetable'), snap => {
@@ -473,8 +503,6 @@
       
       activeTab = link.dataset.target;
       document.getElementById(activeTab).classList.add('active');
-
-      // Clear badges when clicking the tab
       const badge = link.querySelector('.unread-badge');
       if (badge) badge.style.display = 'none';
     };
