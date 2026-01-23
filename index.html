@@ -535,16 +535,20 @@
 
         messages.forEach(msg => {
             const isMe = msg.uid === currentUserUid;
+            
+            // Improved: only show "Anonymous" if name is truly missing/empty
+            const senderName = (msg.user && msg.user.trim()) ? msg.user.trim() : "Anonymous";
+
             const timeStr = formatMessageTime(msg.ts);
 
             const div = document.createElement('div');
             div.className = `msg ${isMe ? 'sent' : 'received'}`;
             div.id = `msg-${msg.key}`;
             div.innerHTML = `
-              <b>${msg.user || "Anonymous"}</b>
+              <b>${senderName}${msg.edited ? ' <small>(edited)</small>' : ''}</b>
               <div class="msg-content">${msg.text}</div>
               <div class="msg-edit-form">
-                <input type="text" value="${msg.text.replace(/"/g,'&quot;')}" id="edit-input-${msg.key}">
+                <input type="text" value="${(msg.text || '').replace(/"/g,'&quot;')}" id="edit-input-${msg.key}">
                 <div style="margin-top:6px; display:flex; gap:8px; justify-content:flex-end;">
                   <button onclick="cancelEdit('${msg.key}')" style="background:#64748b; padding:6px 12px; font-size:13px;">Cancel</button>
                   <button onclick="saveEdit('${msg.key}')" style="padding:6px 12px; font-size:13px;">Save</button>
@@ -645,7 +649,6 @@
         edited: true,
         editedAt: serverTimestamp()
       });
-      // UI will auto-update via onValue
     } catch (err) {
       showModal("Error", "Could not update message.", "error");
     }
@@ -655,7 +658,6 @@
     if (!confirm("Delete this message?")) return;
     try {
       await remove(ref(db, `chats/${key}`));
-      // UI will auto-update via onValue
     } catch (err) {
       showModal("Error", "Could not delete message.", "error");
     }
