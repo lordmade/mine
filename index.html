@@ -128,10 +128,36 @@
     }
     body.dark-mode #chat-input-container { background: rgba(15, 23, 42, 0.8); }
     
-    .msg { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 14px; line-height: 1.5; }
+    .msg { 
+      max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 14px; line-height: 1.5; 
+      position: relative; 
+    }
     .msg b { display: block; font-size: 11px; margin-bottom: 4px; opacity: 0.7; }
     .msg.sent { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
     .msg.received { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+
+    .msg-time {
+      font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right;
+    }
+
+    .msg-actions {
+      position: absolute; top: 6px; right: 12px; display: none; gap: 8px;
+    }
+    .msg.sent:hover .msg-actions { display: flex; }
+    .msg-action-btn {
+      background: none; border: none; color: white; opacity: 0.8; cursor: pointer; font-size: 16px;
+      padding: 2px 6px; border-radius: 4px;
+    }
+    .msg-action-btn:hover { opacity: 1; background: rgba(0,0,0,0.2); }
+
+    .msg-editing .msg-content { display: none; }
+    .msg-editing .msg-edit-form { display: block; }
+    .msg-edit-form { display: none; margin-top: 8px; }
+    .msg-edit-form input {
+      border-radius: 12px; padding: 8px 12px; border: 1px solid var(--border); width: 100%;
+      background: white; color: black;
+    }
+    body.dark-mode .msg-edit-form input { background: #1e293b; color: white; border-color: #475569; }
 
     .theme-switch { display: flex; align-items: center; padding: 10px; margin: 10px 12px; border-radius: 9999px; cursor: pointer; color: var(--gray); }
     .theme-switch:hover { background: var(--bg); }
@@ -167,13 +193,11 @@
     
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    /* HEADER CLOCK STYLES */
     .header-content { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
     .live-clock-container { text-align: right; }
     #header-time { font-size: 1.5rem; font-weight: 800; color: var(--text-main); line-height: 1; }
     #header-date { font-size: 0.875rem; color: var(--gray); font-weight: 500; margin-top: 4px; }
 
-    /* Announcement styles */
     .announcement-item {
       padding: 1.25rem;
       border-bottom: 1px solid var(--border);
@@ -355,7 +379,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-  import { getDatabase, ref, onValue, push, get, set, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+  import { getDatabase, ref, onValue, push, get, set, update, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
   const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dv5bsbydu/upload";
   const CLOUDINARY_PRESET = "admin_tlaka";
@@ -375,7 +399,6 @@
   const db = getDatabase(app);
   lucide.createIcons();
 
-  // CLOCK LOGIC
   function updateClock() {
       const now = new Date();
       const timeStr = now.toLocaleTimeString('en-GB', { hour12: false });
@@ -400,6 +423,7 @@
   let counts = { chat: 0, assign: 0, material: 0, announce: 0 };
   let activeTab = 'home-sec';
   let studentSubmissions = [];
+  let currentUserUid = null;
 
   const sidebar = document.getElementById('sidebar');
   const toggleBtn = document.getElementById('toggleSidebar');
@@ -425,8 +449,28 @@
   }
   window.closeModal = () => document.getElementById('modal-overlay').style.display = 'none';
 
+  function formatMessageTime(timestamp) {
+    if (!timestamp) return "Just now";
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMin = Math.floor(diffMs / 60000);
+
+    if (diffMin < 1) return "Just now";
+    if (diffMin < 60) return `${diffMin}m ago`;
+    
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    if (diffHr < 48) return "Yesterday " + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    return date.toLocaleDateString([], {day:'numeric', month:'short'}) + " " + 
+           date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  }
+
   onAuthStateChanged(auth, async (user) => {
     if (user) {
+        currentUserUid = user.uid;
         const learnersRef = ref(db, 'learners');
         const snapshot = await get(learnersRef);
         let isRegistered = false;
@@ -477,14 +521,46 @@
     });
 
     onValue(ref(db, 'chats'), snap => {
-        const box = document.getElementById('chat-messages'); box.innerHTML = '';
+        const box = document.getElementById('chat-messages'); 
+        box.innerHTML = '';
         let total = 0;
+
+        const messages = [];
         snap.forEach(c => {
             total++;
-            const d = c.val(); 
-            const isMe = d.uid === user.uid;
-            box.innerHTML += `<div class="msg ${isMe ? 'sent' : 'received'}"><b>${d.user || "Anonymous"}</b>${d.text}</div>`;
+            messages.push({ key: c.key, ...c.val() });
         });
+
+        messages.sort((a,b) => (a.ts || 0) - (b.ts || 0));
+
+        messages.forEach(msg => {
+            const isMe = msg.uid === currentUserUid;
+            const timeStr = formatMessageTime(msg.ts);
+
+            const div = document.createElement('div');
+            div.className = `msg ${isMe ? 'sent' : 'received'}`;
+            div.id = `msg-${msg.key}`;
+            div.innerHTML = `
+              <b>${msg.user || "Anonymous"}</b>
+              <div class="msg-content">${msg.text}</div>
+              <div class="msg-edit-form">
+                <input type="text" value="${msg.text.replace(/"/g,'&quot;')}" id="edit-input-${msg.key}">
+                <div style="margin-top:6px; display:flex; gap:8px; justify-content:flex-end;">
+                  <button onclick="cancelEdit('${msg.key}')" style="background:#64748b; padding:6px 12px; font-size:13px;">Cancel</button>
+                  <button onclick="saveEdit('${msg.key}')" style="padding:6px 12px; font-size:13px;">Save</button>
+                </div>
+              </div>
+              <div class="msg-time">${timeStr}</div>
+              ${isMe ? `
+                <div class="msg-actions">
+                  <button class="msg-action-btn" onclick="startEdit('${msg.key}')" title="Edit"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></button>
+                  <button class="msg-action-btn" onclick="deleteMessage('${msg.key}')" title="Delete"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+                </div>
+              ` : ''}`;
+
+            box.appendChild(div);
+        });
+
         if (total > counts.chat && counts.chat !== 0 && activeTab !== 'chat-sec') {
             showModal("New Message", "Someone posted in the group chat.", "success");
             document.getElementById('unread-count').style.display = 'block';
@@ -492,6 +568,7 @@
         counts.chat = total;
         document.getElementById('stat-chats').textContent = total;
         box.scrollTop = box.scrollHeight;
+        lucide.createIcons();
     });
 
     onValue(ref(db, 'learners'), snap => {
@@ -504,7 +581,6 @@
       });
     });
 
-    // ── New: Announcements listener ────────────────────────────────────────
     onValue(ref(db, 'announcements'), snap => {
       const homeList = document.getElementById('home-announcements-list');
       const fullList = document.getElementById('announcements-list');
@@ -529,10 +605,9 @@
         items.push({ html, ts: d.timestamp || 0 });
       });
 
-      // Sort newest first
       items.sort((a,b) => b.ts - a.ts);
 
-      const recent = items.slice(0, 4); // show 4 latest on dashboard
+      const recent = items.slice(0, 4);
       recent.forEach(i => homeList.innerHTML += i.html);
       items.forEach(i => fullList.innerHTML += i.html);
 
@@ -549,6 +624,42 @@
       }
     });
   }
+
+  window.startEdit = (key) => {
+    const msgDiv = document.getElementById(`msg-${key}`);
+    if (msgDiv) msgDiv.classList.add('msg-editing');
+  };
+
+  window.cancelEdit = (key) => {
+    const msgDiv = document.getElementById(`msg-${key}`);
+    if (msgDiv) msgDiv.classList.remove('msg-editing');
+  };
+
+  window.saveEdit = async (key) => {
+    const input = document.getElementById(`edit-input-${key}`);
+    if (!input || !input.value.trim()) return;
+
+    try {
+      await update(ref(db, `chats/${key}`), { 
+        text: input.value.trim(),
+        edited: true,
+        editedAt: serverTimestamp()
+      });
+      // UI will auto-update via onValue
+    } catch (err) {
+      showModal("Error", "Could not update message.", "error");
+    }
+  };
+
+  window.deleteMessage = async (key) => {
+    if (!confirm("Delete this message?")) return;
+    try {
+      await remove(ref(db, `chats/${key}`));
+      // UI will auto-update via onValue
+    } catch (err) {
+      showModal("Error", "Could not delete message.", "error");
+    }
+  };
 
   function loadContent(qual) {
     const curriculum = {
@@ -645,7 +756,12 @@
   document.getElementById('btnSendChat').onclick = async () => {
     const input = document.getElementById('chatInput');
     if(input.value.trim()) {
-        await push(ref(db, 'chats'), { user: auth.currentUser.displayName, uid: auth.currentUser.uid, text: input.value, ts: serverTimestamp() });
+        await push(ref(db, 'chats'), { 
+          user: auth.currentUser.displayName, 
+          uid: auth.currentUser.uid, 
+          text: input.value.trim(), 
+          ts: serverTimestamp() 
+        });
         input.value = '';
     }
   };
