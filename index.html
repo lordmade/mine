@@ -255,8 +255,28 @@
               <div><small style="color:var(--gray)">Total Messages</small><div id="stat-chats" style="font-weight:700">0</div></div>
           </div>
       </div>
-      <h3 style="margin-bottom:1rem">Registered Modules</h3>
-      <div class="module-grid" id="module-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom:2rem;"></div>
+
+      <div class="assignment-container">
+        <div>
+            <h3 style="margin-bottom:1rem">Registered Modules</h3>
+            <div class="module-grid" id="module-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom:2rem;"></div>
+        </div>
+        <div class="card">
+            <h3 style="margin-top:0"><i data-lucide="user" style="vertical-align:middle; margin-right:8px"></i> My Profile</h3>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label style="font-size:12px; color:var(--gray); margin-bottom:5px; display:block;">Full Name</label>
+                    <input type="text" id="profile-name" placeholder="Your Name">
+                </div>
+                <div>
+                    <label style="font-size:12px; color:var(--gray); margin-bottom:5px; display:block;">Contact Number</label>
+                    <input type="text" id="profile-phone" placeholder="Contact Number">
+                </div>
+                <button id="btnUpdateProfile" style="width:100%; margin-top:10px;"><i data-lucide="save"></i> Update Profile</button>
+            </div>
+        </div>
+      </div>
+
       <div class="card">
           <h3 style="margin-top:0"><i data-lucide="megaphone" style="vertical-align:middle; margin-right:8px"></i> Latest Announcements</h3>
           <p style="color:var(--gray); font-size:14px">Welcome to the 2026 Academic Year! Please ensure all your PDF submissions are uploaded via the Assignments tab.</p>
@@ -314,8 +334,8 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-  import { getDatabase, ref, onValue, push, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  import { getDatabase, ref, onValue, push, get, set, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
   const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dv5bsbydu/upload";
   const CLOUDINARY_PRESET = "admin_tlaka";
@@ -356,6 +376,7 @@
   };
 
   let currentQual = null;
+  let learnerId = null;
   let counts = { chat: 0, assign: 0, material: 0 };
   let activeTab = 'home-sec';
   let studentSubmissions = [];
@@ -393,6 +414,7 @@
         snapshot.forEach(child => {
             if (child.val().email.toLowerCase() === user.email.toLowerCase()) {
                 isRegistered = true;
+                learnerId = child.key;
             }
         });
 
@@ -412,6 +434,13 @@
 
   function syncLearner(user) {
     document.getElementById('welcome-msg').textContent = `Hi, ${user.displayName.split(' ')[0]}`;
+    document.getElementById('profile-name').value = user.displayName;
+
+    onValue(ref(db, `learners/${learnerId}`), (snap) => {
+        const data = snap.val();
+        if(data && data.phone) document.getElementById('profile-phone').value = data.phone;
+    });
+
     onValue(ref(db, 'submissions'), snap => {
         studentSubmissions = [];
         const recentList = document.getElementById('recent-submissions-list');
@@ -455,6 +484,24 @@
       });
     });
   }
+
+  document.getElementById('btnUpdateProfile').onclick = async () => {
+    const newName = document.getElementById('profile-name').value;
+    const newPhone = document.getElementById('profile-phone').value;
+    if(!newName) return showModal("Wait!", "Name cannot be empty.", "error");
+
+    try {
+        await updateProfile(auth.currentUser, { displayName: newName });
+        await update(ref(db, `learners/${learnerId}`), { 
+            name: newName,
+            phone: newPhone
+        });
+        showModal("Profile Updated", "Your details have been successfully saved.");
+        document.getElementById('welcome-msg').textContent = `Hi, ${newName.split(' ')[0]}`;
+    } catch (err) {
+        showModal("Error", "Could not update profile.", "error");
+    }
+  };
 
   function loadContent(qual) {
     const curriculum = {
