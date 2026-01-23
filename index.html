@@ -4,9 +4,9 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Learner Portal – My Education</title>
-  <script src="https://unpkg.com/lucide@latest "></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400 ;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     :root {
       --primary: #2563eb; --primary-hover: #1d4ed8; --primary-light: #eff6ff;
       --success: #10b981; --bg: #f8fafc; --card-bg: #ffffff;
@@ -35,11 +35,16 @@
     
     .nav-link { 
       display: flex; align-items: center; padding: 0.8rem 1.2rem; color: var(--gray); text-decoration: none; 
-      font-weight: 500; cursor: pointer; margin: 4px 12px; border-radius: 9999px; font-size: 14px; 
+      font-weight: 500; cursor: pointer; margin: 4px 12px; border-radius: 9999px; font-size: 14px; position: relative;
     }
     .nav-link:hover { background: var(--bg); color: var(--primary); }
     .nav-link.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
     
+    .unread-badge {
+      position: absolute; right: 12px; background: #ef4444; color: white; font-size: 10px;
+      padding: 2px 6px; border-radius: 10px; font-weight: 800; display: none;
+    }
+
     .nav-link i, aside .logo-icon { 
         min-width: 24px; width: 24px; height: 24px; flex-shrink: 0; display: block; color: inherit;
     }
@@ -102,9 +107,8 @@
 
     #auth-screen { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--bg); }
 
-    .status-done {
-      background: var(--success); color: white; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
-    }
+    .status-done { background: var(--success); color: white; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .status-pending { background: #fff7ed; color: #f97316; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid #ffedd5; }
   </style>
 </head>
 <body>
@@ -138,7 +142,10 @@
       <a class="nav-link active" data-target="home-sec"><i data-lucide="home"></i> <span class="nav-text">Dashboard</span></a>
       <a class="nav-link" data-target="course-sec"><i data-lucide="book-open"></i> <span class="nav-text">Materials</span></a>
       <a class="nav-link" data-target="task-sec"><i data-lucide="file-check"></i> <span class="nav-text">Assignments</span></a>
-      <a class="nav-link" data-target="chat-sec"><i data-lucide="message-square"></i> <span class="nav-text">Chatbox</span></a>
+      <a class="nav-link" data-target="chat-sec">
+          <i data-lucide="message-square"></i> <span class="nav-text">Chatbox</span>
+          <span id="unread-count" class="unread-badge">0</span>
+      </a>
       <a class="nav-link" data-target="time-sec"><i data-lucide="calendar"></i> <span class="nav-text">Schedule</span></a>
     </nav>
 
@@ -171,7 +178,7 @@
           </div>
           <div class="stat-card">
               <div class="stat-icon" style="background: var(--success); color: white; opacity: 0.1;"><i data-lucide="message-circle" style="color:var(--success)"></i></div>
-              <div><small style="color:var(--gray)">Chat Messages</small><div id="stat-chats" style="font-weight:700">0</div></div>
+              <div><small style="color:var(--gray)">Total Messages</small><div id="stat-chats" style="font-weight:700">0</div></div>
           </div>
       </div>
 
@@ -194,7 +201,7 @@
     <section id="task-sec" class="content-section">
       <div class="assignment-container">
           <div id="assignments-column">
-              <h3 style="margin-bottom: 1.5rem;">Pending Assignments</h3>
+              <h3 style="margin-bottom: 1.5rem;">Assignments Posted by Lecturer</h3>
               <div id="assignments-list"></div>
           </div>
           <div class="card" id="submission-column">
@@ -221,25 +228,28 @@
 
     <section id="time-sec" class="content-section">
         <div class="card">
-          <h3>Schedule</h3>
-          <table style="width:100%; border-collapse:collapse"><tbody id="timetable-list"></tbody></table>
+          <h3>Your Timetable</h3>
+          <table style="width:100%; border-collapse:collapse">
+              <thead><tr style="text-align:left; color:var(--gray); font-size:12px;"><th style="padding:10px">Day</th><th style="padding:10px">Time</th><th style="padding:10px">Module</th></tr></thead>
+              <tbody id="timetable-list"></tbody>
+          </table>
         </div>
     </section>
   </main>
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js ";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js ";
-  import { getDatabase, ref, onValue, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js ";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  import { getDatabase, ref, onValue, push, serverTimestamp, limitToLast, query } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
 
-  const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dv5bsbydu/upload ";
+  const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dv5bsbydu/upload";
   const CLOUDINARY_PRESET = "dv5bsbydu";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDLvkRwSpd-hbPaDP31pV1H-4N5_Re-_xc",
     authDomain: "learnermanagementsystem-f3b6a.firebaseapp.com",
-    databaseURL: "https://learnermanagementsystem-f3b6a-default-rtdb.firebaseio.com ",
+    databaseURL: "https://learnermanagementsystem-f3b6a-default-rtdb.firebaseio.com",
     projectId: "learnermanagementsystem-f3b6a",
     storageBucket: "learnermanagementsystem-f3b6a.firebasestorage.app",
     messagingSenderId: "173549259244",
@@ -251,9 +261,10 @@
   const db = getDatabase(app);
   lucide.createIcons();
 
-  // ──────────────────────────────────────────────
-  // Sidebar Toggle
-  // ──────────────────────────────────────────────
+  let currentQual = null;
+  let lastSeenMessageCount = 0;
+  let chatActive = false;
+
   const sidebar = document.getElementById('sidebar');
   const toggleBtn = document.getElementById('toggleSidebar');
   const toggleIcon = document.getElementById('toggleIcon');
@@ -270,18 +281,13 @@
       document.getElementById('modal-text').textContent = text;
       document.getElementById('modal-progress').style.display = showProgress ? 'block' : 'none';
       document.getElementById('modal-close-btn').style.display = showProgress ? 'none' : 'block';
-      document.getElementById('modal-icon').innerHTML = type === 'success' ? '<i data-lucide="check-circle" style="color:var(--success); width:48px; height:48px;"></i>' : type === 'loading' ? '<i data-lucide="loader" class="spin" style="color:var(--primary); width:48px; height:48px;"></i>' : '<i data-lucide="alert-circle" style="color:#ef4444; width:48px; height:48px;"></i>';
+      document.getElementById('modal-icon').innerHTML = type === 'success' ? '<i data-lucide="check-circle" style="color:var(--success); width:48px; height:48px;"></i>' : type === 'loading' ? '<i data-lucide="loader" style="color:var(--primary); width:48px; height:48px; animation: spin 1s linear infinite;"></i>' : '<i data-lucide="alert-circle" style="color:#ef4444; width:48px; height:48px;"></i>';
       overlay.style.display = 'flex';
       lucide.createIcons();
   }
   window.closeModal = () => document.getElementById('modal-overlay').style.display = 'none';
 
   document.getElementById('themeToggle').onclick = () => document.body.classList.toggle('dark-mode');
-
-  // ──────────────────────────────────────────────
-  // Main auth & data sync
-  // ──────────────────────────────────────────────
-  let currentQual = null;
 
   onAuthStateChanged(auth, user => {
     document.getElementById('auth-screen').style.display = user ? 'none' : 'flex';
@@ -291,11 +297,13 @@
 
   function syncLearner(user) {
     document.getElementById('welcome-msg').textContent = `Hi, ${user.displayName.split(' ')[0]}`;
+    
+    // Real-time Chat Sync & Notification Logic
     onValue(ref(db, 'chats'), snap => {
         const box = document.getElementById('chat-messages'); box.innerHTML = '';
-        let count = 0;
+        let totalCount = 0;
         snap.forEach(c => {
-            count++;
+            totalCount++;
             const d = c.val(); 
             const isMe = d.uid === user.uid;
             const time = d.ts ? new Date(d.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
@@ -306,10 +314,28 @@
                 <small>${time}</small>
               </div>`;
         });
-        document.getElementById('stat-chats').textContent = count;
+
+        // Show pop up if new message arrives and user isn't in chat
+        if (totalCount > lastSeenMessageCount && lastSeenMessageCount !== 0 && !chatActive) {
+            showModal("New Message", "You have received a new message in the Campus Broadcast Chat.", "success");
+        }
+
+        if (!chatActive) {
+            const unread = totalCount - lastSeenMessageCount;
+            const badge = document.getElementById('unread-count');
+            if (unread > 0) {
+                badge.textContent = unread;
+                badge.style.display = 'block';
+            }
+        } else {
+            lastSeenMessageCount = totalCount;
+        }
+
+        document.getElementById('stat-chats').textContent = totalCount;
         box.scrollTop = box.scrollHeight;
     });
 
+    // Sync Learner Enrollment
     onValue(ref(db, 'learners'), snap => {
       snap.forEach(c => { 
         if(c.val().email.toLowerCase() === user.email.toLowerCase()) {
@@ -334,7 +360,7 @@
 
     onValue(ref(db, 'materials'), snap => {
       const list = document.getElementById('materials-list'); list.innerHTML = '';
-      snap.forEach(c => { if(c.val().qual === qual) list.innerHTML += `<tr><td style="padding:15px; border-bottom:1px solid var(--border)"><b>${c.val().title}</b></td><td><a href="${c.val().link}" target="_blank">Download</a></td></tr>`; });
+      snap.forEach(c => { if(c.val().qual === qual) list.innerHTML += `<tr><td style="padding:15px; border-bottom:1px solid var(--border)"><b>${c.val().title}</b></td><td style="text-align:right"><a href="${c.val().link}" target="_blank" style="text-decoration:none; color:var(--primary); font-weight:600">Download</a></td></tr>`; });
     });
 
     onValue(ref(db, 'assignments'), snap => {
@@ -352,11 +378,11 @@
             list.innerHTML += `
               <div class="card" id="assign-${title.replace(/\s+/g,'-')}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
                 <div>
-                  <b>${title}</b><br>
-                  <small>Due: ${due}</small>
+                  <b style="font-size:15px">${title}</b><br>
+                  <small style="color:var(--gray)">Due: ${due}</small>
                 </div>
                 <div style="display:flex; align-items:center; gap:16px;">
-                  <a href="${fileUrl}" target="_blank" style="color:var(--primary); font-size:12px; font-weight:700">DOWNLOAD</a>
+                  <a href="${fileUrl}" target="_blank" style="color:var(--primary); font-size:11px; font-weight:800; text-decoration:none; border: 1px solid var(--primary); padding: 4px 10px; border-radius: 6px;">VIEW TASK</a>
                   <span class="status-pending">Pending</span>
                 </div>
               </div>`;
@@ -369,13 +395,14 @@
 
     onValue(ref(db, 'timetable'), snap => {
         const list = document.getElementById('timetable-list'); list.innerHTML = '';
-        snap.forEach(c => { list.innerHTML += `<tr><td style="padding:10px"><b>${c.val().day}</b></td><td>${c.val().time}</td><td>${c.val().subject}</td></tr>`; });
+        snap.forEach(c => { 
+            if(c.val().qual === qual || !c.val().qual) {
+                list.innerHTML += `<tr><td style="padding:12px; border-bottom:1px solid var(--border)"><b>${c.val().day}</b></td><td style="padding:12px; border-bottom:1px solid var(--border)">${c.val().time}</td><td style="padding:12px; border-bottom:1px solid var(--border)">${c.val().subject}</td></tr>`; 
+            }
+        });
     });
   }
 
-  // ──────────────────────────────────────────────
-  // File upload & submission
-  // ──────────────────────────────────────────────
   const fileInput = document.getElementById('pdfFile');
   document.getElementById('btnBrowse').onclick = () => fileInput.click();
   fileInput.onchange = () => { 
@@ -409,13 +436,9 @@
               timestamp: serverTimestamp() 
             });
 
-            // Mark assignment as done in UI
             const safeId = task.replace(/\s+/g, '-');
             const el = document.getElementById(`assign-${safeId}`);
-            if (el) {
-              el.querySelector('.status-pending').outerHTML = 
-                '<span class="status-done">Done</span>';
-            }
+            if (el) { el.querySelector('.status-pending').outerHTML = '<span class="status-done">Done</span>'; }
 
             showModal("Success!", "Assignment Submitted Successfully!");
             fileInput.value = ""; 
@@ -427,9 +450,6 @@
     xhr.send(formData);
   };
 
-  // ──────────────────────────────────────────────
-  // Chat send
-  // ──────────────────────────────────────────────
   document.getElementById('btnSendChat').onclick = async () => {
     const input = document.getElementById('chatInput');
     if(input.value.trim()) {
@@ -443,18 +463,35 @@
     }
   };
 
-  // Navigation
   document.querySelectorAll('.nav-link').forEach(link => {
     link.onclick = () => {
       document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
       link.classList.add('active');
       document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-      document.getElementById(link.dataset.target).classList.add('active');
+      
+      const target = link.dataset.target;
+      document.getElementById(target).classList.add('active');
+
+      if (target === 'chat-sec') {
+          chatActive = true;
+          const badge = document.getElementById('unread-count');
+          badge.style.display = 'none';
+          badge.textContent = '0';
+          // Reset last seen count to current total
+          const currentTotal = parseInt(document.getElementById('stat-chats').textContent) || 0;
+          lastSeenMessageCount = currentTotal;
+      } else {
+          chatActive = false;
+      }
     };
   });
 
   document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
   document.getElementById('logoutBtn').onclick = () => signOut(auth);
 </script>
+
+<style>
+@keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
 </body>
 </html>
