@@ -172,6 +172,18 @@
     .live-clock-container { text-align: right; }
     #header-time { font-size: 1.5rem; font-weight: 800; color: var(--text-main); line-height: 1; }
     #header-date { font-size: 0.875rem; color: var(--gray); font-weight: 500; margin-top: 4px; }
+
+    /* Announcement styles */
+    .announcement-item {
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .announcement-item:last-child { border-bottom: none; }
+    .announcement-meta {
+      font-size: 0.8125rem;
+      color: var(--gray);
+      margin-top: 0.5rem;
+    }
   </style>
 </head>
 <body>
@@ -216,6 +228,7 @@
 
     <nav>
       <a class="nav-link active" data-target="home-sec"><i data-lucide="home"></i> <span class="nav-text">Dashboard</span></a>
+      <a class="nav-link" data-target="announce-sec"><i data-lucide="megaphone"></i> <span class="nav-text">Announcements</span><span id="badge-announce" class="unread-badge">!</span></a>
       <a class="nav-link" data-target="course-sec"><i data-lucide="book-open"></i> <span class="nav-text">Materials</span><span id="badge-materials" class="unread-badge">!</span></a>
       <a class="nav-link" data-target="task-sec"><i data-lucide="file-check"></i> <span class="nav-text">Assignments</span><span id="badge-assignments" class="unread-badge">!</span></a>
       <a class="nav-link" data-target="chat-sec"><i data-lucide="message-square"></i> <span class="nav-text">Chatbox</span><span id="unread-count" class="unread-badge">0</span></a>
@@ -256,6 +269,11 @@
           </div>
       </div>
 
+      <div class="card" style="margin-bottom: 2rem;">
+          <h3 style="margin-top:0"><i data-lucide="megaphone" style="vertical-align:middle; margin-right:8px"></i> Latest Announcements</h3>
+          <div id="home-announcements-list" style="max-height: 320px; overflow-y: auto;"></div>
+      </div>
+
       <div class="assignment-container">
         <div>
             <h3 style="margin-bottom:1rem">Registered Modules</h3>
@@ -276,10 +294,12 @@
             </div>
         </div>
       </div>
+    </section>
 
+    <section id="announce-sec" class="content-section">
       <div class="card">
-          <h3 style="margin-top:0"><i data-lucide="megaphone" style="vertical-align:middle; margin-right:8px"></i> Latest Announcements</h3>
-          <p style="color:var(--gray); font-size:14px">Welcome to the 2026 Academic Year! Please ensure all your PDF submissions are uploaded via the Assignments tab.</p>
+        <h3>All Announcements</h3>
+        <div id="announcements-list"></div>
       </div>
     </section>
 
@@ -377,7 +397,7 @@
 
   let currentQual = null;
   let learnerId = null;
-  let counts = { chat: 0, assign: 0, material: 0 };
+  let counts = { chat: 0, assign: 0, material: 0, announce: 0 };
   let activeTab = 'home-sec';
   let studentSubmissions = [];
 
@@ -483,25 +503,52 @@
         }
       });
     });
+
+    // ── New: Announcements listener ────────────────────────────────────────
+    onValue(ref(db, 'announcements'), snap => {
+      const homeList = document.getElementById('home-announcements-list');
+      const fullList = document.getElementById('announcements-list');
+      homeList.innerHTML = '';
+      fullList.innerHTML = '';
+
+      let total = 0;
+      const items = [];
+
+      snap.forEach(c => {
+        total++;
+        const d = c.val();
+        const time = d.timestamp ? new Date(d.timestamp).toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }) : 'Just now';
+        
+        const html = `
+          <div class="announcement-item">
+            <div style="font-weight:600; margin-bottom:0.35rem;">${d.title || 'Announcement'}</div>
+            <div style="white-space: pre-wrap; line-height:1.45;">${d.message || d.text || ''}</div>
+            <div class="announcement-meta">Posted ${time} ${d.author ? 'by ' + d.author : ''}</div>
+          </div>`;
+
+        items.push({ html, ts: d.timestamp || 0 });
+      });
+
+      // Sort newest first
+      items.sort((a,b) => b.ts - a.ts);
+
+      const recent = items.slice(0, 4); // show 4 latest on dashboard
+      recent.forEach(i => homeList.innerHTML += i.html);
+      items.forEach(i => fullList.innerHTML += i.html);
+
+      if (total > counts.announce && counts.announce !== 0 && activeTab !== 'announce-sec') {
+        showModal("New Announcement", "The administration/lecturer posted a new notice.", "success");
+        document.getElementById('badge-announce').style.display = 'block';
+      }
+      counts.announce = total;
+
+      if (total === 0) {
+        const msg = '<p style="text-align:center; padding:2rem; color:var(--gray);">No announcements at this time.</p>';
+        homeList.innerHTML = msg;
+        fullList.innerHTML = msg;
+      }
+    });
   }
-
-  document.getElementById('btnUpdateProfile').onclick = async () => {
-    const newName = document.getElementById('profile-name').value;
-    const newPhone = document.getElementById('profile-phone').value;
-    if(!newName) return showModal("Wait!", "Name cannot be empty.", "error");
-
-    try {
-        await updateProfile(auth.currentUser, { displayName: newName });
-        await update(ref(db, `learners/${learnerId}`), { 
-            name: newName,
-            phone: newPhone
-        });
-        showModal("Profile Updated", "Your details have been successfully saved.");
-        document.getElementById('welcome-msg').textContent = `Hi, ${newName.split(' ')[0]}`;
-    } catch (err) {
-        showModal("Error", "Could not update profile.", "error");
-    }
-  };
 
   function loadContent(qual) {
     const curriculum = {
