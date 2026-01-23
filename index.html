@@ -49,10 +49,34 @@
         min-width: 24px; width: 24px; height: 24px; flex-shrink: 0; display: block; color: inherit;
     }
 
+    /* MODERN TOGGLE BUTTON */
     #toggleSidebar {
-        position: absolute; right: -12px; top: 25px; background: var(--primary); color: white;
-        border: none; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center;
-        justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 110;
+        position: absolute;
+        right: -12px;
+        top: 24px;
+        background: var(--card-bg);
+        color: var(--primary);
+        border: 1px solid var(--border);
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        z-index: 110;
+        transition: all 0.2s ease;
+    }
+    #toggleSidebar:hover {
+        background: var(--primary);
+        color: white;
+        transform: scale(1.1);
+    }
+    #toggleIcon {
+        width: 16px;
+        height: 16px;
+        transition: transform 0.3s ease;
     }
 
     main { flex: 1; overflow-y: auto; padding: 2.5rem; display: flex; flex-direction: column; }
@@ -107,12 +131,12 @@
     #auth-screen { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--bg); }
 
     .status-done { background: var(--success); color: white; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-    .status-pending { background: #fff7ed; color: #f97316; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid #ffedd5; }
+    .status-pending { background: #fff7ed; color: #f97316; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; border: 1px solid #ffedd5; }
     
     @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
-<body class="">
+<body>
 
 <div id="modal-overlay">
     <div class="modal-box">
@@ -134,7 +158,7 @@
 
 <div class="layout" id="main-app" style="display:none">
   <aside id="sidebar">
-    <button id="toggleSidebar"><i data-lucide="chevron-left" id="toggleIcon"></i></button>
+    <button id="toggleSidebar"><i data-lucide="panel-left-close" id="toggleIcon"></i></button>
     <div style="padding: 0 1.5rem 1.5rem; font-weight: 800; color: var(--primary); font-size: 1.25rem; display: flex; align-items: center;">
         <i data-lucide="layers" class="logo-icon"></i> <span class="logo-text">LMS Learner</span>
     </div>
@@ -293,10 +317,12 @@
   const sidebar = document.getElementById('sidebar');
   const toggleBtn = document.getElementById('toggleSidebar');
   const toggleIcon = document.getElementById('toggleIcon');
+
   toggleBtn.onclick = () => {
       sidebar.classList.toggle('collapsed');
       const isCollapsed = sidebar.classList.contains('collapsed');
-      toggleIcon.setAttribute('data-lucide', isCollapsed ? 'chevron-right' : 'chevron-left');
+      toggleIcon.setAttribute('data-lucide', isCollapsed ? 'panel-left-open' : 'panel-left-close');
+      toggleIcon.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
       lucide.createIcons();
   };
 
@@ -321,7 +347,6 @@
   function syncLearner(user) {
     document.getElementById('welcome-msg').textContent = `Hi, ${user.displayName.split(' ')[0]}`;
     
-    // Listen to personal submissions
     onValue(ref(db, 'submissions'), snap => {
         studentSubmissions = [];
         const recentList = document.getElementById('recent-submissions-list');
@@ -355,7 +380,6 @@
         box.scrollTop = box.scrollHeight;
     });
 
-    // FIND LEARNER'S QUALIFICATION IN THE 'learners' NODE
     onValue(ref(db, 'learners'), snap => {
       let found = false;
       snap.forEach(c => { 
@@ -381,7 +405,6 @@
     document.getElementById('stat-mods').textContent = mods.length;
     document.getElementById('module-grid').innerHTML = mods.map(m => `<div class="module-card"><h3>${m}</h3><p>2026 Core Module</p></div>`).join('');
 
-    // Load Materials
     onValue(ref(db, 'materials'), snap => {
       const list = document.getElementById('materials-list'); list.innerHTML = '';
       let total = 0;
@@ -399,7 +422,6 @@
       if(total === 0) list.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px; color:var(--gray)">No materials available.</td></tr>';
     });
 
-    // Load Assignments
     onValue(ref(db, 'assignments'), snap => {
       const list = document.getElementById('assignments-list'); 
       const sel = document.getElementById('submit-task-name');
@@ -412,7 +434,6 @@
         if(c.val().qual === qual) {
             availableTotal++;
             const title = c.val().title;
-            // Only show in "Posted by Lecturer" if not yet submitted
             if(!studentSubmissions.includes(title)) {
                 pendingTotal++;
                 list.innerHTML += `
@@ -437,7 +458,6 @@
       if(pendingTotal === 0) list.innerHTML = '<p style="color:var(--gray); text-align:center; padding:20px;">All assignments completed!</p>';
     });
 
-    // Load Timetable
     onValue(ref(db, 'timetable'), snap => {
         const list = document.getElementById('timetable-list'); list.innerHTML = '';
         snap.forEach(c => { 
